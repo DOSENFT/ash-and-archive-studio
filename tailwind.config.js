@@ -44,6 +44,12 @@ export default {
         'ember-glow': 'emberGlow 2s ease-in-out infinite',
         'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
         'pulse-slow': 'pulse 3s ease-in-out infinite',
+        'spin-slow': 'spin 60s linear infinite',
+        'breathing': 'breathing 3s ease-in-out infinite',
+        'slide-up': 'slideUp 0.3s ease-out forwards',
+        'slide-down': 'slideDown 0.3s ease-out forwards',
+        'scale-in': 'scaleIn 0.2s ease-out forwards',
+        'check-mark': 'checkMark 0.3s ease-out forwards',
       },
       keyframes: {
         emberRise: {
@@ -57,6 +63,27 @@ export default {
         fadeInUp: {
           '0%': { opacity: '0', transform: 'translateY(20px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        breathing: {
+          '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
+          '50%': { transform: 'scale(1.02)', opacity: '1' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideDown: {
+          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        scaleIn: {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        checkMark: {
+          '0%': { transform: 'scale(0)' },
+          '50%': { transform: 'scale(1.2)' },
+          '100%': { transform: 'scale(1)' },
         },
       },
       backgroundImage: {

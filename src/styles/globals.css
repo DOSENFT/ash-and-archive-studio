@@ -166,6 +166,252 @@
     box-shadow: 0 0 6px 2px rgba(244, 181, 69, 0.6);
   }
 
+  /* Dashboard Card Depths */
+  .card-depth-1 {
+    @apply glass-card;
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.3),
+      0 2px 4px -2px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    transform: scale(1.01);
+  }
+
+  .card-depth-2 {
+    @apply glass-card;
+    box-shadow:
+      0 2px 4px -1px rgba(0, 0, 0, 0.2),
+      0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-depth-3 {
+    @apply bg-void-2/50 border border-white/5 rounded-xl;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Forge Glow - animated inner glow for training elements */
+  .forge-glow {
+    position: relative;
+  }
+
+  .forge-glow::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 20px rgba(244, 181, 69, 0.3);
+    opacity: 0;
+    transition: opacity var(--duration-base) var(--ease-forge);
+    pointer-events: none;
+  }
+
+  .forge-glow:hover::after,
+  .forge-glow.active::after {
+    opacity: 1;
+  }
+
+  /* Ember Progress Bar - gradient fill */
+  .ember-progress {
+    @apply h-2 rounded-full overflow-hidden;
+    background: linear-gradient(90deg, rgba(244, 181, 69, 0.2), rgba(244, 181, 69, 0.1));
+  }
+
+  .ember-progress-fill {
+    @apply h-full rounded-full;
+    background: linear-gradient(90deg, #f4b545, #ff8c00, #f4b545);
+    background-size: 200% 100%;
+    animation: emberShimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes emberShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Metallic Badge */
+  .metallic-badge {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg, #cd7f32, #a0522d, #cd7f32);
+  }
+
+  .metallic-badge-silver {
+    background: linear-gradient(135deg, #c0c0c0, #a8a8a8, #e8e8e8, #a8a8a8);
+  }
+
+  .metallic-badge-gold {
+    background: linear-gradient(135deg, #ffd700, #ffb700, #ffe550, #ffb700);
+  }
+
+  .metallic-badge::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.4) 45%,
+      rgba(255, 255, 255, 0.4) 50%,
+      transparent 55%
+    );
+    animation: metallicShine 3s ease-in-out infinite;
+  }
+
+  @keyframes metallicShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Breathing Glow */
+  .breathing-glow {
+    animation: breathingGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes breathingGlow {
+    0%, 100% {
+      box-shadow: 0 0 10px rgba(61, 210, 255, 0.3);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(61, 210, 255, 0.5);
+      transform: scale(1.02);
+    }
+  }
+
+  /* Orbital Ring */
+  .orbital-ring {
+    animation: orbitalRotate 60s linear infinite;
+  }
+
+  @keyframes orbitalRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Constellation Line */
+  .constellation-line {
+    stroke: rgba(61, 210, 255, 0.3);
+    stroke-width: 1;
+    fill: none;
+    transition: stroke var(--duration-base) var(--ease-forge);
+  }
+
+  .constellation-line:hover {
+    stroke: rgba(61, 210, 255, 0.8);
+  }
+
+  /* Command Palette */
+  .command-palette-backdrop {
+    @apply fixed inset-0 bg-void-0/80 backdrop-blur-sm z-50;
+  }
+
+  .command-palette {
+    @apply fixed top-1/4 left-1/2 -translate-x-1/2 w-full max-w-2xl;
+    @apply bg-void-1 border border-white/10 rounded-2xl overflow-hidden;
+    @apply shadow-2xl;
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .command-palette-input {
+    @apply w-full bg-transparent border-b border-white/10 px-6 py-4;
+    @apply text-lg text-forge-0 placeholder-forge-2;
+    @apply focus:outline-none;
+  }
+
+  .command-palette-results {
+    @apply max-h-80 overflow-y-auto;
+  }
+
+  .command-palette-item {
+    @apply flex items-center gap-4 px-6 py-3 cursor-pointer;
+    @apply text-forge-1 transition-colors duration-fast;
+  }
+
+  .command-palette-item:hover,
+  .command-palette-item.selected {
+    @apply bg-void-2 text-forge-0;
+  }
+
+  .command-palette-item.selected {
+    @apply border-l-2 border-arcane;
+  }
+
+  /* Forge Fire Animation */
+  .forge-fire {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .forge-fire::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to top, #f4b545, #ff6b00, transparent);
+    animation: forgeFireFlicker 2s ease-in-out infinite;
+  }
+
+  @keyframes forgeFireFlicker {
+    0%, 100% { opacity: 0.6; height: 60%; }
+    25% { opacity: 0.8; height: 75%; }
+    50% { opacity: 1; height: 90%; }
+    75% { opacity: 0.7; height: 70%; }
+  }
+
+  /* Pulse Ember (for session day) */
+  .pulse-ember {
+    animation: pulseEmber 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulseEmber {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(244, 181, 69, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 10px rgba(244, 181, 69, 0);
+    }
+  }
+
+  /* Timeline dot */
+  .timeline-dot {
+    @apply w-3 h-3 rounded-full relative;
+  }
+
+  .timeline-dot::after {
+    content: '';
+    @apply absolute inset-0 rounded-full;
+    animation: timelinePulse 2s ease-in-out infinite;
+  }
+
+  @keyframes timelinePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0; }
+  }
+
+  /* Dock item */
+  .dock-item {
+    @apply relative p-3 rounded-xl bg-void-2/50 border border-white/5;
+    @apply transition-all duration-base ease-forge cursor-pointer;
+    @apply hover:bg-void-2 hover:border-white/10 hover:-translate-y-1;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcane;
+  }
+
+  .dock-item:active {
+    @apply scale-95;
+  }
+
+  /* Dragging state */
+  .dragging {
+    @apply opacity-50 scale-105 rotate-2;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .drag-target {
+    @apply ring-2 ring-arcane ring-offset-2 ring-offset-void-0;
+  }
+
   /* Pillar accent colors */
   .pillar-cyan {
     --pillar-color: var(--accent-primary);
