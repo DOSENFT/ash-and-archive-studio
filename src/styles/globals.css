@@ -1,0 +1,222 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Background Scale */
+  --bg-0: #070b10;
+  --bg-1: #0d141d;
+  --bg-2: #141d28;
+
+  /* Accent Colors */
+  --accent-primary: #3dd2ff;
+  --accent-secondary: #8b5cf6;
+  --accent-success: #39d98a;
+  --accent-warning: #f4b545;
+
+  /* Text Scale */
+  --text-0: #f5f7fb;
+  --text-1: #c4ceda;
+  --text-2: #8d98a7;
+
+  /* Motion */
+  --ease-forge: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-enter: 240ms;
+  --duration-complex: 320ms;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-void-0 text-forge-0 font-body antialiased;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold;
+  }
+
+  /* Focus visible styles for accessibility */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-arcane;
+  }
+
+  /* Custom scrollbar for webkit browsers */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-void-0;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-void-2 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-forge-2;
+  }
+}
+
+@layer components {
+  /* Glass morphism card */
+  .glass-card {
+    @apply bg-void-1/80 backdrop-blur-md border border-white/10 rounded-2xl;
+  }
+
+  /* Glowing border effect */
+  .glow-border {
+    position: relative;
+  }
+
+  .glow-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--duration-base) var(--ease-forge);
+  }
+
+  .glow-border:hover::before {
+    opacity: 1;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-8 py-4
+           bg-gradient-to-r from-arcane to-eldritch
+           text-void-0 font-display font-semibold
+           rounded-xl transition-all duration-base ease-forge
+           hover:shadow-[0_0_30px_rgba(61,210,255,0.4)]
+           hover:scale-105 active:scale-100
+           focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcane;
+    min-height: 48px;
+    min-width: 44px;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-8 py-4
+           bg-transparent border border-forge-2
+           text-forge-0 font-display font-semibold
+           rounded-xl transition-all duration-base ease-forge
+           hover:border-arcane hover:text-arcane
+           hover:shadow-[0_0_20px_rgba(61,210,255,0.2)]
+           focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcane;
+    min-height: 48px;
+    min-width: 44px;
+  }
+
+  /* Section container */
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Section padding */
+  .section-padding {
+    @apply py-20 md:py-28 lg:py-32;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-arcane via-eldritch to-arcane bg-clip-text text-transparent;
+    background-size: 200% auto;
+  }
+
+  /* Ember particle */
+  .ember-particle {
+    @apply absolute w-1 h-1 rounded-full bg-ember;
+    filter: blur(1px);
+    box-shadow: 0 0 6px 2px rgba(244, 181, 69, 0.6);
+  }
+
+  /* Pillar accent colors */
+  .pillar-cyan {
+    --pillar-color: var(--accent-primary);
+  }
+
+  .pillar-amber {
+    --pillar-color: var(--accent-warning);
+  }
+
+  .pillar-emerald {
+    --pillar-color: var(--accent-success);
+  }
+
+  .pillar-purple {
+    --pillar-color: var(--accent-secondary);
+  }
+}
+
+@layer utilities {
+  /* Animation delay utilities */
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+
+  .animation-delay-700 {
+    animation-delay: 700ms;
+  }
+
+  .animation-delay-1000 {
+    animation-delay: 1000ms;
+  }
+
+  /* Hide scrollbar utility */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

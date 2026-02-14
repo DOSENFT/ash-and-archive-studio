@@ -1,0 +1,15 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "tailwindCSS.experimental.classRegex": [
+    ["class[Nn]ame\\s*[:=]\\s*['\"`]([^'\"`]*)['\"`]", ""],
+    ["\\b(?:class|className)\\s*=\\s*{?\\s*['\"`]([^'\"`]*)['\"`]", ""]
+  ],
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}
