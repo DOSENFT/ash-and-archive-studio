@@ -27,7 +27,10 @@ export default function Dashboard() {
   const sessionProximity = useSessionProximity(data.nextSession?.date ?? null)
 
   // State for collapsed sidebar (responsive)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed] = useState(false)
+
+  const [completedCommandTasks, setCompletedCommandTasks] = useState(0)
+  const [academyEngagementAfterTask, setAcademyEngagementAfterTask] = useState(0)
 
   // Check for reduced motion preference
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
@@ -47,12 +50,21 @@ export default function Dashboard() {
   }, [setMode])
 
   const handleTaskToggle = useCallback((taskId: string) => {
-    setData(prev => ({
-      ...prev,
-      prepTasks: prev.prepTasks.map(task =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      ),
-    }))
+    setData(prev => {
+      const toggledTask = prev.prepTasks.find(task => task.id === taskId)
+      const willCompleteTask = toggledTask ? !toggledTask.completed : false
+
+      if (willCompleteTask) {
+        setCompletedCommandTasks(current => current + 1)
+      }
+
+      return {
+        ...prev,
+        prepTasks: prev.prepTasks.map(task =>
+          task.id === taskId ? { ...task, completed: !task.completed } : task
+        ),
+      }
+    })
   }, [])
 
   const handleAddTask = useCallback((text: string) => {
@@ -93,16 +105,22 @@ export default function Dashboard() {
 
   const handleContinueTraining = useCallback(() => {
     setMode('training')
+    if (completedCommandTasks > 0) {
+      setAcademyEngagementAfterTask(value => value + 1)
+    }
     console.log('Continue training')
-  }, [setMode])
+  }, [completedCommandTasks, setMode])
 
   const handleSkillClick = useCallback((skillName: string) => {
     console.log('View skill:', skillName)
   }, [])
 
   const handleModuleClick = useCallback((moduleId: string) => {
+    if (completedCommandTasks > 0) {
+      setAcademyEngagementAfterTask(value => value + 1)
+    }
     console.log('Start module:', moduleId)
-  }, [])
+  }, [completedCommandTasks])
 
   const handleActivityClick = useCallback((activityId: string) => {
     console.log('View activity:', activityId)
@@ -122,8 +140,24 @@ export default function Dashboard() {
 
   // Determine layout based on mode and session proximity
   const showExpandedSessionNexus = mode === 'prep' || sessionProximity.proximity === 'today' || sessionProximity.proximity === 'imminent'
-  const showExpandedForge = mode === 'training'
   const showExpandedWorldPulse = mode === 'world'
+  const hasUrgentCommandTasks = data.prepTasks.some(task => !task.completed)
+
+  const getRecommendedTrainingNeed = useCallback(() => {
+    const firstIncompleteTask = data.prepTasks.find(task => !task.completed)
+    const taskText = firstIncompleteTask?.text.toLowerCase() ?? ''
+
+    if (taskText.includes('voice') || taskText.includes('npc')) return 'Character voice delivery for key NPC scenes'
+    if (taskText.includes('combat') || taskText.includes('encounter')) return 'Pacing encounters under pressure'
+    if (taskText.includes('handout') || taskText.includes('letter') || taskText.includes('lore')) return 'Storytelling clarity for handoff moments'
+
+    const currentArc = data.activeCampaign?.currentArc.toLowerCase() ?? ''
+    if (currentArc.includes('siege') || currentArc.includes('war')) return 'High-stakes scene framing and tension control'
+
+    return 'Adaptive improvisation for live campaign pivots'
+  }, [data.activeCampaign?.currentArc, data.prepTasks])
+
+  const recommendedTrainingNeed = getRecommendedTrainingNeed()
 
   return (
     <div className="min-h-screen bg-void-0 flex flex-col">
@@ -183,40 +217,35 @@ export default function Dashboard() {
                 onPlotThreadClick={handlePlotThreadClick}
               />
 
-              {/* Two Column Grid - Forge + World Pulse */}
+              {/* Command Modules */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* The Forge */}
-                <div className={`${showExpandedForge ? 'md:col-span-2' : ''}`}>
-                  <TheForge
-                    training={data.training}
-                    onContinueTraining={handleContinueTraining}
-                    onSkillClick={handleSkillClick}
-                    onModuleClick={handleModuleClick}
-                  />
-                </div>
-
                 {/* World Pulse */}
-                {!showExpandedForge && (
-                  <div className={`${showExpandedWorldPulse ? 'md:col-span-2' : ''} min-h-[400px]`}>
-                    <WorldPulse
-                      activities={data.worldActivity}
-                      onActivityClick={handleActivityClick}
-                      onQuickEdit={handleQuickEdit}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* World Pulse when Forge is expanded */}
-              {showExpandedForge && (
-                <div className="min-h-[300px]">
+                <div className={`${showExpandedWorldPulse ? 'md:col-span-2' : ''} min-h-[400px]`}>
                   <WorldPulse
                     activities={data.worldActivity}
                     onActivityClick={handleActivityClick}
                     onQuickEdit={handleQuickEdit}
                   />
                 </div>
-              )}
+              </div>
+
+              {/* Academy Layer (lower priority placement) */}
+              <div>
+                <TheForge
+                  training={data.training}
+                  hasUrgentCommandTasks={hasUrgentCommandTasks}
+                  recommendedTrainingNeed={recommendedTrainingNeed}
+                  completedCommandTasks={completedCommandTasks}
+                  onContinueTraining={handleContinueTraining}
+                  onSkillClick={handleSkillClick}
+                  onModuleClick={handleModuleClick}
+                />
+                {academyEngagementAfterTask > 0 && (
+                  <p className="text-xs text-forge-2 mt-2 px-1">
+                    Academy engagements after command completion: {academyEngagementAfterTask}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
