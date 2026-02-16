@@ -9,8 +9,11 @@ import Pricing from '../components/landing/Pricing'
 import FAQ from '../components/landing/FAQ'
 import FinalCTA from '../components/landing/FinalCTA'
 import Footer from '../components/landing/Footer'
+import { useInteractionProfiler } from '../hooks'
 
 export default function LandingPage() {
+  useInteractionProfiler({ label: 'Landing page interactions' })
+
   return (
     <div className="min-h-screen bg-void-0">
       {/* Skip link for accessibility */}

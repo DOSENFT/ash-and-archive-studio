@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import InteractiveCTA from './InteractiveCTA'
 
 const faqs = [
   {
@@ -145,15 +146,18 @@ export default function FAQ() {
           <p className="text-forge-1 mb-4">
             Still have questions? We'd love to hear from you.
           </p>
-          <a
-            href="#"
-            className="inline-flex items-center gap-2 text-arcane hover:text-forge-0 transition-colors duration-base font-medium"
+          <InteractiveCTA
+            variant="ghost"
+            state="blocked"
+            blockedLabel="Direct support link is coming soon"
+            className="px-5 py-3 text-arcane hover:text-forge-0"
+            aria-label="Direct support link unavailable"
           >
             Contact Support
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
-          </a>
+          </InteractiveCTA>
         </div>
       </div>
     </section>

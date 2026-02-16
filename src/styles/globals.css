@@ -20,7 +20,15 @@
   --text-2: #8d98a7;
 
   /* Motion */
-  --ease-forge: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-hover: cubic-bezier(0.2, 0, 0, 1);
+  --ease-press: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-expand: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-transition: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-forge: var(--ease-transition);
+  --duration-hover: 120ms;
+  --duration-press: 90ms;
+  --duration-expand: 240ms;
+  --duration-transition: 320ms;
   --duration-fast: 120ms;
   --duration-base: 180ms;
   --duration-enter: 240ms;
@@ -84,6 +92,112 @@
 }
 
 @layer components {
+  .ambient-accent {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 9999px;
+    filter: blur(48px);
+    opacity: 0.14;
+    transform: translateZ(0);
+  }
+
+  .ambient-accent--arcane {
+    background: radial-gradient(circle, rgba(61, 210, 255, 0.55) 0%, rgba(61, 210, 255, 0) 70%);
+  }
+
+  .ambient-accent--ember {
+    background: radial-gradient(circle, rgba(244, 181, 69, 0.6) 0%, rgba(244, 181, 69, 0) 72%);
+  }
+
+  .ambient-accent--verdant {
+    background: radial-gradient(circle, rgba(57, 217, 138, 0.55) 0%, rgba(57, 217, 138, 0) 72%);
+  }
+
+  .ambient-accent--eldritch {
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.5) 0%, rgba(139, 92, 246, 0) 72%);
+  }
+
+  .interactive-cta {
+    @apply inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-display font-semibold;
+    min-height: 48px;
+    min-width: 44px;
+    transition-property: transform, opacity, box-shadow, color, background-color, border-color;
+    transition-duration: var(--duration-transition);
+    transition-timing-function: var(--ease-transition);
+    will-change: transform, opacity;
+  }
+
+  .interactive-cta:hover {
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+  }
+
+  .interactive-cta[data-pressed='true'] {
+    transform: scale(0.97);
+    transition-duration: var(--duration-press);
+    transition-timing-function: var(--ease-press);
+  }
+
+  .interactive-cta[data-state='loading'] {
+    cursor: progress;
+  }
+
+  .interactive-cta[data-state='success'] {
+    transform: translateY(-1px);
+  }
+
+  .interactive-cta[data-state='blocked'] {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+
+  .interactive-cta--primary {
+    @apply bg-gradient-to-r from-arcane to-eldritch text-void-0;
+    box-shadow: 0 10px 30px -20px rgba(61, 210, 255, 0.85);
+  }
+
+  .interactive-cta--primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px -18px rgba(61, 210, 255, 0.75);
+  }
+
+  .interactive-cta--ghost {
+    @apply bg-transparent border border-forge-2 text-forge-0;
+  }
+
+  .interactive-cta--ghost:hover {
+    @apply border-arcane text-arcane;
+    background-color: rgba(20, 29, 40, 0.6);
+  }
+
+  .interactive-cta__label {
+    @apply inline-flex items-center gap-2;
+  }
+
+  .interactive-cta__status {
+    @apply inline-flex items-center justify-center;
+    width: 1rem;
+    height: 1rem;
+    opacity: 0;
+    transform: scale(0.75);
+    transition-property: opacity, transform;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+  }
+
+  .interactive-cta[data-state='loading'] .interactive-cta__status,
+  .interactive-cta[data-state='success'] .interactive-cta__status,
+  .interactive-cta[data-state='blocked'] .interactive-cta__status {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .interactive-cta__spinner {
+    width: 1rem;
+    height: 1rem;
+    animation: spin 700ms linear infinite;
+  }
+
   /* Glass morphism card */
   .glass-card {
     @apply bg-void-1/80 backdrop-blur-md border border-white/10 rounded-2xl;
@@ -123,8 +237,9 @@
            bg-gradient-to-r from-arcane to-eldritch
            text-void-0 font-display font-semibold
            rounded-xl transition-all duration-base ease-forge
-           hover:shadow-[0_0_30px_rgba(61,210,255,0.4)]
-           hover:scale-105 active:scale-100
+           hover:-translate-y-0.5
+           hover:shadow-[0_10px_28px_-18px_rgba(61,210,255,0.75)]
+           active:scale-[0.98]
            focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcane;
     min-height: 48px;
     min-width: 44px;
@@ -137,7 +252,8 @@
            text-forge-0 font-display font-semibold
            rounded-xl transition-all duration-base ease-forge
            hover:border-arcane hover:text-arcane
-           hover:shadow-[0_0_20px_rgba(61,210,255,0.2)]
+           hover:bg-void-2/70
+           hover:-translate-y-0.5
            focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arcane;
     min-height: 48px;
     min-width: 44px;
@@ -388,6 +504,43 @@
   @keyframes timelinePulse {
     0%, 100% { transform: scale(1); opacity: 1; }
     50% { transform: scale(1.5); opacity: 0; }
+  }
+
+  /* Shimmer animation for skeleton loading */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Scale in animation for modals/dialogs */
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Fade in up animation */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Gradient text animation */
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 
   /* Dock item */

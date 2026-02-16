@@ -11,5 +11,22 @@
   ],
   "files.associations": {
     "*.css": "tailwindcss"
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/dist/**": true,
+    "**/.claude/**": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/package-lock.json": true
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true
   }
 }

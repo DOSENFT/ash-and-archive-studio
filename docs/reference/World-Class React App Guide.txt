@@ -1,0 +1,310 @@
+# World-Class React App Guide (Elite Production Spec)
+
+## 0) Executive Intent
+- Build a **Silicon Valley–grade React platform** that feels premium, fast, safe, and durable under scale.
+- Optimize for:
+  - **Trust** (security + reliability)
+  - **Speed** (runtime + team throughput)
+  - **Elegance** (design system consistency)
+  - **Leverage** (maintainability + extensibility)
+- Constraint-aware execution: treat budget as finite ("\>$20" baseline), prioritize compounding investments first.
+
+---
+
+## 1) Product Bar (Definition of “World-Class”)
+A release is not “world-class” unless it hits all categories:
+
+### 1.1 User Experience
+- Time-to-interactive perceived as instant on modern phones/laptops.
+- Zero confusing flows for top-10 user journeys.
+- Accessibility first: keyboard, screen reader, contrast, reduced-motion.
+- Mobile-first and touch-first ergonomics.
+
+### 1.2 Engineering Quality
+- Typed boundaries, explicit contracts, deterministic behavior.
+- Test pyramid in place (unit + integration + E2E + visual regression).
+- No “magic” state coupling or hidden side effects.
+- Observability and alerting for every critical flow.
+
+### 1.3 Security and Governance
+- Threat modeling before implementation.
+- Least-privilege authZ/authN enforced in every layer.
+- Secrets never committed; keys rotated; audit logs immutable.
+- Secure SDLC gates pass before deployment.
+
+### 1.4 Operational Excellence
+- SLO/SLI defined and monitored.
+- Reproducible CI/CD with rollback strategy.
+- On-call playbooks for incident classes.
+- Cost telemetry and performance budgets enforced.
+
+---
+
+## 2) Core Architecture Blueprint
+
+### 2.1 Frontend Stack (Recommended)
+- React + TypeScript + Vite (or Next.js where SSR/SEO is required)
+- State strategy:
+  - Server/cache state: React Query / TanStack Query
+  - Local UI state: component state first, context only where needed
+  - Global client state (sparingly): Zustand/Redux Toolkit with selectors
+- Routing: React Router (or Next app router)
+- Design system: tokens + primitives + patterns (Storybook)
+- Forms: React Hook Form + Zod schema validation
+- Data contracts: OpenAPI/GraphQL codegen clients
+
+### 2.2 Backend + Platform (Reference)
+- API gateway + typed service layer.
+- Postgres for relational core; Redis for ephemeral/cache workloads.
+- Object storage for media.
+- Queue/event bus for async jobs.
+- CDN + WAF in front of edge traffic.
+
+### 2.3 Modular Project Shape (DDD-Oriented)
+```txt
+src/
+  app/                  # App shell, providers, bootstrapping
+  domains/
+    work-orders/
+      ui/
+      hooks/
+      services/
+      model/
+      tests/
+    fleet/
+    pm/
+  shared/
+    ui/
+    lib/
+    api/
+    types/
+  infrastructure/
+    telemetry/
+    auth/
+    config/
+```
+
+---
+
+## 3) Security-First Delivery Model
+
+### 3.1 Security Baseline (Mandatory)
+- Enforce MFA/SSO for all privileged users.
+- RBAC/ABAC with explicit policy map.
+- CSP, strict headers, secure cookie strategy, CSRF protections.
+- Input validation at all trust boundaries.
+- Dependency + container scanning in CI.
+- Signed artifacts, provenance, and pinned build environments.
+
+### 3.2 AppSec Controls by Lifecycle
+- **Plan:** threat model + abuse case workshop.
+- **Build:** SAST, secrets scanning, linting security rules.
+- **Test:** DAST, permission tests, fuzzing critical endpoints.
+- **Release:** gated deploy requires security checks green.
+- **Operate:** runtime anomaly detection + rapid key rotation playbooks.
+
+### 3.3 Data Protection
+- Data classification (public/internal/confidential/restricted).
+- Encrypt in transit + at rest.
+- Tenant isolation guarantees where applicable.
+- Audit logging with tamper resistance and retention policy.
+
+---
+
+## 4) Elite UI/UX System (Modern + Elegant)
+
+### 4.1 Visual Language
+- 8px grid, consistent spacing scale, typographic rhythm.
+- Semantic color tokens (not hardcoded component colors).
+- Motion system with purpose: feedback, hierarchy, orientation.
+- “Calm interface” principle: reduce visual noise, increase clarity.
+
+### 4.2 Interaction Design Requirements
+- Every action has clear affordance, progress state, and confirmation.
+- Loading states use skeletons over spinners whenever possible.
+- Error states are actionable and recoverable.
+- Optimistic updates where rollback can be deterministic.
+
+### 4.3 Accessibility as Core Quality
+- WCAG 2.2 AA baseline.
+- Focus management for dialogs/sheets/nav changes.
+- Semantic HTML first, ARIA only where needed.
+- Screen-reader QA scenarios built into acceptance criteria.
+
+---
+
+## 5) Performance Engineering Standard
+
+### 5.1 Performance Budgets
+- JS payload, route chunk size, image weight budgets per screen.
+- P95 interaction latency targets for critical flows.
+- P95 API latency budget per endpoint category.
+
+### 5.2 Runtime Strategy
+- Route-level code splitting + component-level lazy loading.
+- Prioritize above-the-fold content.
+- Aggressive caching with stale-while-revalidate patterns.
+- Virtualization for large tables/lists.
+
+### 5.3 Anti-Regression Guardrails
+- CI performance checks on bundle changes.
+- Synthetic monitoring for top journeys.
+- Profiling in pre-prod before feature flags go wide.
+
+---
+
+## 6) Engineering Practices (Senior-Grade)
+
+### 6.1 Code Quality
+- TypeScript strict mode and no implicit any.
+- ESLint + Prettier with team-enforced rules.
+- Architectural lint rules to prevent cross-domain leakage.
+
+### 6.2 Testing Strategy
+- Unit tests for pure logic and hook behavior.
+- Integration tests for domain flows.
+- E2E tests for mission-critical paths.
+- Visual snapshot tests for key components.
+- Contract tests for API boundaries.
+
+### 6.3 Reliability Patterns
+- Idempotent writes, retries with jitter, circuit breakers.
+- Feature flags for progressive rollouts.
+- Error boundaries and graceful degradation paths.
+
+---
+
+## 7) Architecture and Scaling Playbook
+
+### 7.1 Domain-Driven Delivery
+- Organize by business capability, not by framework layer.
+- Domain ownership map + service boundaries.
+- Explicit anti-corruption layers for legacy integrations.
+
+### 7.2 Separate Business Logic from UI
+- Keep domain logic in services/use-cases, not components.
+- UI components remain declarative and composable.
+- Side effects isolated in adapters/hooks.
+
+### 7.3 Hook Factories
+- Create reusable hook factories to standardize fetch/mutation patterns.
+- Inject dependencies (API clients, telemetry) for testability.
+- Co-locate domain hooks with domain models.
+
+---
+
+## 8) Tooling and Observability
+
+### 8.1 Developer Tooling
+- Monorepo or modular repo with clear package boundaries.
+- Fast local dev feedback loops (hot reload + typed checks).
+- Pre-commit hooks for lint/type/test sanity.
+
+### 8.2 Profiling & Diagnostics
+- React DevTools Profiler for render cost.
+- Browser Performance panel for long tasks/layout shifts.
+- Session replay + tracing correlation for production incidents.
+
+### 8.3 AI-Assisted Optimization
+- Use AI-assisted runtime analysis carefully with privacy controls.
+- Feed profiling artifacts (flame charts, traces, render logs) to identify hotspots.
+- Validate AI suggestions with reproducible benchmark runs.
+
+---
+
+## 9) Required Insert: Common React Native Performance Issues
+
+### Common React Native Performance Issues
+- **Unnecessary Renders:** One Redditor shared how an AI tool helped them discover 10,000 unnecessary renders in just 12 seconds, caused by issues like Zustand store thrashing and hidden components. “My React Native app had 0 crashes, no complaints… until I gave Claude eyes.”
+- **Vibe Coding:** Many developers point to “vibe coding”—writing code without a deep understanding of React's lifecycle hooks and state management—as a major cause of performance problems. “Vibe coding without understanding lifecycle hooks or proper state management.”
+- **State Management Issues:** High-level state can trigger wide re-renders across the component tree, even when only a small part of the state has changed. “state living higher than necessary, triggering wide re-renders”
+
+### Optimization Techniques
+- **Code Splitting and Lazy Loading:** Reduce the initial load time by splitting your code into smaller chunks and loading them only when needed. “Don’t download more code than needed at that specific moment”
+- **Virtualization:** For long lists, use virtualization to render only the visible items, significantly improving performance. “Virtualize rendering of long lists”
+- **Memoization:** Use `useMemo`, `useCallback`, and `memo` to prevent unnecessary re-renders of components and functions. “Memoization is useful, but it seems to work best after the underlying data flow is clear.”
+- **Proper State Management:** Ensure that state is defined as low in the component tree as possible to minimize the scope of re-renders. “State should be defined as late in the tree as possible.”
+
+### Development Practices
+- **TypeScript:** Use TypeScript to catch errors early and improve code maintainability, especially in large applications. “Use typescript”
+- **ESLint and Prettier:** Enforce consistent coding standards and practices with tools like ESLint and Prettier. “setup ESLint/prettier with a solid basic rule set”
+- **Testing:** Implement comprehensive testing strategies, including unit, integration, and end-to-end tests, to prevent regressions. “Preventing regressions”
+
+### Architecture and Scaling
+- **Domain-Driven Design:** Organize your project by business requirements rather than technologies to improve modularity and scalability. “Group by business requirements, not technologies.”
+- **Separate Business Logic:** Keep business logic separate from UI components to improve reusability and testability. “business and application logic is separated from your UI.”
+- **Hook Factories:** Use hook factories to create reusable and composable hooks, reducing code duplication. “Hook factories.”
+
+### Tooling
+- **Profiling Tools:** Utilize React Developer Tools and other profiling tools to identify performance bottlenecks. “I’ve noticed this while profiling a few React apps.”
+- **AI-Powered Tools:** Consider using AI tools to analyze runtime data and suggest optimizations. “I built an MCP server that streams live runtime data... into Claude Code.”
+
+### Communities for Further Help
+- `r/reactnative`
+- `r/reactjs`
+- `r/expo`
+
+These communities are great places to ask for advice, share your experiences, and get help with specific issues from other developers.
+
+---
+
+## 10) CI/CD + Deployment Strategy (Fully Managed)
+
+### 10.1 Pipeline Stages
+1. Validate: lint, typecheck, unit tests.
+2. Secure: SAST, secrets, dependency scan.
+3. Verify: integration/E2E/perf smoke.
+4. Build: immutable artifacts with SBOM.
+5. Deploy: canary or blue/green with auto-rollback.
+6. Observe: post-deploy SLO watch window.
+
+### 10.2 Release Governance
+- Every release ties to changelog + risk profile.
+- Feature flags decouple deploy from release.
+- Rollback runbook tested quarterly.
+
+### 10.3 Environment Matrix
+- Dev → QA → Staging → Production with promotion gates.
+- Parity across environments for config and infra drift minimization.
+
+---
+
+## 11) Future-Readiness (12–36 Month Horizon)
+- Introduce server components/edge rendering where cost-benefit is proven.
+- Adopt design token automation across web/mobile.
+- Move toward event-driven architecture for complex workflows.
+- Expand AI copilots for support, triage, and anomaly explanation.
+- Add product analytics maturity: funnels, cohorts, retention diagnostics.
+
+---
+
+## 12) Risk Register (Don’t Miss These)
+- Over-centralized state causing invisible performance regressions.
+- Inconsistent design primitives leading to UX entropy.
+- Weak authZ checks in “internal-only” features.
+- Unbounded retry storms during partial outages.
+- Alert fatigue from low-quality telemetry.
+- “Fast now, brittle later” shortcuts in core domain models.
+
+---
+
+## 13) Delivery Checklist (Go-Live Gate)
+- [ ] Threat model complete and accepted.
+- [ ] SLO/SLI baselines defined and monitored.
+- [ ] Full test suite passing with critical-path E2E.
+- [ ] Performance budgets pass on target devices.
+- [ ] Accessibility acceptance criteria validated.
+- [ ] Rollback + incident runbook dry-run complete.
+- [ ] Docs updated for architecture, operations, and support.
+
+---
+
+## 14) Practical Budget Framing (>$20 Baseline)
+If budget is only marginally above $20 (very constrained):
+- Prioritize: TypeScript strictness, linting, test harness, security headers, basic CI.
+- Delay: high-end animation systems, complex microfrontend decomposition.
+
+If budget scales upward:
+- Invest first in design system, observability, platform automation, and security hardening.
+- Then optimize advanced performance and developer platform ergonomics.
+

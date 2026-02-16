@@ -34,11 +34,11 @@ export default function Transformation() {
     >
       {/* Background accents */}
       <div
-        className="absolute top-1/2 left-0 w-64 h-64 rounded-full blur-3xl opacity-10 bg-verdant -translate-y-1/2"
+        className="ambient-accent ambient-accent--verdant top-1/2 left-0 w-56 h-56 -translate-y-1/2"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-5 bg-arcane"
+        className="ambient-accent ambient-accent--arcane bottom-0 right-0 w-72 h-72"
         aria-hidden="true"
       />
 

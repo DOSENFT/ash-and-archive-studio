@@ -45,3 +45,11 @@ coverage/
 # Misc
 *.tsbuildinfo
 .eslintcache
+
+# Windows artifacts
+nul
+*.bat
+desktop.ini
+
+# Claude Code
+.claude/

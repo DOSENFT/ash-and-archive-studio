@@ -1,3 +1,5 @@
+import InteractiveCTA from './InteractiveCTA'
+
 const credentials = [
   'RADA-inspired voice techniques',
   'Juilliard improvisation frameworks',
@@ -20,11 +22,11 @@ export default function TrainingPhilosophy() {
 
       {/* Decorative elements */}
       <div
-        className="absolute top-20 right-10 w-64 h-64 rounded-full blur-3xl opacity-10 bg-verdant"
+        className="ambient-accent ambient-accent--verdant top-20 right-10 w-56 h-56"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-20 left-10 w-80 h-80 rounded-full blur-3xl opacity-5 bg-arcane"
+        className="ambient-accent ambient-accent--arcane bottom-20 left-10 w-72 h-72"
         aria-hidden="true"
       />
 
@@ -137,12 +139,9 @@ export default function TrainingPhilosophy() {
               </div>
 
               {/* CTA */}
-              <a
-                href="#pricing"
-                className="mt-8 block w-full btn-primary text-center"
-              >
+              <InteractiveCTA href="#pricing" className="mt-8 w-full justify-center">
                 Start Training
-              </a>
+              </InteractiveCTA>
             </div>
           </aside>
         </div>

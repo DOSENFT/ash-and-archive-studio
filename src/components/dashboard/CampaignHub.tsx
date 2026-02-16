@@ -1,8 +1,12 @@
+import { useEffect } from 'react'
 import { Campaign, PlotThread } from '../../data/mockDashboardData'
 import { DashboardCard } from './shared'
+import { trackEvent } from '../../lib/analytics'
 
 interface CampaignHubProps {
   campaign: Campaign | null
+  onOpenWorldBuilder: () => void | Promise<void>
+  onOpenCampaignBuilder: () => void | Promise<void>
   onNewSession: () => void
   onViewCampaign: () => void
   onViewWorldMap: () => void
@@ -39,11 +43,28 @@ function StatBadge({ label, value, color }: StatBadgeProps) {
 
 export default function CampaignHub({
   campaign,
+  onOpenWorldBuilder,
+  onOpenCampaignBuilder,
   onNewSession,
   onViewCampaign,
   onViewWorldMap,
   onPlotThreadClick,
 }: CampaignHubProps) {
+  // Track CTA impressions when campaign is available
+  useEffect(() => {
+    if (!campaign) return
+
+    trackEvent('home_cta_impression', {
+      ctaId: 'open_world_builder',
+      placement: 'dashboard_home',
+    })
+    trackEvent('home_cta_impression', {
+      ctaId: 'open_campaign_builder',
+      placement: 'dashboard_home',
+      unresolvedConflicts: campaign.unresolvedLoreConflicts,
+    })
+  }, [campaign])
+
   if (!campaign) {
     return (
       <DashboardCard depth={1} padding="lg" className="relative overflow-hidden">
@@ -65,6 +86,33 @@ export default function CampaignHub({
 
   const activeThreads = campaign.plotThreads.filter(t => t.status === 'active')
   const otherThreads = campaign.plotThreads.filter(t => t.status !== 'active')
+  const handoffLabel = `${campaign.unresolvedLoreConflicts} unresolved lore-to-campaign conflicts`
+
+  const handleOpenWorldBuilder = async () => {
+    trackEvent('home_cta_click', {
+      ctaId: 'open_world_builder',
+      placement: 'dashboard_home',
+    })
+    await onOpenWorldBuilder()
+    trackEvent('home_cta_completion', {
+      ctaId: 'open_world_builder',
+      placement: 'dashboard_home',
+    })
+  }
+
+  const handleOpenCampaignBuilder = async () => {
+    trackEvent('home_cta_click', {
+      ctaId: 'open_campaign_builder',
+      placement: 'dashboard_home',
+      unresolvedConflicts: campaign.unresolvedLoreConflicts,
+    })
+    await onOpenCampaignBuilder()
+    trackEvent('home_cta_completion', {
+      ctaId: 'open_campaign_builder',
+      placement: 'dashboard_home',
+      unresolvedConflicts: campaign.unresolvedLoreConflicts,
+    })
+  }
 
   return (
     <DashboardCard depth={1} padding="none" className="relative overflow-hidden">
@@ -101,48 +149,90 @@ export default function CampaignHub({
             </p>
           </div>
 
-          {/* Quick Actions */}
-          <div className="flex gap-2">
-            <button
-              onClick={onNewSession}
-              className="
-                px-4 py-2 rounded-lg
-                bg-gradient-to-r from-arcane/20 to-eldritch/20
-                border border-arcane/30
-                text-arcane text-sm font-medium
-                hover:from-arcane/30 hover:to-eldritch/30
-                transition-all duration-base ease-forge
-              "
-            >
-              New Session
-            </button>
-            <button
-              onClick={onViewCampaign}
-              className="
-                px-4 py-2 rounded-lg
-                bg-void-2/50 border border-white/10
-                text-forge-1 text-sm font-medium
-                hover:bg-void-2 hover:text-forge-0
-                transition-all duration-base ease-forge
-              "
-            >
-              View
-            </button>
-            <button
-              onClick={onViewWorldMap}
-              className="
-                p-2 rounded-lg
-                bg-void-2/50 border border-white/10
-                text-forge-1
-                hover:bg-void-2 hover:text-forge-0
-                transition-all duration-base ease-forge
-              "
-              aria-label="World Map"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-            </button>
+          {/* CTA Hierarchy */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            {/* Primary & Secondary CTAs with handoff cue */}
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              {/* Primary CTA: Open World Builder */}
+              <button
+                onClick={handleOpenWorldBuilder}
+                className="
+                  px-5 py-2.5 rounded-lg
+                  bg-arcane text-void-0
+                  text-sm font-semibold
+                  hover:bg-arcane/90 hover:shadow-lg hover:shadow-arcane/25
+                  active:scale-[0.98]
+                  transition-all duration-base ease-forge
+                "
+              >
+                Open World Builder
+              </button>
+
+              {/* State-aware handoff cue */}
+              {campaign.unresolvedLoreConflicts > 0 && (
+                <div className="text-[11px] text-forge-2 px-2.5 py-1.5 border border-white/10 rounded-full whitespace-nowrap">
+                  {handoffLabel}
+                </div>
+              )}
+
+              {/* Secondary CTA: Open Campaign Builder */}
+              <button
+                onClick={handleOpenCampaignBuilder}
+                className="
+                  px-5 py-2.5 rounded-lg
+                  bg-transparent border border-white/20
+                  text-forge-0 text-sm font-medium
+                  hover:bg-white/5 hover:border-white/30
+                  active:scale-[0.98]
+                  transition-all duration-base ease-forge
+                "
+              >
+                Open Campaign Builder
+              </button>
+            </div>
+
+            {/* Tertiary Actions (de-emphasized) */}
+            <div className="flex items-center gap-1.5 ml-0 sm:ml-2">
+              <button
+                onClick={onNewSession}
+                className="
+                  px-3 py-2 rounded-lg
+                  bg-void-2/40 border border-white/10
+                  text-forge-2 text-xs font-medium
+                  hover:bg-void-2/60 hover:text-forge-1
+                  transition-all duration-base ease-forge
+                "
+              >
+                New Session
+              </button>
+              <button
+                onClick={onViewCampaign}
+                className="
+                  px-3 py-2 rounded-lg
+                  bg-void-2/40 border border-white/10
+                  text-forge-2 text-xs font-medium
+                  hover:bg-void-2/60 hover:text-forge-1
+                  transition-all duration-base ease-forge
+                "
+              >
+                View
+              </button>
+              <button
+                onClick={onViewWorldMap}
+                className="
+                  p-2 rounded-lg
+                  bg-void-2/40 border border-white/10
+                  text-forge-2
+                  hover:bg-void-2/60 hover:text-forge-1
+                  transition-all duration-base ease-forge
+                "
+                aria-label="World Map"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 

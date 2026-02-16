@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState, type KeyboardEvent } from 'react'
 
 const pillars = [
   {
@@ -121,7 +121,39 @@ const pillars = [
 
 export default function FourPillars() {
   const [activeTab, setActiveTab] = useState(pillars[0].id)
-  const activePillar = pillars.find((p) => p.id === activeTab) || pillars[0]
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
+
+  const activateTabAt = (index: number) => {
+    const normalized = (index + pillars.length) % pillars.length
+    const tab = pillars[normalized]
+    setActiveTab(tab.id)
+    tabRefs.current[normalized]?.focus()
+  }
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault()
+      activateTabAt(index + 1)
+      return
+    }
+
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      activateTabAt(index - 1)
+      return
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault()
+      activateTabAt(0)
+      return
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault()
+      activateTabAt(pillars.length - 1)
+    }
+  }
 
   return (
     <section
@@ -152,15 +184,25 @@ export default function FourPillars() {
         </div>
 
         {/* Tab navigation */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12" role="tablist" aria-label="Feature pillars">
-          {pillars.map((pillar) => (
+        <div
+          className="flex flex-wrap justify-center gap-2 mb-12"
+          role="tablist"
+          aria-label="Feature pillars"
+          aria-orientation="horizontal"
+        >
+          {pillars.map((pillar, index) => (
             <button
               key={pillar.id}
               role="tab"
               aria-selected={activeTab === pillar.id}
               aria-controls={`panel-${pillar.id}`}
               id={`tab-${pillar.id}`}
+              tabIndex={activeTab === pillar.id ? 0 : -1}
+              ref={(element) => {
+                tabRefs.current[index] = element
+              }}
               onClick={() => setActiveTab(pillar.id)}
+              onKeyDown={(event) => handleTabKeyDown(event, index)}
               className={`
                 flex items-center gap-2 px-4 py-3 rounded-xl font-display font-medium
                 transition-all duration-base ease-forge
@@ -242,16 +284,17 @@ export default function FourPillars() {
                   </div>
                   {/* Decorative glow */}
                   <div
-                    className={`absolute -inset-4 rounded-3xl blur-2xl opacity-20 -z-10`}
+                    className="absolute -inset-4 rounded-3xl -z-10"
                     style={{
-                      backgroundColor:
+                      background:
                         pillar.color === 'cyan'
-                          ? '#3dd2ff'
+                          ? 'radial-gradient(circle, rgba(61,210,255,0.42) 0%, rgba(61,210,255,0) 72%)'
                           : pillar.color === 'amber'
-                          ? '#f4b545'
+                          ? 'radial-gradient(circle, rgba(244,181,69,0.44) 0%, rgba(244,181,69,0) 72%)'
                           : pillar.color === 'emerald'
-                          ? '#39d98a'
-                          : '#8b5cf6',
+                          ? 'radial-gradient(circle, rgba(57,217,138,0.42) 0%, rgba(57,217,138,0) 72%)'
+                          : 'radial-gradient(circle, rgba(139,92,246,0.42) 0%, rgba(139,92,246,0) 72%)',
+                      filter: 'blur(30px)',
                     }}
                     aria-hidden="true"
                   />

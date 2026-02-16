@@ -251,3 +251,39 @@ The foundation is solid. The dashboard implements the full "Director's Sanctum" 
 The landing page remains untouched and beautiful.
 
 **Next session:** Focus on polish, responsive design, and connecting to real data.
+
+---
+
+## Feature Architecture V1 — February 15, 2026
+
+**Document:** `FEATURE_ARCHITECTURE_V1.md`
+
+A comprehensive feature ideation session produced a strategic blueprint for the Four Pillars:
+
+1. **World Building Engine** — City builder, dungeon designer, faction graphs, climate modeling
+2. **Campaign Building** — Story spine, visual timeline, session planner, NPC relationship web
+3. **DM Training Academy** — Ludolang-inspired hierarchy (Path→Module→Lesson→Exercise), voice recording, gamification
+4. **The Toy Method** — Modular NPC/Location/Encounter/Lore generators with combination system
+
+**Key Decisions:**
+- Client-side storage (localStorage + IndexedDB) until revenue
+- Zustand for state management
+- World Anvil OAuth + two-way sync
+- AI Tier 1: Client-side Markov chains + pre-bundled suggestions ($0)
+- AI Tier 2: Cloudflare Workers edge functions (post-revenue)
+- Security: Magic link auth, CSP headers, DOMPurify
+
+**Phased Rollout:**
+- Phase 1 (Weeks 1-8): MVP — $0/month
+- Phase 2 (Weeks 9-16): Enhancement — <$5/month
+- Phase 3 (Weeks 17-24): Scale — <$15/month
+
+**Implementation Priority:**
+1. Storage abstraction layer
+2. Extend TypeScript interfaces
+3. Toy system expansion
+4. Training modules
+5. Campaign tools
+6. World building
+7. World Anvil sync
+8. AI enhancements
