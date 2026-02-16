@@ -1,8 +1,12 @@
+import { useEffect } from 'react'
 import { Campaign, PlotThread } from '../../data/mockDashboardData'
 import { DashboardCard } from './shared'
+import { trackEvent } from '../../lib/analytics'
 
 interface CampaignHubProps {
   campaign: Campaign | null
+  onOpenWorldBuilder: () => void | Promise<void>
+  onOpenCampaignBuilder: () => void | Promise<void>
   onNewSession: () => void
   onViewCampaign: () => void
   onViewWorldMap: () => void
@@ -39,11 +43,29 @@ function StatBadge({ label, value, color }: StatBadgeProps) {
 
 export default function CampaignHub({
   campaign,
+  onOpenWorldBuilder,
+  onOpenCampaignBuilder,
   onNewSession,
   onViewCampaign,
   onViewWorldMap,
   onPlotThreadClick,
 }: CampaignHubProps) {
+  useEffect(() => {
+    if (!campaign) {
+      return
+    }
+
+    trackEvent('home_cta_impression', {
+      ctaId: 'open_world_builder',
+      placement: 'dashboard_home',
+    })
+    trackEvent('home_cta_impression', {
+      ctaId: 'open_campaign_builder',
+      placement: 'dashboard_home',
+      unresolvedConflicts: campaign.unresolvedLoreConflicts,
+    })
+  }, [campaign])
+
   if (!campaign) {
     return (
       <DashboardCard depth={1} padding="lg" className="relative overflow-hidden">
@@ -65,6 +87,34 @@ export default function CampaignHub({
 
   const activeThreads = campaign.plotThreads.filter(t => t.status === 'active')
   const otherThreads = campaign.plotThreads.filter(t => t.status !== 'active')
+
+  const handoffLabel = `${campaign.unresolvedLoreConflicts} unresolved lore-to-campaign conflicts`
+
+  const handleOpenWorldBuilder = async () => {
+    trackEvent('home_cta_click', {
+      ctaId: 'open_world_builder',
+      placement: 'dashboard_home',
+    })
+    await onOpenWorldBuilder()
+    trackEvent('home_cta_completion', {
+      ctaId: 'open_world_builder',
+      placement: 'dashboard_home',
+    })
+  }
+
+  const handleOpenCampaignBuilder = async () => {
+    trackEvent('home_cta_click', {
+      ctaId: 'open_campaign_builder',
+      placement: 'dashboard_home',
+      unresolvedConflicts: campaign.unresolvedLoreConflicts,
+    })
+    await onOpenCampaignBuilder()
+    trackEvent('home_cta_completion', {
+      ctaId: 'open_campaign_builder',
+      placement: 'dashboard_home',
+      unresolvedConflicts: campaign.unresolvedLoreConflicts,
+    })
+  }
 
   return (
     <DashboardCard depth={1} padding="none" className="relative overflow-hidden">
@@ -102,15 +152,34 @@ export default function CampaignHub({
           </div>
 
           {/* Quick Actions */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-start">
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <button
+                onClick={handleOpenWorldBuilder}
+                className="btn-primary text-sm px-5 py-2.5"
+              >
+                Open World Builder
+              </button>
+
+              <div className="text-[11px] text-forge-2 px-2 py-1 border border-white/10 rounded-full">
+                {handoffLabel}
+              </div>
+
+              <button
+                onClick={handleOpenCampaignBuilder}
+                className="btn-ghost text-sm px-5 py-2.5"
+              >
+                Open Campaign Builder
+              </button>
+            </div>
+
             <button
               onClick={onNewSession}
               className="
-                px-4 py-2 rounded-lg
-                bg-gradient-to-r from-arcane/20 to-eldritch/20
-                border border-arcane/30
-                text-arcane text-sm font-medium
-                hover:from-arcane/30 hover:to-eldritch/30
+                px-3 py-2 rounded-lg
+                bg-void-2/40 border border-white/10
+                text-forge-2 text-xs font-medium
+                hover:bg-void-2/60 hover:text-forge-1
                 transition-all duration-base ease-forge
               "
             >
@@ -119,10 +188,10 @@ export default function CampaignHub({
             <button
               onClick={onViewCampaign}
               className="
-                px-4 py-2 rounded-lg
-                bg-void-2/50 border border-white/10
-                text-forge-1 text-sm font-medium
-                hover:bg-void-2 hover:text-forge-0
+                px-3 py-2 rounded-lg
+                bg-void-2/40 border border-white/10
+                text-forge-2 text-xs font-medium
+                hover:bg-void-2/60 hover:text-forge-1
                 transition-all duration-base ease-forge
               "
             >
@@ -132,9 +201,9 @@ export default function CampaignHub({
               onClick={onViewWorldMap}
               className="
                 p-2 rounded-lg
-                bg-void-2/50 border border-white/10
-                text-forge-1
-                hover:bg-void-2 hover:text-forge-0
+                bg-void-2/40 border border-white/10
+                text-forge-2
+                hover:bg-void-2/60 hover:text-forge-1
                 transition-all duration-base ease-forge
               "
               aria-label="World Map"

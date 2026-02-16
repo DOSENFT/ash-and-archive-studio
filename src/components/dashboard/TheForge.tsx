@@ -1,4 +1,4 @@
-import { Training, Skill, Achievement, TrainingModule } from '../../data/mockDashboardData'
+import { Training, Skill, TrainingModule } from '../../data/mockDashboardData'
 import { DashboardCard, ForgeProgressBar, AchievementBadge } from './shared'
 
 interface TheForgeProps {

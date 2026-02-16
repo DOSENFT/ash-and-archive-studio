@@ -121,7 +121,6 @@ const pillars = [
 
 export default function FourPillars() {
   const [activeTab, setActiveTab] = useState(pillars[0].id)
-  const activePillar = pillars.find((p) => p.id === activeTab) || pillars[0]
 
   return (
     <section

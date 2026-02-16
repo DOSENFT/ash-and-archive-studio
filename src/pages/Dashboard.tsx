@@ -27,7 +27,7 @@ export default function Dashboard() {
   const sessionProximity = useSessionProximity(data.nextSession?.date ?? null)
 
   // State for collapsed sidebar (responsive)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed] = useState(false)
 
   // Check for reduced motion preference
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
@@ -77,6 +77,14 @@ export default function Dashboard() {
 
   const handleNewSession = useCallback(() => {
     console.log('Create new session')
+  }, [])
+
+  const handleOpenWorldBuilder = useCallback(() => {
+    console.log('Open world builder')
+  }, [])
+
+  const handleOpenCampaignBuilder = useCallback(() => {
+    console.log('Open campaign builder')
   }, [])
 
   const handleViewCampaign = useCallback(() => {
@@ -177,6 +185,8 @@ export default function Dashboard() {
               {/* Campaign Hub - Hero Card */}
               <CampaignHub
                 campaign={data.activeCampaign}
+                onOpenWorldBuilder={handleOpenWorldBuilder}
+                onOpenCampaignBuilder={handleOpenCampaignBuilder}
                 onNewSession={handleNewSession}
                 onViewCampaign={handleViewCampaign}
                 onViewWorldMap={handleViewWorldMap}
