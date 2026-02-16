@@ -67,6 +67,7 @@ export interface Campaign {
   name: string
   artUrl: string
   currentArc: string
+  unresolvedLoreConflicts: number
   stats: {
     sessions: number
     npcs: number
@@ -154,6 +155,7 @@ export function getMockDashboardData(): DashboardData {
       name: 'The Shattered Crown',
       artUrl: '/campaigns/shattered-crown.jpg',
       currentArc: 'The Siege of Ironhaven',
+      unresolvedLoreConflicts: 3,
       stats: {
         sessions: 24,
         npcs: 47,
