@@ -1,3 +1,5 @@
+import InteractiveCTA from './InteractiveCTA'
+
 const features = [
   {
     icon: (
@@ -92,15 +94,17 @@ export default function WorldAnvilIntegration() {
 
             {/* CTA */}
             <div className="mt-10 flex flex-wrap gap-4">
-              <a href="#pricing" className="btn-primary">
+              <InteractiveCTA href="#pricing">
                 Connect Your World
-              </a>
-              <a
-                href="#"
-                className="btn-ghost"
+              </InteractiveCTA>
+              <InteractiveCTA
+                variant="ghost"
+                state="blocked"
+                blockedLabel="World Anvil integration guide is coming soon"
+                aria-label="Learn more unavailable"
               >
                 Learn More
-              </a>
+              </InteractiveCTA>
             </div>
           </div>
 

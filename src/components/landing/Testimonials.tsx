@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from 'react'
 
 const testimonials = [
   {
@@ -48,6 +48,7 @@ const trustBadges = [
 export default function Testimonials() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
+  const dotRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % testimonials.length)
@@ -56,6 +57,39 @@ export default function Testimonials() {
   const prevSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
   }, [])
+
+  const activateSlide = useCallback((index: number, shouldFocus = false) => {
+    const normalized = (index + testimonials.length) % testimonials.length
+    setCurrentIndex(normalized)
+    if (shouldFocus) {
+      dotRefs.current[normalized]?.focus()
+    }
+  }, [])
+
+  const handleDotKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault()
+      activateSlide(index + 1, true)
+      return
+    }
+
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      activateSlide(index - 1, true)
+      return
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault()
+      activateSlide(0, true)
+      return
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault()
+      activateSlide(testimonials.length - 1, true)
+    }
+  }
 
   // Auto-advance carousel
   useEffect(() => {
@@ -75,7 +109,7 @@ export default function Testimonials() {
     >
       {/* Background accents */}
       <div
-        className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-5 bg-eldritch"
+        className="ambient-accent ambient-accent--eldritch top-0 left-1/4 w-72 h-72"
         aria-hidden="true"
       />
 
@@ -101,12 +135,19 @@ export default function Testimonials() {
           className="relative max-w-4xl mx-auto mb-16"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
+          onFocus={() => setIsPaused(true)}
+          onBlur={(event) => {
+            const nextFocus = event.relatedTarget as Node | null
+            if (!event.currentTarget.contains(nextFocus)) {
+              setIsPaused(false)
+            }
+          }}
           role="region"
           aria-roledescription="carousel"
           aria-label="Testimonials carousel"
         >
           {/* Testimonial card */}
-          <div className="glass-card p-8 md:p-12 text-center">
+          <div id="testimonial-panel" className="glass-card p-8 md:p-12 text-center" aria-live="polite">
             {/* Quote icon */}
             <div className="flex justify-center mb-6">
               <svg
@@ -155,14 +196,21 @@ export default function Testimonials() {
             </button>
 
             {/* Dots */}
-            <div className="flex gap-2" role="tablist" aria-label="Testimonial slides">
+            <div className="flex gap-2" role="tablist" aria-label="Testimonial slides" aria-orientation="horizontal">
               {testimonials.map((_, index) => (
                 <button
                   key={index}
                   role="tab"
                   aria-selected={index === currentIndex}
+                  aria-controls="testimonial-panel"
+                  id={`testimonial-tab-${index}`}
                   aria-label={`Go to testimonial ${index + 1}`}
-                  onClick={() => setCurrentIndex(index)}
+                  tabIndex={index === currentIndex ? 0 : -1}
+                  ref={(element) => {
+                    dotRefs.current[index] = element
+                  }}
+                  onClick={() => activateSlide(index)}
+                  onKeyDown={(event) => handleDotKeyDown(event, index)}
                   className={`w-2.5 h-2.5 rounded-full transition-all duration-base ${
                     index === currentIndex
                       ? 'bg-eldritch w-8'

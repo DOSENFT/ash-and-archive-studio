@@ -70,7 +70,7 @@ export default function PainPoints() {
     >
       {/* Background accent */}
       <div
-        className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-10 bg-ember"
+        className="ambient-accent ambient-accent--ember top-0 right-0 w-72 h-72"
         aria-hidden="true"
       />
 

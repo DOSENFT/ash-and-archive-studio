@@ -1,13 +1,16 @@
 import { useState } from 'react'
+import InteractiveCTA, { type CTAState } from './InteractiveCTA'
 
 export default function FinalCTA() {
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const hasEmail = email.trim().length > 0
+  const ctaState: CTAState = isSubmitting ? 'loading' : hasEmail ? 'idle' : 'blocked'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email) return
+    if (!hasEmail) return
 
     setIsSubmitting(true)
     // Simulate API call
@@ -18,6 +21,7 @@ export default function FinalCTA() {
 
   return (
     <section
+      id="final-cta"
       className="section-padding relative overflow-hidden"
       aria-labelledby="final-cta-heading"
     >
@@ -84,39 +88,16 @@ export default function FinalCTA() {
                 required
                 className="flex-1 px-6 py-4 rounded-xl bg-void-2 border border-white/10 text-forge-0 placeholder:text-forge-2 focus:outline-none focus:ring-2 focus:ring-arcane focus:border-transparent transition-all duration-base"
               />
-              <button
+              <InteractiveCTA
                 type="submit"
-                disabled={isSubmitting}
-                className="btn-primary whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                state={ctaState}
+                flashSuccessOnClick={false}
+                loadingLabel="Joining The Studio"
+                blockedLabel="Enter an email before continuing"
+                className="whitespace-nowrap"
               >
-                {isSubmitting ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    Joining...
-                  </>
-                ) : (
-                  'Enter The Studio'
-                )}
-              </button>
+                {isSubmitting ? 'Joining...' : 'Enter The Studio'}
+              </InteractiveCTA>
             </div>
             <p className="text-sm text-forge-2 mt-4">
               Free 14-day trial. No credit card required.

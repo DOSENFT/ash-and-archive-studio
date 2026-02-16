@@ -1,3 +1,5 @@
+import InteractiveCTA from './InteractiveCTA'
+
 const tiers = [
   {
     name: 'Ember',
@@ -92,11 +94,11 @@ export default function Pricing() {
 
       {/* Decorative elements */}
       <div
-        className="absolute top-1/4 left-0 w-96 h-96 rounded-full blur-3xl opacity-10 bg-eldritch"
+        className="ambient-accent ambient-accent--eldritch top-1/4 left-0 w-72 h-72"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-1/4 right-0 w-96 h-96 rounded-full blur-3xl opacity-10 bg-arcane"
+        className="ambient-accent ambient-accent--arcane bottom-1/4 right-0 w-80 h-80"
         aria-hidden="true"
       />
 
@@ -201,20 +203,18 @@ export default function Pricing() {
               </ul>
 
               {/* CTA */}
-              <a
-                href="#"
-                className={`
-                  block w-full text-center py-4 px-6 rounded-xl font-display font-semibold
-                  transition-all duration-base ease-forge
-                  ${
-                    tier.recommended
-                      ? 'bg-gradient-to-r from-arcane to-eldritch text-void-0 hover:shadow-[0_0_30px_rgba(61,210,255,0.4)] hover:scale-105'
-                      : `border ${tier.borderClass} ${tier.colorClass} hover:bg-void-2`
-                  }
-                `}
+              <InteractiveCTA
+                href="#final-cta"
+                variant={tier.recommended ? 'primary' : 'ghost'}
+                aria-label={`${tier.cta} for the ${tier.name} plan`}
+                className={
+                  tier.recommended
+                    ? 'w-full justify-center'
+                    : `w-full justify-center border ${tier.borderClass} ${tier.colorClass} hover:text-forge-0`
+                }
               >
                 {tier.cta}
-              </a>
+              </InteractiveCTA>
             </article>
           ))}
         </div>
