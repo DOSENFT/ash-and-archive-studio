@@ -1,12 +1,17 @@
-import { Campaign, PlotThread } from '../../data/mockDashboardData'
+import { useMemo, useState } from 'react'
+import { Campaign, CampaignCanonItem, PlotThread, WorldCanonFact } from '../../data/mockDashboardData'
 import { DashboardCard } from './shared'
 
 interface CampaignHubProps {
   campaign: Campaign | null
+  worldCanonFacts: WorldCanonFact[]
+  campaignCanonItems: CampaignCanonItem[]
+  unresolvedConflictCount: number
   onNewSession: () => void
   onViewCampaign: () => void
   onViewWorldMap: () => void
   onPlotThreadClick: (threadId: string) => void
+  onResolveConflict: (campaignItemId: string) => void
 }
 
 const statusColors: Record<PlotThread['status'], { bg: string; text: string; dot: string }> = {
@@ -39,11 +44,32 @@ function StatBadge({ label, value, color }: StatBadgeProps) {
 
 export default function CampaignHub({
   campaign,
+  worldCanonFacts,
+  campaignCanonItems,
+  unresolvedConflictCount,
   onNewSession,
   onViewCampaign,
   onViewWorldMap,
   onPlotThreadClick,
+  onResolveConflict,
 }: CampaignHubProps) {
+  const [selectedConflictItemId, setSelectedConflictItemId] = useState<string | null>(null)
+
+  const selectedConflictItem = useMemo(
+    () => campaignCanonItems.find(item => item.id === selectedConflictItemId),
+    [campaignCanonItems, selectedConflictItemId]
+  )
+
+  const selectedWorldFact = useMemo(() => {
+    if (!selectedConflictItem?.conflict) return null
+    return worldCanonFacts.find(fact => fact.id === selectedConflictItem.conflict?.worldFactId) ?? null
+  }, [selectedConflictItem, worldCanonFacts])
+
+  const worldFactsById = useMemo<Map<string, WorldCanonFact>>(() => {
+    const entries = worldCanonFacts.map((fact): [string, WorldCanonFact] => [fact.id, fact])
+    return new Map(entries)
+  }, [worldCanonFacts])
+
   if (!campaign) {
     return (
       <DashboardCard depth={1} padding="lg" className="relative overflow-hidden">
@@ -89,6 +115,9 @@ export default function CampaignHub({
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs text-arcane uppercase tracking-wider font-medium">Active Campaign</span>
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-ember/15 text-ember border border-ember/40">
+                {unresolvedConflictCount} unresolved conflict{unresolvedConflictCount === 1 ? '' : 's'}
+              </span>
             </div>
             <h2 className="text-2xl md:text-3xl font-display font-bold text-forge-0 mb-1">
               {campaign.name}
@@ -155,7 +184,7 @@ export default function CampaignHub({
         </div>
 
         {/* Plot Threads */}
-        <div>
+        <div className="mb-5">
           <h3 className="text-sm font-medium text-forge-1 mb-3 flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -190,6 +219,60 @@ export default function CampaignHub({
           </div>
         </div>
 
+        {/* Canon Boundary Layer */}
+        <div className="rounded-xl border border-white/10 bg-void-2/30 p-4">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <h3 className="text-sm font-medium text-forge-0">Canon Boundary Layer</h3>
+            <div className="flex items-center gap-2 text-[11px] text-forge-2">
+              <span className="px-2 py-0.5 rounded bg-arcane/15 text-arcane border border-arcane/30">World Canon</span>
+              <span className="px-2 py-0.5 rounded bg-eldritch/15 text-eldritch border border-eldritch/30">Campaign Canon</span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {campaignCanonItems.map((item) => {
+              const inheritedFacts = item.inheritedFactIds
+                .map(id => worldFactsById.get(id))
+                .filter((fact): fact is WorldCanonFact => Boolean(fact))
+
+              return (
+                <div key={item.id} className="rounded-lg border border-white/10 bg-void-1/60 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <div>
+                      <div className="text-sm text-forge-0 font-medium">{item.title}</div>
+                      <div className="text-xs text-forge-2">{item.summary}</div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded bg-eldritch/15 text-eldritch border border-eldritch/30 text-[11px]">
+                      Campaign Canon
+                    </span>
+                  </div>
+
+                  <div className="text-[11px] text-forge-2 mb-2">
+                    <span className="text-forge-1">Dependency / Inheritance:</span>{' '}
+                    {inheritedFacts.length > 0
+                      ? inheritedFacts.map(fact => fact.title).join(', ')
+                      : 'No inherited world facts'}
+                  </div>
+
+                  {item.conflict?.status === 'unresolved' && (
+                    <div className="rounded-md border border-ember/40 bg-ember/10 px-2.5 py-2 flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-xs text-ember">
+                        Conflict Flag: diverges from <strong>World Canon</strong>
+                      </div>
+                      <button
+                        onClick={() => setSelectedConflictItemId(item.id)}
+                        className="px-2.5 py-1 rounded bg-ember/20 hover:bg-ember/30 border border-ember/40 text-[11px] text-ember font-medium transition-colors"
+                      >
+                        Resolve Conflict
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
         {/* Constellation Decoration */}
         <svg
           className="absolute bottom-4 right-4 w-32 h-32 opacity-10 pointer-events-none"
@@ -207,6 +290,53 @@ export default function CampaignHub({
           <line className="constellation-line" x1="30" y1="50" x2="70" y2="80" />
         </svg>
       </div>
+
+      {selectedConflictItem?.conflict && selectedWorldFact && (
+        <div className="absolute inset-0 z-20 bg-void-0/90 backdrop-blur-sm p-4 md:p-6 overflow-y-auto">
+          <div className="max-w-4xl mx-auto rounded-xl border border-white/10 bg-void-1 p-4 md:p-5">
+            <div className="flex items-start justify-between gap-2 mb-4">
+              <div>
+                <h4 className="text-lg font-display font-semibold text-forge-0">Resolve Conflict</h4>
+                <p className="text-xs text-forge-2 mt-1">Side-by-side compare for {selectedConflictItem.title}</p>
+              </div>
+              <button
+                onClick={() => setSelectedConflictItemId(null)}
+                className="px-2 py-1 rounded border border-white/10 text-xs text-forge-1 hover:text-forge-0 hover:bg-void-2/60 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+              <div className="rounded-lg border border-arcane/30 bg-arcane/10 p-3">
+                <div className="text-xs text-arcane font-medium mb-1">World Canon (Source of Truth)</div>
+                <div className="text-sm text-forge-0 mb-1">{selectedWorldFact.title}</div>
+                <p className="text-xs text-forge-1">{selectedConflictItem.conflict.worldValue}</p>
+              </div>
+
+              <div className="rounded-lg border border-eldritch/30 bg-eldritch/10 p-3">
+                <div className="text-xs text-eldritch font-medium mb-1">Campaign Canon (In-use in sessions)</div>
+                <div className="text-sm text-forge-0 mb-1">{selectedConflictItem.title}</div>
+                <p className="text-xs text-forge-1">{selectedConflictItem.conflict.campaignValue}</p>
+              </div>
+            </div>
+
+            <div className="rounded-md border border-white/10 bg-void-2/40 p-3 mb-4 text-xs text-forge-1">
+              <span className="text-forge-0 font-medium">Context:</span> {selectedConflictItem.conflict.note}
+            </div>
+
+            <button
+              onClick={() => {
+                onResolveConflict(selectedConflictItem.id)
+                setSelectedConflictItemId(null)
+              }}
+              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-gradient-to-r from-arcane/30 to-eldritch/30 border border-arcane/40 text-arcane text-sm font-medium hover:from-arcane/40 hover:to-eldritch/40 transition-colors"
+            >
+              One-click Reconcile
+            </button>
+          </div>
+        </div>
+      )}
     </DashboardCard>
   )
 }
