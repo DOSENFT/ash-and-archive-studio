@@ -76,6 +76,30 @@ export interface Campaign {
   plotThreads: PlotThread[]
 }
 
+export interface WorldCanonFact {
+  id: string
+  title: string
+  category: 'npc' | 'location' | 'item' | 'lore'
+  summary: string
+  sourceOfTruth: 'world'
+}
+
+export interface CampaignCanonItem {
+  id: string
+  title: string
+  category: 'npc' | 'location' | 'item' | 'lore'
+  summary: string
+  sourceOfTruth: 'campaign'
+  inheritedFactIds: string[]
+  conflict?: {
+    worldFactId: string
+    worldValue: string
+    campaignValue: string
+    status: 'unresolved' | 'resolved'
+    note: string
+  }
+}
+
 export interface User {
   name: string
   avatar: string
@@ -103,6 +127,8 @@ export interface DashboardData {
   user: User
   nextSession: NextSession | null
   activeCampaign: Campaign | null
+  worldCanonFacts: WorldCanonFact[]
+  campaignCanonItems: CampaignCanonItem[]
   training: Training
   worldActivity: WorldActivity[]
   recentToys: Toy[]
@@ -167,6 +193,76 @@ export function getMockDashboardData(): DashboardData {
         { id: 'plot-4', name: 'Thieves Guild Alliance', status: 'resolved' },
       ],
     },
+    worldCanonFacts: [
+      {
+        id: 'wf-1',
+        title: 'Captain Thorne Blackwood',
+        category: 'npc',
+        summary: 'Commands Ironhaven harbor guard and remains loyal to the crown.',
+        sourceOfTruth: 'world',
+      },
+      {
+        id: 'wf-2',
+        title: 'The Sunken Temple',
+        category: 'location',
+        summary: 'Flooded ruin beneath Ironhaven with sealed astral vaults.',
+        sourceOfTruth: 'world',
+      },
+      {
+        id: 'wf-3',
+        title: 'Blade of the Fallen Star',
+        category: 'item',
+        summary: 'Relic greatsword bound to lunar rites and royal succession.',
+        sourceOfTruth: 'world',
+      },
+      {
+        id: 'wf-4',
+        title: 'The War of Three Kings',
+        category: 'lore',
+        summary: 'Civil war ended with the Treaty of Dawnfire 48 years ago.',
+        sourceOfTruth: 'world',
+      },
+    ],
+    campaignCanonItems: [
+      {
+        id: 'cc-1',
+        title: 'Captain Thorne Blackwood',
+        category: 'npc',
+        summary: 'Harbor commander secretly aiding the resistance in this campaign timeline.',
+        sourceOfTruth: 'campaign',
+        inheritedFactIds: ['wf-1'],
+        conflict: {
+          worldFactId: 'wf-1',
+          worldValue: 'Publicly loyal to the crown and enforces harbor curfew.',
+          campaignValue: 'Feeds curfew patrol routes to resistance smugglers.',
+          status: 'unresolved',
+          note: 'Session 23 revealed covert activity that diverges from world canon.',
+        },
+      },
+      {
+        id: 'cc-2',
+        title: 'Sunken Temple Access Route',
+        category: 'location',
+        summary: 'Party discovered a forgotten cistern path that bypasses the front gate.',
+        sourceOfTruth: 'campaign',
+        inheritedFactIds: ['wf-2', 'wf-4'],
+      },
+      {
+        id: 'cc-3',
+        title: 'Fallen Star Attunement',
+        category: 'item',
+        summary: 'Blade awakened for Elena after a bloodline ritual during session 21.',
+        sourceOfTruth: 'campaign',
+        inheritedFactIds: ['wf-3'],
+        conflict: {
+          worldFactId: 'wf-3',
+          worldValue: 'Only descendants of House Valdris can attune to the blade.',
+          campaignValue: 'Elena attuned despite lacking confirmed Valdris lineage.',
+          status: 'unresolved',
+          note: 'Potential retcon needed before next arc.',
+        },
+      },
+    ],
     training: {
       currentStreak: 7,
       skills: [

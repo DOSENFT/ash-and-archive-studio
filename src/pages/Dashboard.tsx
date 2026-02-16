@@ -87,6 +87,22 @@ export default function Dashboard() {
     console.log('View world map')
   }, [])
 
+  const handleResolveConflict = useCallback((campaignItemId: string) => {
+    setData(prev => ({
+      ...prev,
+      campaignCanonItems: prev.campaignCanonItems.map(item => {
+        if (item.id !== campaignItemId || !item.conflict) return item
+        return {
+          ...item,
+          conflict: {
+            ...item.conflict,
+            status: 'resolved',
+          },
+        }
+      }),
+    }))
+  }, [])
+
   const handlePlotThreadClick = useCallback((threadId: string) => {
     console.log('View plot thread:', threadId)
   }, [])
@@ -124,6 +140,7 @@ export default function Dashboard() {
   const showExpandedSessionNexus = mode === 'prep' || sessionProximity.proximity === 'today' || sessionProximity.proximity === 'imminent'
   const showExpandedForge = mode === 'training'
   const showExpandedWorldPulse = mode === 'world'
+  const unresolvedConflictCount = data.campaignCanonItems.filter(item => item.conflict?.status === 'unresolved').length
 
   return (
     <div className="min-h-screen bg-void-0 flex flex-col">
@@ -177,10 +194,14 @@ export default function Dashboard() {
               {/* Campaign Hub - Hero Card */}
               <CampaignHub
                 campaign={data.activeCampaign}
+                worldCanonFacts={data.worldCanonFacts}
+                campaignCanonItems={data.campaignCanonItems}
+                unresolvedConflictCount={unresolvedConflictCount}
                 onNewSession={handleNewSession}
                 onViewCampaign={handleViewCampaign}
                 onViewWorldMap={handleViewWorldMap}
                 onPlotThreadClick={handlePlotThreadClick}
+                onResolveConflict={handleResolveConflict}
               />
 
               {/* Two Column Grid - Forge + World Pulse */}
