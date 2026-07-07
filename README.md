@@ -32,9 +32,12 @@ This repository holds the **Ash & Archive ecosystem** — kept deliberately sepa
 ├── canon/                 ← ECOSYSTEM LAW: the constitution every A&A product inherits
 │   └── ASH-AND-ARCHIVE-CANON.md
 ├── studio/                ← THE STUDIO ITSELF: the desktop-first creative operating system
-│   └── STUDIO-GENESIS/    ← ✅ v1.0 — the Studio master specification (vision & market,
-│                            the nine modules, desktop architecture, Studio shell UX, roadmap).
-│                            The Codex is ONE room inside this. Build entry: 03-ARCHITECTURE-UX-ROADMAP.md.
+│   ├── STUDIO-GENESIS/    ← ✅ v1.0 — the Studio master specification (vision & market,
+│   │                        the nine modules, desktop architecture, Studio shell UX, roadmap).
+│   │                        The Codex is ONE room inside this. Build entry: 03-ARCHITECTURE-UX-ROADMAP.md.
+│   └── SPECS/             ← canonical subsystem engineering specs (implementation-ready, permanent)
+│       └── SPEC-001-FOUNDATION.md  ← ✅ @ash-archive/core: the Entry graph, the Ash, the Vault,
+│                            Binding transaction, canon semantics, Wing contract — build here FIRST.
 └── products/              ← each product/module's own complete canon + build
     └── the-codex/         ← THE CODEX: the flagship module (Player Academy + table instrument)
         └── GENESIS/       ← ✅ v2.0 — COMPLETE canonical design specification, READY TO BUILD
