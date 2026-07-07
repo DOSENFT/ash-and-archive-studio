@@ -28,19 +28,20 @@
 This repository holds the **Ash & Archive ecosystem** — kept deliberately separated from its products:
 
 ```
-/                          ← Ash & Archive: The Studio (the ecosystem's web presence — this app)
+/                          ← Ash & Archive: The Studio (landing page + Director's Sanctum dashboard — this app)
 ├── canon/                 ← ECOSYSTEM LAW: the constitution every A&A product inherits
 │   └── ASH-AND-ARCHIVE-CANON.md
-└── products/              ← each product's own complete canon + build
-    └── the-codex/         ← THE CODEX: the first flagship Wing (built inside A&A, not the same thing as A&A)
+├── studio/                ← THE STUDIO ITSELF: the desktop-first creative operating system
+│   └── STUDIO-GENESIS/    ← ✅ v1.0 — the Studio master specification (vision & market,
+│                            the nine modules, desktop architecture, Studio shell UX, roadmap).
+│                            The Codex is ONE room inside this. Build entry: 03-ARCHITECTURE-UX-ROADMAP.md.
+└── products/              ← each product/module's own complete canon + build
+    └── the-codex/         ← THE CODEX: the flagship module (Player Academy + table instrument)
         └── GENESIS/       ← ✅ v2.0 — COMPLETE canonical design specification, READY TO BUILD
-                             12 chapters + council record: philosophy, mental model, Ledger System
-                             design language, the Table/Desk/Ledger stances, AI constitution,
-                             technical architecture, gated roadmap, and the AAA council pass.
-                             Build entry point: GENESIS/10-ROADMAP.md (Phase 0.5 spikes first).
+                             12 chapters + council record. Build entry: GENESIS/10-ROADMAP.md.
 ```
 
-**Status (2026-07-06): The Codex GENESIS specification is bound at v2.0 and marked build-ready.** It survived a five-seat adversarial design-council pass (~120 findings integrated — see `products/the-codex/GENESIS/11-AAA-ENHANCEMENT.md`). A&A and The Codex remain separate by law: the ecosystem canon lives in `canon/`; The Codex inherits it and never redefines it.
+**Status (2026-07-07):** The Codex GENESIS is bound at v2.0 (council-hardened, build-ready). **The Studio's own master specification is bound at v1.0** (`studio/STUDIO-GENESIS/`) — recovered from the original vision (the Four Pillars architecture, the Director's Sanctum dashboard at `/dashboard`) and completed against a 2026 competitive investigation. The separation is law: the ecosystem canon lives in `canon/`; the Studio is the operating system; The Codex is one of its nine rooms and never redefines what it inherits.
 
 ---
 
