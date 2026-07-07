@@ -23,6 +23,27 @@
 
 ---
 
+## 🏛️ Repository Organization (canon law)
+
+This repository holds the **Ash & Archive ecosystem** — kept deliberately separated from its products:
+
+```
+/                          ← Ash & Archive: The Studio (the ecosystem's web presence — this app)
+├── canon/                 ← ECOSYSTEM LAW: the constitution every A&A product inherits
+│   └── ASH-AND-ARCHIVE-CANON.md
+└── products/              ← each product's own complete canon + build
+    └── the-codex/         ← THE CODEX: the first flagship Wing (built inside A&A, not the same thing as A&A)
+        └── GENESIS/       ← ✅ v2.0 — COMPLETE canonical design specification, READY TO BUILD
+                             12 chapters + council record: philosophy, mental model, Ledger System
+                             design language, the Table/Desk/Ledger stances, AI constitution,
+                             technical architecture, gated roadmap, and the AAA council pass.
+                             Build entry point: GENESIS/10-ROADMAP.md (Phase 0.5 spikes first).
+```
+
+**Status (2026-07-06): The Codex GENESIS specification is bound at v2.0 and marked build-ready.** It survived a five-seat adversarial design-council pass (~120 findings integrated — see `products/the-codex/GENESIS/11-AAA-ENHANCEMENT.md`). A&A and The Codex remain separate by law: the ecosystem canon lives in `canon/`; The Codex inherits it and never redefines it.
+
+---
+
 ## Overview
 
 **Ash & Archive: The Studio** is a revolutionary D&D DM training and world-building application designed to transform novice Dungeon Masters into elite-level storytellers through professional training methodologies borrowed from the world's finest drama schools.
