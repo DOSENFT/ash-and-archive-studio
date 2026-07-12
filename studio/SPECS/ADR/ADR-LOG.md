@@ -17,6 +17,19 @@
 - **Decision:** (b). Hand order is a render nicety, not canon-relevant; event-sourcing it would pollute the log and the sync surface. Deterministic fallback (§7.2.4, ascending riteRef ULID) applies when absent (e.g. cold resume) — no correctness loss, only a one-time reflow.
 - **Reverses if:** cross-device hand-order continuity ever becomes a product requirement (it is not; the Table is single-device).
 
+## ADR-002-C · `compose()` carries a 7th argument, `profile`
+- **Spec:** SPEC-002 §1.1, §3. **Status:** Accepted. **Canon-affecting:** Yes — amends the GENESIS 08-VI design contract (logged, not silent).
+- **Context:** GENESIS 08-VI states `compose(stance, gameState, entryGraph, riteSet, budgets, uiState) → Folio` (six args). The pure function cannot compose a folio without knowing which folios exist and their contracts — i.e. the `ComposerProfile`.
+- **Options:** (a) smuggle `profile` inside `budgets`/`uiState` → rejected, dishonest typing · (b) make the runtime hold profile and pass folio-contracts piecemeal → rejected, leaks profile logic into the runtime (violates §4 "logic-free runtime") · (c) add `profile: ComposerProfile` as the 7th arg and amend the GENESIS contract.
+- **Decision:** (c). The GENESIS 08-VI signature is amended to seven args. This is a *design-contract* amendment, not a SPEC-001 change; GENESIS 08-VI prose to be annotated at its next revision.
+- **Reverses if:** a profile registry keyed by `stance` proved cleaner — but that just hides the same dependency; not worth the indirection.
+
+## ADR-002-D · SPEC-001 §15 gains paint-path latency budgets (EXECUTED)
+- **Spec:** SPEC-002 §3.2, §11.4; SPEC-001 §15 v1.1. **Status:** Accepted & **executed** (SPEC-001 amended to v1.1). **Canon-affecting:** Yes — additive, non-breaking.
+- **Context:** The composer's 80ms budget depends on `archive.query`/`links` and the four `RiteSet` functions, but SPEC-001 v1.0 §15 budgeted none of them (the verifier's C2 — SPEC-002 had *cited* budgets that did not exist). SEAM-R1×002 (interrupts ≤3ms) is the same gap for `interrupts()`.
+- **Decision:** Amend SPEC-001 §15 (done, v1.1) to add: `query`/`links` p99 ≤3ms; `legality`/`derive` ≤1ms; `interrupts` ≤3ms (via SPEC-R1's compiled trigger index); `compositionHints` ≤2ms. Additive — no existing budget changes. SPEC-002's citations now reference real budgets.
+- **Reverses if:** the stress fixture proves a budget unmeetable on reference hardware — then the composer's fitter tightens (fewer live elements) rather than the budget loosening; the ≤80ms envelope is the fixed constraint.
+
 ## ADR-AI1-006 · Where versioned Dramaturg prompt assets live (RESOLVES a canon contradiction)
 - **Spec:** SPEC-AI1 (draft) §; raised by the AI crew. **Status:** Accepted (resolves contradiction). **Canon-affecting:** clarifies GENESIS 07-V; no SPEC-001 change.
 - **The contradiction:** GENESIS 07-V says prompts-as-data "ship as versioned assets **in the Archive itself**, user-inspectable at the Desk (the Dramaturg's own charter is readable in the Charter Room)." SPEC-001 §2.2 froze the eleven Entry kinds for v1 and §14.4 forbids minting a kind at runtime. A prompt cannot be an Entry without violating SPEC-001.
@@ -27,14 +40,24 @@
 
 ---
 
-## PENDING — raised by crews, to be resolved at batch verification (B1/R1/AI1)
+## RESOLVED by Marcus (2026-07-12 rulings)
+
+- **ADR-R1-005 · SRD license → YES, SRD 5.1.** Marcus confirmed. The Rite content boundary is the 5e SRD 5.1; SPEC-R1's licensing-tracking-per-entry targets it. *(Legal ratified; engineering proceeds.)*
+- **SPEC-B1 vendor ADRs (000–008) → DEFERRED by Marcus.** "Don't decide vendors before a running Foundation — premature commitment." The backend stays provider-agnostic; the local product builds fully without any vendor chosen. These reopen when the Foundation runs. **Not blocking.**
+- **SPEC-B1 G-11 · the covenant ruling → LOCAL BIND IS NEVER GATED.** Marcus: "read and export never lock; the person's created world is never held hostage." Ruling: **read, export, AND local Binding of one's own ash are covenant-protected rights** — a lapsed subscriber can still author canon in their own local world. Premium gates apply only to *networked* features (sync, hosted portals, cloud AI). SPEC-B1's licensing invariant LI-1 is extended accordingly (read + export + local Bind never lock). Aligns with SPEC-001 I-1/§6.
+
+## EXECUTED (SPEC-001 v1.1 amendment, 2026-07-12)
+
+- **ADR-R1-003 · `E-17xx` ceded** to registered Rite sets — SPEC-001 §11 amended (v1.1). ✅
+- **SEAM-R1×002 · `interrupts()` ≤3ms budget ratified** — SPEC-001 §15 amended (v1.1), see ADR-002-D. ✅ SPEC-002 and SPEC-R1 now agree.
+- **ADR-AI1-006 · `prompts/` export namespace** added to SPEC-001 §9.1 (v1.1). ✅
+
+## STILL OPEN — resolved at batch verification of B1/R1/AI1
 
 | ID | Spec | Question | Lean |
 |---|---|---|---|
-| ADR-R1-002 | SPEC-R1 | Conditionality mechanism: effect-atoms + a constrained Predicate Expression Language, vs code-plugins | **atoms+PEL** (code-plugins rejected — breaks SPEC-001 §5.6 cross-runtime purity/I-8) |
-| ADR-R1-003 | SPEC-R1 / SPEC-001 | Error-code range `E-17xx` for rite content — SPEC-001 §11 owns the code space | **Amend SPEC-001 §11** to cede E-17xx to registered rite-sets (additive, non-breaking) |
-| SEAM-R1×002 | SPEC-R1 ↔ SPEC-002 | `interrupts()` has no budget in SPEC-001 §15; SPEC-002 §9.2/§11.4 calls it on the paint path; R1 apportions ≤3ms via a compiled `triggerIndex` | **Compatible — ratify the ≤3ms interrupts budget** into SPEC-001 §15 (additive); R1's triggerIndex is the mechanism SPEC-002 relies on |
-| ADR-R1-005 | SPEC-R1 | SRD licensing (SRD 5.1 CC-BY-4.0) | **Marcus's legal call — not an engineering decision** (flag, do not decide) |
+| ADR-R1-002 | SPEC-R1 | Conditionality: effect-atoms + a constrained Predicate Expression Language vs code-plugins | **atoms+PEL** (code-plugins break SPEC-001 §5.6 cross-runtime purity/I-8) |
 | ADR-AI1-001/002 | SPEC-AI1 | Model tiers per voice | **Defer to Phase-3.5 spike** (benchmark on constitutional-audit pass, not model size) |
+| ADR-B1-004 | SPEC-B1 | KMS + E2E crypto primitives + recovery model | resolve at batch-verify against the deferred-vendor ruling (design the *shape*, not the vendor) |
 
-*These are resolved (or escalated to Marcus, per ADR-R1-005) when the batch verifier passes over B1/R1/AI1. SEAM-R1×002 and ADR-R1-003 imply a small, additive, governed amendment to SPEC-001 §11/§15 — logged now, executed at seal so SPEC-001's own version bumps once, cleanly.*
+*Batch verification of the three drafts is dispatched; their verifier verdicts + these opens resolve next.*

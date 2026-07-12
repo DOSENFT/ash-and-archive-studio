@@ -1,12 +1,12 @@
 # SPEC-002 — THE FOLIO COMPOSER
 ### Canonical engineering specification for `@ash-archive/composer` — the runtime that turns game state into composed pages
-*v1.0 · Bound 2026-07-11 · Status: **CANONICAL — permanent source of truth for this subsystem***
+*v1.1 · Authored 2026-07-11 · patched 2026-07-12 after adversarial verification · Status: **SEALED CANON — permanent source of truth for this subsystem** (17/17 verifier defects resolved; BFI 95)*
 
 > **Scope.** This is the implementation-ready specification of the folio composer: the pure function (and its thin stateful runtime) that converts fold state + canon into the `Folio` value tree that `@ash-archive/ledger-ui` renders. It is the **gate for the Codex** — the first shippable room. It sits directly above `@ash-archive/core` (SPEC-001) and directly below the component library and the Stance shells. Where this document is silent, SPEC-001 and the ecosystem canon (`canon/`) arbitrate; the Codex's GENESIS (chapters 03, 04, 06) is the design law this spec seals into engineering. Design intent lives in GENESIS; **build truth lives here.**
 
 **Dependency surface (sealed, verified against tool results this session):**
 - Consumes `@ash-archive/core` (SPEC-001): the six registered folds `combat · stage · resources · clocks · steering · sessionMeta` (§5.6), `vault.ash.fold`/`subscribe` (§5.4), `vault.archive.get`/`query`/`links` with `perspective` (§5.2), and the `RiteSet` hooks `legality · derive · interrupts · conditions · compositionHints` (§5.7).
-- Consumes GENESIS 08-VI verbatim as its contract: `compose(stance, gameState, entryGraph, riteSet, budgets, uiState) → Folio` (synchronous, pure, owns the 80ms budget) and `enrich(folio, entryGraph, dramaturg) → Folio` (asynchronous, never blocks paint).
+- Consumes GENESIS 08-VI as its contract — `compose(…) → Folio` (synchronous, pure, owns the 80ms budget) and `enrich(folio, entryGraph, dramaturg) → Folio` (asynchronous, never blocks paint). GENESIS 08-VI states a six-argument `compose`; this spec adds a seventh, `profile: ComposerProfile`, per **ADR-002-C** (the pure function must know which folios/contracts exist; the profile is that configuration). The GENESIS 08-VI contract is thereby amended, not contradicted.
 - Produces the `Folio` value tree consumed by `@ash-archive/ledger-ui` (GENESIS 08-VII component roster).
 - Serves GENESIS 04 (the Table folios), and later GENESIS 05/06 surfaces via Wing composer profiles (§13).
 
@@ -48,6 +48,7 @@ A single TypeScript package, `@ash-archive/composer`, providing:
 | C-5 | **AI is margin-only and async**: no `enrich()` output ever enters the reading column or the pinned zone; pencil occupies only margin slots, capped at `budgets.maxMarginSlots` (default 2). `enrich()` never blocks or delays the `compose()` paint. |
 | C-6 | **The book offers before it steers**: auto-turn is emitted only for state events whose type has been granted consent in the `steering` fold *and* that are in the unambiguous set (§8.2); everything else is an offer or nothing. A manual turn revokes consent for the scene (the shell appends `autoturn.revoked`). |
 | C-7 | **Provenance and rubrication are carried, never invented**: every Element carries the provenance of its source Entry (SPEC-001), and any rubric color derives solely from `RiteSet.conditions` severity + active conditions in the `combat` fold. The composer assigns no meaning of its own. |
+| C-8 | **No trigger leaks state**: `GameState.lastEvent` is perspective-redacted by the runtime before `compose()` sees it (§3.1, M1). A player's compose never receives an undisclosed `truth.revealed`, a veiled-scene event, or a hidden-creature event. The composer cannot leak via the trigger, just as it cannot leak via the graph (§3.2). |
 
 ---
 
@@ -85,29 +86,59 @@ interface ElementBase {
   affords: VerbAffordance[];    // which of the six verbs this element participates in (§2.2)
   a11y: A11yContract;           // role, label, and canon-status/provenance announcement (§2.3)
 }
-type Element =
-  | HpFolio            // the 72px illuminated HP numeral + max + rule (pinned, Vitals)
-  | StatReadout        // AC · speed · temp-HP, mono (pinned, Vitals)
-  | ActionEconomy      // action/bonus/reaction/movement pips (pinned, Vitals)
+type Element =                         // BODY / PINNED zone units (never pencil, C-5)
+  // — player Vitals —
+  | HpFolio            // the 72px illuminated HP numeral + max + rule (pinned)
+  | StatReadout        // AC · speed · temp-HP, mono (pinned)
+  | ActionEconomy      // action/bonus/reaction/movement pips (pinned)
   | ConditionBadge     // iconic condition + count; unfolds to detail
-  | ConcentrationMark  // the candle (margin-resident; guttering state)
-  | HandCard           // a dealt action/spell/feature card (Action folio)
-  | CastStackDivider   // the "cast this turn" rule + spent cards below it
+  | DamageHealInput    // the damage/heal entry control (Vitals, below fold)
+  | DeathSave          // the death-save ceremony composition — takes the whole folio (§6.1)
+  // — player Action —
+  | HandCard           // a dealt action/spell/feature card
+  | CastStackDivider   // the "cast this turn" rule; spent cards render below it at full height
+  // — player Stage —
   | StageRailMark      // a hexagonal initiative/presence mark (active enlarged)
   | CohortMark         // N-member creature with member-pips (§9.3)
-  | ClockQuarter       // a pressure-clock quarter-circle (≤4, clocks fold)
-  | ResourceStrip      // spell slots / pools / rest instruments (Resources folio)
-  | SceneFrame         // frame line: sensory anchor + tension (DM Scene folio)
-  | OfferLine          // the OFFER / ASK lines (DM Scene folio)
-  | ToyCard            // compact Toy: goal·method·problem·lever (DM stage / Hidden)
-  | TruthCard          // a staged Truth with its lever (DM Hidden folio; hidden by perspective)
+  | ClockQuarter       // a pressure-clock quarter-circle
+  | SceneFrame         // frame line: sensory anchor + tension (also DM Scene)
+  // — player Resources —
+  | ResourceStrip      // spell slots / pools
+  | RestInstrument     // short/long rest (press-and-hold ceremony)
+  // — DM folios —
+  | OfferLine          // the OFFER / ASK lines (DM Scene)
+  | ToyCard            // compact Toy: goal·method·problem·lever (DM Scene/Hidden)
+  | TruthCard          // a staged Truth with its lever (DM Hidden; hidden by perspective)
   | DiceMandala        // the d20 instrument + advantage detent (DM Resolution)
-  | Quill              // the inscribe affordance (present on every Table folio)
+  | QuickDc            // a quick-DC / contested-check control (DM Resolution)
+  | ResolveInscription // the RESOLVE capture control (DM Resolution)
+  | AdvancePrompt      // a clock advance-condition prompt (DM Hidden)
+  | IfThenIndex        // the If/Then one-tap kindle index (DM Hidden)
+  | WorldReadout       // faction/price/scarcity readouts (DM World)
+  | PacingThread       // wall-clock-since-last-decision observation (DM World)
+  // — shared —
+  | Quill              // the inscribe affordance (present on every Table folio; live:false)
+  | MoreAffordance     // the folded-overflow handle produced by the fitter (§5.2; live:false)
   | Chapter            // dropped-cap prose block (Ledger surfaces)
   | GrowthRung;        // a transformation-ladder rung (Ledger surfaces)
 ```
 
-Element-specific payloads are fully enumerated in Appendix A (§16). Each is a plain data shape (e.g. `HandCard { name, rank, castTime, legality: 'legal'|'spent'|'blocked', blockReason?, riteRef, previewLine, foldedIntoStack: boolean }`).
+`ConcentrationMark` is **not** an Element — it is margin-resident (§5.1, M4), so it is a `MarginSlot` kind (below), never in `body`/`pinned`. Element-specific payloads are enumerated to summary depth in Appendix A (§16); exhaustive field validation ships with the component-library spec (G-1). Example: `HandCard { name, rank, castTime, legality: 'legal'|'spent'|'blocked'|'unruled', blockReason?, riteRef, previewLine, readied, foldedIntoStack }`.
+
+**`MarginSlot` and `Ribbon` — the two non-Element `Folio` fields, now typed:**
+```ts
+type MarginSlot =
+  | { kind: 'whisper'; provenance: 'ink';    text: string; a11y: A11yContract }   // state whisper / offer (§8)
+  | { kind: 'concentration'; provenance: 'ash'; riteName: string; guttering: boolean; a11y: A11yContract }
+  | { kind: 'pencil'; provenance: 'pencil'; text: string; proposalId: Ulid; a11y: A11yContract };  // enrich-only (§10, C-5)
+// Folio.margin holds ≤ budgets.maxMarginSlots MarginSlots; pencil slots are added ONLY by enrich().
+
+type Ribbon =                            // edge affordances that are NOT page turns (§9.2)
+  | { kind: 'reaction'; triggerEvent: EventId; interruptKind: string; affordance: RibbonAffordance; a11y: A11yContract }
+  | { kind: 'previously'; summary: string; a11y: A11yContract }
+  | { kind: 'place'; text: string; a11y: A11yContract };
+type RibbonAffordance = { verb: 'kindle'; interrupt: string } | { verb: 'unfold' };  // ribbons reuse grammar verbs (L3)
+```
 
 ### 2.2 Verb affordances
 
@@ -119,7 +150,7 @@ type VerbAffordance =
   | { verb: 'kindle'; entryId: EntryId }                 // deploy to stage (Desk/DM)
   | { verb: 'bind' };                                    // Ledger/Charter only; never at the Table body
 ```
-`compose()` sets affordances declaratively; the shell binds gestures to them. `turn` is never an element affordance — it belongs to the spread, driven by `uiState`/steering (§8). This keeps the six-verb grammar (GENESIS 02-IV) enforced at the composition layer.
+`compose()` sets affordances declaratively; the shell binds gestures to them. `turn` is never an element affordance — it belongs to the spread, driven by `uiState`/steering (§8). This keeps the grammar enforced at the composition layer. **Grammar count (L4 reconciliation):** the canonical grammar is **six verbs** — Turn · Unfold · Inscribe · Strike · Kindle · Bind (GENESIS 02-IV, as amended to add Strike this campaign). Five are element-level (above); Turn is spread-level. *(GENESIS 03-X prose still reads "five verbs" in two places — a pre-Strike staleness; 02-IV is authoritative at six. Flagged for the next GENESIS revision; not blocking.)*
 
 ### 2.3 Accessibility contract (carried, not deferred)
 
@@ -151,14 +182,21 @@ interface GameState {
   resources: FoldState<'resources'>;
   clocks: FoldState<'clocks'>;
   sessionMeta: FoldState<'sessionMeta'>;
-  lastEvent?: AshEvent;          // the delta that triggered recomposition (drives auto-turn/ribbon, §8/§9)
+  beingToActor: Record<EntityId, ActorId>;  // (H1) being→principal map — resolves §8/§9 identity checks
+  perspectiveBeings: EntityId[]; // (H1) the beings THIS perspective controls (derived from beingToActor + perspective)
+  prevHandOrder?: string[];      // (ADR-002-B) previous Action-folio HandCard order, for muscle-memory stability (§7.2)
+  lastEvent?: RedactedEvent;     // (M1) the delta that triggered recomposition; PERSPECTIVE-REDACTED (see below)
 }
 ```
-`GameState` is a **value**, assembled by the `ComposerRuntime` (§4) from the fold subscriptions. `compose()` reads it; it never subscribes. This is the resolution of GENESIS 08-VII's "the fold is the store" with C-1's purity: the store is folds, the function is pure over their snapshot.
+`GameState` is a **value**, assembled by the `ComposerRuntime` (§4) from the fold subscriptions and the archive. `compose()` reads it; it never subscribes. This resolves GENESIS 08-VII's "the fold is the store" with C-1's purity: the store is folds, the function is pure over their snapshot.
+
+**Identity (H1):** the `combat`/`stage` folds key on `beingId` (an `EntityId`); `perspective` is an `ActorId`. The runtime supplies `beingToActor` (built from each Being entry's controlling-principal field) and the derived `perspectiveBeings`. All §8/§9 comparisons phrased as "being = perspective" mean **`beingToActor[beingId] === perspective`**; "for perspective" means `perspectiveBeings.includes(beingId)`. `compose()` never guesses this mapping — it is an explicit input.
+
+**`lastEvent` is perspective-redacted (M1, C-7 extended):** the runtime MUST pass only events the `perspective` is entitled to see as `lastEvent` — a `RedactedEvent` is an `AshEvent` filtered by the same perspective rule as `entryGraph` (§3.2): a `truth.revealed` not disclosed to this perspective, a veiled-scene event, or a hidden-creature event is **replaced with `undefined`** (the composer then treats the delta as a non-directive recompose). This closes the leak vector where a raw trigger event could expose undisclosed state to a player's folio. Stated as invariant **C-8** (§1.3).
 
 ### 3.2 `entryGraph` — perspective is applied before compose
 
-The `ReadonlyArchive` handed to `compose()` is already perspective-bound by the shell (SPEC-001 §2.4 redaction happens at the query layer). The composer therefore **cannot** leak an undisclosed Truth: it never receives one. `compose()` may call synchronous, indexed reads (`get`, `links`, `query`) that SPEC-001 budgets at p99 ≤ 3ms; it must not call `search` (not budgeted for the paint path) — search is a Desk concern.
+The `ReadonlyArchive` handed to `compose()` is already perspective-bound by the shell (SPEC-001 §2.4 redaction happens at the query layer). The composer therefore **cannot** leak an undisclosed Truth: it never receives one. `compose()` may call synchronous, indexed reads (`get`, `links`, `query`), each paint-path-budgeted at p99 ≤ 3ms (SPEC-001 §15 **v1.1** — the amendment this campaign added exactly to bound the composer's read dependencies; C2 resolution). It must **not** call `search` (budgeted at 100–250ms, not a paint-path op) — search is a Desk concern.
 
 ### 3.3 `uiState`
 
@@ -177,9 +215,10 @@ interface UiState {
 `compose()` executes exactly these stages, in order, for the `activeFolio`:
 
 1. **GATHER** — resolve the folio's *candidate elements* from `GameState` + `entryGraph` + `riteSet`, per the folio's contract (§6). Pure reads only.
-2. **LEGALITY & DERIVE** — for action-bearing candidates (HandCards, statblock actions), call `riteSet.legality(…, combatFold)` and `riteSet.derive(…)` to stamp `legality` and derived numbers. Pure (SPEC-001 §5.7).
+2. **LEGALITY** — call `riteSet.legality(…, combatFold)` for **every** action-bearing candidate (HandCards, statblock actions) to stamp `legality`. This MUST cover all candidates, not a subset, because RANK (stage 3) sorts legal-first (§7.2.1) — you cannot rank by legality without computing it for everything ranked. `legality` is pure and paint-path-budgeted (SPEC-001 §15, v1.1: p99 ≤ 1ms/call). `derive` (the derived numbers — DCs, attack bonuses, damage) is **deferred to stage 4b**: it runs only for *placed* candidates, since a folded card's numbers are never shown until Unfold. (C1 resolution: legality is all-candidates at stage 2; derive is placed-only at 4b.)
 3. **RANK** — order candidates by the folio's priority table (§7). Stable, total order (C-1).
 4. **FIT** — apply the cognitive budget (§5): pinned elements are placed first and exempt; the remaining ranked candidates fill up to `maxLiveElements`; the overflow folds into a single `MoreAffordance` (a non-live Element). Spent HandCards move below the `CastStackDivider` at full height (not folded — GENESIS 04-II, C-4-adjacent).
+4b. **DERIVE** — call `riteSet.derive(…)` for *placed* action candidates only, stamping derived numbers (DCs, attack bonuses, damage). Folded candidates carry no derived numbers; the shell lazily derives on Unfold. (C1: this is the only rite work bounded by the budget rather than the hand size.)
 5. **RUBRICATE** — for each placed Element affected by an active condition (from `combat` fold), set `rubric` = the severity color from `riteSet.conditions` (§9.1); set `Folio.rubricated`. Rewrite affected section header labels in-place.
 6. **RIBBONS & INTERRUPTS** — if `lastEvent` created an eligible interrupt (`riteSet.interrupts(lastEvent, graph, combatFold)` returns offers for `perspective`), emit a `ReactionRibbon` (§9.2). Emit `Previously`/`Place` ribbons per profile.
 7. **STEER** — compute auto-turn/offer disposition from `lastEvent` + `steering` (§8); attach as `Folio` metadata (the runtime, not compose, performs the turn).
@@ -216,7 +255,7 @@ Behavior (all mechanical; no composition logic):
 interface Budgets {
   maxLiveElements: number;   // default 7 (GENESIS Law 1 / methodology cap)
   maxMarginSlots: number;    // default 2 (GENESIS 04-VI, C-5)
-  maxClocks: number;         // default 4 visible (methodology cap)
+  maxClocks: number;         // default 4 visible (methodology cap); profile-overridable — DM WORLD = Infinity (M3, §6.2)
   paintP50Ms: number;        // 80 (CI budget)
   paintP95Ms: number;        // 120 (CI budget)
 }
@@ -272,7 +311,9 @@ The self-turning book lands the reader on the folio the moment implies (§8); th
 | `scene` (I) | *the* SCENE | Frame line + the OFFER + the ASK visible | `SceneFrame`, `OfferLine`×2, kindled `ToyCard[]` (≤5 stage beings — kindling a 6th requires folding one, C-3) |
 | `resolution` (II) | *the* RESOLUTION | The `DiceMandala` reachable in one gesture | dice, quick DCs, the RESOLVE inscription, ash-`ruling.made` capture |
 | `hidden` (III) | *the* HIDDEN | Staged Truths' levers visible | `TruthCard[]` (perspective = DM omniscient), advance-condition prompts, the If/Then kindle index |
-| `world` (IV) | *the* WORLD | Active clocks + new-noun count + pacing line | `ClockQuarter[]`, faction/price/scarcity readouts, the pacing thread (wall-clock since last decision point — a `sessionMeta` read, rendered as observation) |
+| `world` (IV) | *the* WORLD | **All** active clocks + new-noun count + pacing line | `ClockQuarter[]` (**no cap** — see below), `WorldReadout` (faction/price/scarcity), `PacingThread` (wall-clock since last decision point — a `sessionMeta` read, rendered as observation) |
+
+**maxClocks override (M3):** the `codex.table.dm` profile sets `maxClocks: Infinity` for the WORLD folio — GENESIS 04-IV requires *all* active clocks visible to the DM; the player STAGE folio keeps the cap of 4. This uses the §13 profile budget-override mechanism (Desk/DM profiles may raise budgets; the player Table never does).
 
 ### 6.3 Ledger/Desk folios
 The composer serves the Ledger's Binding and Chronicle and the Desk's forms through Wing profiles (§13); their element set (`Chapter`, `GrowthRung`, form elements) reuses the same `Folio` model. Full Ledger/Desk profiles are specified in their module specs (SPEC-004 Codex-Ledger, SPEC-003 World Forge); this spec seals the **model and the Table profiles**, which are the Codex-shippable gate.
@@ -299,6 +340,14 @@ Initiative order from the `combat` fold's `initiative.set`; the active being (fr
 ### 7.4 Element identity & stability (change-blindness guard)
 Every Element `id` is derived deterministically from its source (`${kind}:${sourceEntryId|riteRef|foldKey}`), so the same logical element keeps the same `id` across recomposition — enabling the shell's shared-element transitions and preventing the HP numeral (or any pinned element) from appearing to "jump" (GENESIS council finding; C-4). Ordering within a zone is by the ranking model, never by input arrival order.
 
+### 7.5 Ordering for all other budgeted zones (M2 — completes the ranking model)
+FIT (§5.2) requires a total order for every zone that can overflow, or determinism (C-1) breaks. Sealed orderings:
+- **ClockQuarters:** by descending `step` (a clock nearer lock-in — step 4 before step 1 — is more urgent), then ascending `entryId` ULID. When `> maxClocks`, the lowest-urgency clocks fold (player STAGE, cap 4). *(The DM WORLD folio is exempt — M3, §6.2.)*
+- **ResourceStrips:** fixed kind order `slots → pool → uses`, then within `slots` by ascending spell level, then ascending `key`. Depleted strips (remaining 0) sort last and render `live:false` (spent resources don't compete for the budget).
+- **ConditionBadges:** the Vitals badge is a single collapsed Element (count + list); its internal condition list orders by descending severity, then ascending `conditionId` ULID (this also fixes L2 — the equal-severity header list order is `conditionId` ULID ascending, stable).
+- **StageRail conditions on a mark:** up to 2 shown, by descending severity then `conditionId` ULID; the rest fold into the mark's unfold.
+All tie-breaks terminate in an ascending ULID comparison, guaranteeing a total order (C-1).
+
 ---
 
 ## 8. THE EARNED WHEEL — AUTO-TURN DISPOSITION
@@ -307,27 +356,29 @@ The composer decides the *disposition*; the shell executes it. This keeps steeri
 
 ### 8.1 The `TurnDirective`
 ```ts
+type FolioRole = 'my-actions' | 'my-vitals' | 'on-combat-end';   // symbolic; profile resolves to a FolioKey (H3)
 type TurnDirective =
   | { kind: 'none' }
-  | { kind: 'offer'; toFolio: FolioKey; whisper: string; eventType: EventType }   // a margin ink whisper
-  | { kind: 'auto'; toFolio: FolioKey; eventType: EventType }                     // the book turns itself
+  | { kind: 'offer'; toRole: FolioRole; whisper: string; eventType: EventType }   // a margin ink whisper
+  | { kind: 'auto'; toRole: FolioRole; eventType: EventType }                     // the book turns itself
   | { kind: 'ribbon'; ribbon: Ribbon };                                          // edge affordance, not a turn
 ```
+Directives carry a **`FolioRole`**, not a `FolioKey` (H3): the `ComposerProfile` maps roles to its own folios (`codex.table.player`: `my-actions→action`, `my-vitals→vitals`, `on-combat-end→vitals`; `codex.table.dm`: `on-combat-end→scene`). A player spread thus never receives a directive to the DM-only `scene` folio.
 
 ### 8.2 The disposition table (sealed, deterministic)
-Computed in stage 7 from `lastEvent.type` and the `steering` fold:
+Computed in stage 7 from `lastEvent` and the `steering` fold. "being = perspective" below means **`beingToActor[lastEvent.payload.beingId] === perspective`**; "for perspective" means `perspectiveBeings.includes(beingId)` (H1). If `lastEvent` is `undefined` (redacted away, C-8, or a cache-warm recompose), the directive is `none`.
 
-| `lastEvent` | Unambiguous? | If consent granted (`autoturn.granted[type]`) | If not granted |
+| `lastEvent.type` (+ predicate) | Unambiguous? | If consent granted (`autoturn.granted[type]`) | If not granted |
 |---|---|---|---|
-| `turn.started` where being = `perspective` | yes | `auto → action` | `offer → action` ("your turn — *turn to the Action folio?*") |
-| `combat.started` | yes | `auto → vitals` | `offer → vitals` |
-| `combat.ended` | yes | `auto → scene`/prior | `offer` |
-| `damage.taken` on `perspective` while reading elsewhere | no | `offer → vitals` | `offer → vitals` |
+| `turn.started`, being = perspective | yes | `auto → my-actions` | `offer → my-actions` ("your turn — *turn to the Action folio?*") |
+| `combat.started` | yes | `auto → my-vitals` | `offer → my-vitals` |
+| `combat.ended` | yes | `auto → on-combat-end` | `offer → on-combat-end` |
+| `damage.taken`, being = perspective, active folio ≠ vitals | no | `offer → my-vitals` | `offer → my-vitals` |
 | `clock.ticked` | no | `ribbon` (margin tick) + rubricate | same |
-| `reaction.offered` for `perspective` | no | `ribbon` (ReactionRibbon, §9.2) | same |
-| all others | — | `none` | `none` |
+| `reaction.offered`, for perspective | no | `ribbon` (ReactionRibbon, §9.2) | same |
+| any other type | — | `none` | `none` |
 
-"Unambiguous" is a fixed property of the event type (the table's column 2), not a runtime judgment. **Ambiguous events never auto-turn** (C-6). A manual turn (the shell appends `autoturn.revoked{scope:'scene'}`) removes that type's consent until the scene changes; the composer reads this from the `steering` fold, so suppression is state, not a hidden flag.
+"Unambiguous" is a fixed property of the event type (column 2), not a runtime judgment. **Ambiguous events never auto-turn** (C-6). A manual turn (the shell appends `autoturn.revoked{scope:'scene'}`) removes that type's consent until the scene changes; the composer reads this from the `steering` fold, so suppression is state, not a hidden flag. Edge sequences (surprise round, an unconscious PC whose `turn.started` never fires, delay/ready) produce `offer`/`none`, never a wrong `auto`, because they never satisfy the exact predicate — verified by the §14.6 ambiguity corpus.
 
 ### 8.3 Earning consent
 Consent is *earned data*, not composer logic: after the shell observes N consecutive accepted offers of a type (the shell's counter, an app concern), it prompts the user in ink; acceptance appends `autoturn.granted{eventType}`. The composer simply reads the grant. The number N and the prompt copy are shell/UX concerns (GENESIS 04-I says "several"); **ADR-002-A** records N=3 as the recommended default, overridable, non-canon-affecting.
@@ -346,7 +397,7 @@ For each placed Element, if a condition in the `combat` fold affects its subject
 Because an interrupt must appear the instant it is triggerable, `ReactionRibbon` emission is in `compose()` (stage 6), **not** `enrich()`. On a fold delta whose `lastEvent` makes `riteSet.interrupts(lastEvent, graph, combatFold)` return offers for `perspective`, `compose()` emits a `ReactionRibbon { kind, triggerEvent, affordance: kindle/act }` on the folio's top edge — *without turning the page* (the fiction's owner keeps their folio; GENESIS 04-III). Ignoring it lets the shell dismiss it when the window closes (the shell appends `reaction.declined`). Concentration: on `damage.taken` against a concentrating subject, `compose()` surfaces a concentration-save prompt element with the DC from `riteSet.derive`; the `ConcentrationMark` gutters (a state flag the component animates).
 
 ### 9.3 Cohorts
-A `CohortMark` renders N identical creatures as one StageRail slot with `members: number`, `alive: number`, shared statline ref, one initiative slot. Damage/defeat of a member decrements `alive` (from the `combat`/`stage` folds); the Cohort counts as **one** live element against the budget (C-3) and one stage-being against the DM's ≤5 cap. Legendary/lair actions render as stage-level marks with their own reaction ribbons.
+A `CohortMark` renders N identical creatures as one StageRail slot with `members: number`, `alive: number`, shared statline ref, one initiative slot. Damage/defeat of a member decrements `alive` (from the `combat`/`stage` folds); the Cohort counts as **one** live element against the budget (C-3) and one stage-being against the DM's ≤5 cap. **When `alive` reaches 0 (M5):** the `CohortMark` remains on the rail rendered defeated (`live:false`, greyed), keeps its initiative slot, and is skipped by auto-turn (its `turn.started` never satisfies the perspective predicate); it drops from the rail on `entry.snuffed` or `combat.ended`. It is never silently removed mid-combat (spatial-memory stability, C-4-adjacent). Legendary/lair actions render as stage-level marks with their own reaction ribbons.
 
 ---
 
@@ -355,7 +406,8 @@ A `CohortMark` renders N identical creatures as one StageRail slot with `members
 ```ts
 async function enrich(folio: Folio, entryGraph: ReadonlyArchive, dramaturg: DramaturgHandle): Promise<Folio>
 ```
-- **Never blocks paint** (C-2, C-5). The shell renders the `compose()` `Folio` immediately; `enrich()` runs after and, if it returns before the next delta, the shell applies its margin patch.
+- **Never blocks paint** (C-2, C-5). The shell renders the `compose()` `Folio` immediately; `enrich()` runs after.
+- **The race rule (L5):** each `enrich()` call is tagged with the `inputHash` (§11.2) of the `Folio` it was computed for. If a new delta produces a fresh `Folio` before `enrich()` returns, the stale patch is **discarded** (it targeted a superseded page) and the runtime re-invokes `enrich()` against the new `Folio`. A pencil `MarginSlot` never lands on a page it was not computed for. The `ComposerRuntime` keeps at most one outstanding `enrich()` per folio (rapid deltas coalesce to the latest).
 - Adds **only**: pencil `MarginSlot`s (≤ `maxMarginSlots`, and only slots not already holding an ink whisper), ranking *hints* rendered as margin notes (never a reorder — SPEC-001 §5.7), and prefetched statblock detail for `unfold`.
 - Consumes the Dramaturg strictly via SPEC-001 §8: it reads `dramaturg.propose(stagedSubgraph)` where the staged subgraph is perspective-redacted and veil-excluded (SPEC-001 §17). If the Dramaturg is offline or returns schema-invalid output, `enrich()` returns the folio unchanged and the margin shows the unlit `°` (GENESIS 07 degradation). No retry on the live path.
 - Pencil provenance is enforced structurally: an `enrich()`-added MarginSlot always has `provenance:'pencil'`; the composer refuses (defect throw in dev) any attempt to place pencil in `body`/`pinned` (C-5).
@@ -365,9 +417,9 @@ async function enrich(folio: Folio, entryGraph: ReadonlyArchive, dramaturg: Dram
 ## 11. PERFORMANCE STRATEGY (how the 80ms budget is actually met)
 
 1. **Precompose the spread** — the runtime composes all folios in the current spread on mount and keeps neighbors warm; a Turn is a swap of already-composed values, not a compose (GENESIS 08-VI).
-2. **Memoized recomposition** — `compose()` is keyed by an `inputHash` over exactly the folds/entries in the folio's `inputMap`; unrelated deltas are cache hits (no-ops). Most table events touch one folio.
+2. **Memoized recomposition** — `compose()` is keyed by a precise `inputHash` (H4). The hash covers **exactly** everything `compose()` reads for that folio: (a) the fold slices named in the folio's `inputMap`; (b) the versions of every entry the folio references; (c) the relevant `uiState` slices — **`steering`** (disposition depends on it) and **`ribbonState`**; (d) **`lastEvent` identity** (its `eventId`, or `∅` when redacted/absent — because stages 6–7 depend on it); (e) `budgets` and (f) `profile.id`. Anything `compose()` reads is in the key; anything not read is excluded. Unrelated deltas are cache hits (no-ops); two different `lastEvent`s never collide. Most table events touch one folio.
 3. **Selective recomposition** — a delta recomposes only folios whose `inputMap` intersects the changed fold/entry set.
-4. **Synchronous rite calls only** — `legality`/`derive` are pure and budgeted (SPEC-001 §15); the composer calls them for *placed* candidates only (after FIT), not all candidates, bounding rite work by the budget.
+4. **Synchronous, bounded rite calls** — all four `RiteSet` functions are pure and, as of SPEC-001 §15 **v1.1**, paint-path-budgeted (`legality`/`derive` ≤1ms, `interrupts` ≤3ms via SPEC-R1's compiled trigger index, `compositionHints` ≤2ms). `legality` runs for **all** action candidates (ranking needs it, C1); `derive` runs for **placed** candidates only (stage 4b) — so the unbounded-by-hand-size cost is only `legality` at ≤1ms/card, and a worst-case 20-card hand is ≤20ms of legality, inside the ≤80ms envelope with the fitter capping `derive`/render to ≤7 live. This is the corrected budget argument (the v1.0 text wrongly cited §15 for functions it did not yet bound — C2).
 5. **`enrich()` off the paint path** — all model/async/prefetch work is post-paint.
 6. **The stress fixture is the gate** (GENESIS 08-VI): scripted 10-round combat, 4 PCs + a Cohort of 8 + 6 clocks + 8 stacked conditions → median `compose()`+paint ≤80ms, p95 ≤120ms on reference mid-range Android (WASM class). CI-blocking. `compose()` alone (no paint) must be ≤15ms p95 on that fixture to leave headroom for render.
 
@@ -416,7 +468,9 @@ Coverage floor: 100% of the pipeline stages (§3.4) and the disposition table.
 
 ## 15. BUILDER FRICTION INDEX & GAP REGISTER
 
-**Builder Friction Index: 93 / 100.** A Builder agent can implement `@ash-archive/composer` mechanically from this document + SPEC-001 + GENESIS 03/04, with the following bounded gaps (each an intentional deferral or an ADR, none blocking Phase-1 build of the Table profiles):
+> **Verification history.** v1.0 (authored) self-scored BFI 93; a fresh-context adversarial verifier re-scored it **80** (verdict PATCH) — 2 Critical (legality-timing self-contradiction C1; fabricated SPEC-001 §15 budget citations C2), 5 High (being↔actor map; the 7th `profile` param vs the "verbatim" claim; a disposition target to a non-existent player folio; an under-specified memo key; missing Element variants + untyped `MarginSlot`/`Ribbon`), 5 Medium, 5 Low. **All 17 defects patched in v1.1** (this document): C1/C2 resolved via the pipeline split (§3.4/§4b/§11.4) + the SPEC-001 v1.1 paint-path budget amendment; H1 via `beingToActor`/`perspectiveBeings` (§3.1); H2 via ADR-002-C; H3 via symbolic `FolioRole`s (§8.1); H4 via the precise `inputHash` (§11.2); H5 via the completed union + `MarginSlot`/`Ribbon` types (§2.1); the leak vector via invariant C-8; M2–M5 and L1–L5 as cited inline.
+
+**Builder Friction Index (post-patch): 95 / 100.** A Builder agent can implement `@ash-archive/composer` and the two Codex Table profiles mechanically from this document + SPEC-001 v1.1 + GENESIS 03/04, with the following bounded gaps (each an intentional deferral or a logged ADR, none blocking Phase-1 build):
 
 | Gap | Why below 100 | Disposition |
 |---|---|---|
@@ -426,9 +480,9 @@ Coverage floor: 100% of the pipeline stages (§3.4) and the disposition table.
 | G-4 · Auto-turn consent threshold N (§8.3) | GENESIS says "several"; the exact N is UX, not composer logic | **ADR-002-A**: N=3 default, shell-owned, overridable. Composer is unaffected (reads the grant either way). Confidence: High. |
 | G-5 · Desk/Ledger profiles | This spec seals the model + Table profiles (the Codex gate); Desk/Ledger profiles belong to SPEC-003/SPEC-004 | **Intentional scope boundary** per the campaign's critical-path sequencing (composer before World Forge). The engine is complete; only the additional *profiles* remain, and they are pure configuration over this sealed engine. Confidence: High. |
 
-**ADRs raised by this spec:** ADR-002-A (auto-turn consent threshold N=3), ADR-002-B (`prevOrder` held in-runtime, not event-sourced). Both are non-canon-affecting and logged in `studio/SPECS/ADR/`.
+**ADRs raised by this spec:** ADR-002-A (auto-turn consent threshold N=3), ADR-002-B (`prevOrder` held in-runtime), **ADR-002-C** (the 7th `compose` param `profile` amends the GENESIS 08-VI signature), **ADR-002-D** (the SPEC-001 §15 v1.1 paint-path budgets — executed). All logged in `studio/SPECS/ADR/ADR-LOG.md`; 002-C amends a GENESIS design contract (logged, not silent), 002-D is executed in SPEC-001 v1.1.
 
-**Per-section confidence:** §2 Folio model **High** · §3 pipeline **High** · §5 fitter **High** · §6 Table catalog **High** · §7 ranking **High** (one cross-spec seam, G-2) · §8 earned wheel **High** · §9 rubrication/interrupts **High** · §10 enrich **High** · §11 performance **Med-High** (the 80ms claim is architecturally sound but must be *proven* by the stress fixture on real hardware — it is a Phase-1 gate, not a paper guarantee) · §12 degradation **High** · §13 extension **High**.
+**Per-section confidence:** §2 Folio model **High** · §3 pipeline **High** (C1 resolved) · §5 fitter **High** · §6 Table catalog **High** · §7 ranking **High** (complete after §7.5; one cross-spec seam G-2 owned by SPEC-R1) · §8 earned wheel **High** · §9 rubrication/interrupts **High** · §10 enrich **High** · §11 performance **Med** (the 80ms claim now rests on real SPEC-001 v1.1 budgets, but must still be *proven* by the stress fixture on reference hardware — a Phase-1 gate, not a paper guarantee; this is the one honest Med) · §12 degradation **High** · §13 extension **High**.
 
 **Top contradiction risks vs. SPEC-001 (checked, none open):** (a) purity vs. rite calls — resolved: `legality`/`derive` are pure per SPEC-001 §5.7, so calling them keeps `compose()` pure. (b) "the fold is the store" vs. pure compose — resolved by the `GameState` snapshot + `ComposerRuntime` split (§3.1/§4). (c) perspective leakage — resolved: redaction is upstream at the query layer (SPEC-001 §2.4); the composer cannot leak what it never receives (§3.2).
 

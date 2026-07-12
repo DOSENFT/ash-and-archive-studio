@@ -8,9 +8,9 @@
 
 | Spec | Subsystem | Owner | Status | BFI | Verified |
 |---|---|---|---|---|---|
-| **SPEC-001** | Foundation (`@ash-archive/core`) | prior campaign | ✅ **Sealed canon** | ~97 | ✅ (repo audit) |
-| **SPEC-002** | Folio composer (`@ash-archive/composer`) | Fable 5 | 🟡 **Authored — verifying** | 93 | ⏳ in verification |
-| **SPEC-003** | World Forge (P0) | *pending* | ⬜ Gated on SPEC-002 seal | — | — |
+| **SPEC-001** | Foundation (`@ash-archive/core`) | prior campaign | ✅ **Sealed canon — v1.1** | ~97 | ✅ (repo audit) |
+| **SPEC-002** | Folio composer (`@ash-archive/composer`) | Fable 5 | ✅ **Sealed canon — v1.1** | 95 | ✅ **PATCH→resolved** (17/17 defects) |
+| **SPEC-003** | World Forge (P0) | Fable 5 | 🟡 **Next — unblocked** | — | — |
 | **SPEC-004** | Codex-Ledger + Academy (P1) | *pending* | ⬜ Queued | — | — |
 | **SPEC-005** | Campaign Studio (P1) | *pending* | ⬜ Queued | — | — |
 | **SPEC-006** | The Stage / Charter Room surfaces (P1) | *pending* | ⬜ Queued | — | — |
@@ -29,10 +29,10 @@
 3. Contradictions between two sealed canon docs are resolved by **ADR**, logged, then both docs annotated. (The AI crew found the first such case — see ADR-AI1-006 below, resolved.)
 4. **Cadence:** verify SPEC-002 immediately (critical path); batch-verify B1/R1/AI1 once all three drafts are in. Re-run the ladder audit after each seal.
 
-## Escalations for Marcus (input only he can provide — do not guess)
-1. **SRD licensing** (ADR-R1-005): confirm 5e SRD 5.1 under CC-BY-4.0 as the content boundary. Legal, not engineering.
-2. **Billing + auth + cloud/KMS + LLM vendors** (SPEC-B1 ADR-000–008): business/vendor selections. The spec is provider-agnostic and implementable against any choice; these gate go-live, not the build of the local product.
-3. **The covenant ruling** (SPEC-B1 G-11): may a *lapsed* subscriber still **Bind** existing pending ash? Read + export are guaranteed never to lock (invariant). Binding is a canon-authoring act — is it a gate-able premium feature or a covenant-protected right? Touches SPEC-001 I-1/§6.
+## Escalations for Marcus — ✅ RESOLVED (2026-07-12)
+1. ✅ **SRD licensing** → **YES, SRD 5.1** (Marcus). Content boundary set.
+2. ✅ **Vendors** → **DEFERRED** (Marcus: "premature before a running Foundation"). Backend stays provider-agnostic; local product builds without vendors chosen.
+3. ✅ **Covenant ruling** → **local Bind is NEVER gated** (Marcus: "the person's created world is never held hostage"). Read + export + local Binding of one's own ash are covenant-protected; premium gates apply only to networked features. SPEC-B1 LI-1 extended.
 
 ## Cadence log
 - **2026-07-11:** Campaign opened. SPEC-002 authored (BFI 93) — critical path. Crews B1/R1/AI1 dispatched in parallel. All three returned same day: B1 BFI 62, R1 BFI 34, AI1 BFI 22 (low BFIs are honest deferrals — model selection → Phase-3.5, SRD content → golden pass, vendors → ADR). ADRs 002-A/002-B logged; ADR-AI1-006 resolved (prompts as out-of-Archive Vault assets). Cross-spec seams identified: SEAM-R1×002 (interrupts budget) + ADR-R1-003 (E-17xx) → one additive SPEC-001 §11/§15 amendment at seal. SPEC-002 adversarial verifier dispatched.

@@ -1,6 +1,8 @@
 # SPEC-001 — THE FOUNDATION
 ### Canonical engineering specification for `@ash-archive/core` — the substrate of Ash & Archive Studio
-*v1.0 · Bound 2026-07-07 · Status: **CANONICAL — permanent source of truth for this subsystem***
+*v1.1 · Bound 2026-07-07 · amended 2026-07-12 · Status: **CANONICAL — permanent source of truth for this subsystem***
+
+> **v1.1 amendment (2026-07-12, additive & non-breaking).** During the SPEC-002 (composer) and SPEC-R1 (Rite content) campaign, three seams required additive clarification, executed here so SPEC-001's version bumps once cleanly (ADR-LOG: SEAM-R1×002, ADR-R1-003, ADR-AI1-006): (1) §15 gains **paint-path latency budgets** for `archive.query`/`archive.links` and the four `RiteSet` functions — the composer's 80ms budget depends on them and v1.0 left them unbounded; (2) §11 **cedes the `E-17xx` code range** to registered Rite sets; (3) §9.1 adds the `prompts/` export namespace for versioned Dramaturg prompt assets. No existing contract changes.
 
 > **Scope of this document.** This is not a vision document (see `studio/STUDIO-GENESIS/`) and not a product design (see `products/the-codex/GENESIS/`). It is the implementation-ready specification of the Foundation subsystem. An engineering team — or another AI — implements directly from this document. Where this document is silent, the ecosystem canon (`canon/ASH-AND-ARCHIVE-CANON.md`) arbitrates; where it speaks, it is law for this subsystem.
 
@@ -480,6 +482,8 @@ Resolutions (the methodology's three patches): `minimal` (edit the incoming draf
 ├── chronicle/session-<n>-<slug>.md        # bound chapters, readable
 ├── ash/events.jsonl          # complete event log incl. snapshots (struck events included, marked)
 ├── attachments/<id>.<ext>    # content-addressed; sha256 in owning frontmatter
+├── prompts/<voice>-<version>.txt   # (v1.1) versioned Dramaturg prompt assets, NOT Entries
+│                                   # (ADR-AI1-006); read-only in the Charter Room; hash in MANIFEST
 └── MANIFEST.json             # every file + sha256 + counts + vocabVersion + ddlVersion
 ```
 
@@ -518,6 +522,7 @@ Single-owner, multi-principal: the **owner** (device holder) holds all capabilit
 | E-14xx | Vault/IO | `E-1401 AttachmentTooLarge`; `E-1402 IntegrityCheckFailed` (→ restore flow, explicit consent); `E-1403 StorageExhausted` (→ export-first guidance) |
 | E-15xx | Import/export | `E-1501 PartialImport` (carries per-item report); `E-1502 ManifestMismatch` |
 | E-16xx | Capability | `E-1601 FtsUnavailable` (degrade to LIKE search + flag); `E-1602 OpfsUnavailable` (IndexedDB VFS + perf-class downgrade reported) |
+| E-17xx | Rite content *(v1.1: ceded to registered Rite sets — SPEC-R1)* | core reserves the range; a registered set owns its codes, e.g. `E-1701 InvalidRiteContent`, `E-1702 UnruledHomebrew`. Core never mints E-17xx itself. |
 
 Global failure law: **the Foundation never blocks play.** Any non-Vault failure during a session degrades the specific capability and appends nothing false; the Table keeps working on the resident fold. Defects (invariant violations) fail loudly in dev, and in production log locally + disable the offending write path rather than corrupt.
 
@@ -553,6 +558,10 @@ v1 is single-device per world (I-6 export is the manual bridge). The shape reser
 | Fold delta to subscribers | p99 ≤ 4ms |
 | Session cold-resume (snapshot + tail replay) | ≤ 2s at 200k lifetime events |
 | `archive.get` | p99 ≤ 3ms |
+| `archive.query` / `archive.links` (indexed, paint-path) *(v1.1)* | p99 ≤ 3ms |
+| `RiteSet.legality` / `RiteSet.derive` (per call, paint-path) *(v1.1)* | p99 ≤ 1ms |
+| `RiteSet.interrupts` (per delta, via compiled trigger index — SPEC-R1) *(v1.1)* | p99 ≤ 3ms |
+| `RiteSet.compositionHints` (per compose) *(v1.1)* | p99 ≤ 2ms |
 | `archive.search` @ 100k entries | p95 ≤ 100ms desktop / 250ms mobile |
 | `archive.subgraph` (staging, 3k tokens) | p95 ≤ 50ms |
 | `binding.plan` for a 400-event session | ≤ 1.5s |
