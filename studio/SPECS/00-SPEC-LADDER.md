@@ -8,15 +8,17 @@
 
 | Spec | Subsystem | Owner | Status | BFI | Verified |
 |---|---|---|---|---|---|
-| **SPEC-001** | Foundation (`@ash-archive/core`) | prior campaign | ✅ **Sealed canon — v1.1** | ~97 | ✅ (repo audit) |
-| **SPEC-002** | Folio composer (`@ash-archive/composer`) | Fable 5 | ✅ **Sealed canon — v1.1** | 95 | ✅ **PATCH→resolved** (17/17 defects) |
-| **SPEC-003** | World Forge (P0) | Fable 5 | 🟡 **Next — unblocked** | — | — |
-| **SPEC-004** | Codex-Ledger + Academy (P1) | *pending* | ⬜ Queued | — | — |
+| **SPEC-001** | Foundation (`@ash-archive/core`) | prior campaign | ✅ **Sealed canon — v1.2** (v1.1 budgets/E-17xx/prompts; v1.2 readiness-visibility, ReadinessReport shape, E-1003 timing, E-1104) | ~97 | ✅ (repo audit + 2 amendment cycles) |
+| **SPEC-002** | Folio composer (`@ash-archive/composer`) | Fable 5 | ✅ **Sealed canon — v1.1** (+§6.3 ADR-003-C annotation) | 95 | ✅ PATCH→resolved (17/17) |
+| **SPEC-003** | World Forge (P0) | Fable 5 | ✅ **Sealed canon — v1.1** | 90 | ✅ PATCH→resolved (63→90; drove SPEC-001 v1.2) |
+| **SPEC-004** | Codex-Ledger + Academy (P1) | *next* | ⬜ Queued — final module rung | — | — |
 | **SPEC-005** | Campaign Studio (P1) | *pending* | ⬜ Queued | — | — |
-| **SPEC-006** | The Stage / Charter Room surfaces (P1) | *pending* | ⬜ Queued | — | — |
-| **SPEC-B1** | Production backend (auth · license · billing · sync · Press hosting) | crew | 🟡 **Draft in `drafts/`** | 62 | ⬜ pending batch-verify |
-| **SPEC-R1** | 5e Rite-set content authoring schema & pipeline | crew | 🟡 **Draft in `drafts/`** | 34 | ⬜ pending batch-verify |
-| **SPEC-AI1** | Dramaturg running config (models · prompts · audit) | crew | 🟡 **Draft in `drafts/`** | 22 | ⬜ pending batch-verify |
+| **SPEC-006** | Charter Room + Stage surfaces (P1; owns the Charter Room per SPEC-003 §3) | *pending* | ⬜ Queued | — | — |
+| **SPEC-B1** | Production backend | crew | ✅ **Sealed canon — v1.1** (`SPEC-B1-BACKEND.md`; covenant ruling propagated; covenant-floor state defined) | 80 | ✅ PATCH→resolved |
+| **SPEC-R1** | 5e Rite-set content schema & pipeline | crew | ✅ **Sealed canon — v1.1** (`SPEC-R1-RITE-CONTENT.md`; v1.1 budgets adopted; 3 sub-schemas sealed) | 72 | ✅ PATCH→resolved |
+| **SPEC-AI1** | Dramaturg running config | crew | ✅ **Sealed canon — v1.1** (`SPEC-AI1-DRAMATURG-CONFIG.md`; Vault-file prompts; +T-LEVER-1/T-NAMING-1) | ~85* | ✅ PATCH→resolved |
+
+*\*AI1's crew reported friction-remaining 15 (inverted convention); normalized: ~85 on this ladder's 100=frictionless scale. Its remaining friction is solely the legitimate Phase-3.5 model-tier deferral + the backend proxy seam. R1's 72 is capped by golden-pass enum-membership deferral (the correct forcing function); B1's 80 by vendor ADRs Marcus ratified as deferred.*
 
 **Critical path (sequenced):** SPEC-002 (composer) → SPEC-003 (World Forge). The composer gates the Codex — the first shippable room — so it seals first. The independent domains (B1, R1, AI1) run in parallel and do not gate the critical path.
 
@@ -36,4 +38,6 @@
 
 ## Cadence log
 - **2026-07-11:** Campaign opened. SPEC-002 authored (BFI 93) — critical path. Crews B1/R1/AI1 dispatched in parallel. All three returned same day: B1 BFI 62, R1 BFI 34, AI1 BFI 22 (low BFIs are honest deferrals — model selection → Phase-3.5, SRD content → golden pass, vendors → ADR). ADRs 002-A/002-B logged; ADR-AI1-006 resolved (prompts as out-of-Archive Vault assets). Cross-spec seams identified: SEAM-R1×002 (interrupts budget) + ADR-R1-003 (E-17xx) → one additive SPEC-001 §11/§15 amendment at seal. SPEC-002 adversarial verifier dispatched.
-- **Next turn:** integrate SPEC-002 verdict → seal SPEC-002 → batch-verify B1/R1/AI1 → execute the additive SPEC-001 amendment → unblock + author SPEC-003 (World Forge).
+- **2026-07-12:** SPEC-002 verifier: PATCH (93→80, 2C/5H/5M/5L) → all 17 patched, **sealed v1.1, BFI 95**. SPEC-001 → v1.1 (paint-path budgets, E-17xx, prompts/). Marcus rulings landed (SRD 5.1 ✅ · vendors deferred · covenant: local Bind never gated). Batch verifiers dispatched. SPEC-003 authored (self 88).
+- **2026-07-14:** Batch verdicts: **all PATCH, zero REWORK** — B1 (covenant violation caught), R1 (stale budgets), AI1 (rejected-option prompts). Patch crews sealed all three: **B1 80 · R1 72 · AI1 ~85**. SPEC-003 verifier: PATCH (88→63; C1 ownership split, C3 Lever timing) → patched + **sealed v1.1, BFI 90**; drove **SPEC-001 v1.2** (ADR-003-E) + SPEC-002 §6.3 annotation (ADR-003-C). ADR-003-A–E logged. **Seven specs sealed; zero unverified debt in `drafts/` (verdict file retained as record).**
+- **Next:** SPEC-004 (Codex-Ledger + Academy) → SPEC-005 (Campaign Studio) → SPEC-006 (Charter Room + Stage) — the final module rungs, same author→verify→patch→seal cycle, one at a time per Marcus's no-debt rule.

@@ -316,7 +316,7 @@ The self-turning book lands the reader on the folio the moment implies (§8); th
 **maxClocks override (M3):** the `codex.table.dm` profile sets `maxClocks: Infinity` for the WORLD folio — GENESIS 04-IV requires *all* active clocks visible to the DM; the player STAGE folio keeps the cap of 4. This uses the §13 profile budget-override mechanism (Desk/DM profiles may raise budgets; the player Table never does).
 
 ### 6.3 Ledger/Desk folios
-The composer serves the Ledger's Binding and Chronicle and the Desk's forms through Wing profiles (§13); their element set (`Chapter`, `GrowthRung`, form elements) reuses the same `Folio` model. Full Ledger/Desk profiles are specified in their module specs (SPEC-004 Codex-Ledger, SPEC-003 World Forge); this spec seals the **model and the Table profiles**, which are the Codex-shippable gate.
+The composer serves the Ledger's Binding and Chronicle and the Desk's *overview surfaces* through Wing profiles (§13); their element set (`Chapter`, `GrowthRung`, overview elements) reuses the same `Folio` model. *(Amended by ADR-003-C: editable **forms** are NOT composed — the composer renders state; plain form editors bound to `archive.draft`/`reviseDraft` mutate it. The v1.1 phrase "form elements" is superseded.)* Full Ledger/Desk profiles are specified in their module specs (SPEC-004 Codex-Ledger, SPEC-003 World Forge); this spec seals the **model and the Table profiles**, which are the Codex-shippable gate.
 
 ---
 

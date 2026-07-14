@@ -40,6 +40,28 @@
 
 ---
 
+## ADR-003-A · Factions are `being` entries with a core `beingType` discriminator
+- **Spec:** SPEC-003 §2. **Status:** Accepted. **Canon-affecting:** Yes — `beingType` is a **core** being-body field (executed in SPEC-001 v1.2, per the readiness-visibility rule), values `'person'|'faction'|'org'|'creature'`.
+- **Context:** SPEC-001 §7.5 counts "being|faction" actors but the eleven frozen kinds have no `faction`. A faction has goals/methods/problems — the Toy/being model.
+- **Options:** (a) mint a `faction` kind → rejected, §14.4 freeze · (b) Forge-namespace facet → rejected, readiness (core) must read it · (c) core `beingType` field.
+- **Decision:** (c). **Reverses if:** a v2 kind-registry unfreeze makes a first-class kind cleaner.
+
+## ADR-003-B · Timeline events are `scene` (world-time) or `ruling` (layer:'dynamic')
+- **Spec:** SPEC-003 §2. **Status:** Accepted. **Canon-affecting:** No new kinds. Discriminator: a world-time scene carries core field `scene.worldTime?` (set) and no `sessionId` (unset) — the Chronicle-of-Eras query keys on `worldTime IS NOT NULL`, never on a namespace facet.
+- **Reverses if:** timeline usage at scale wants a dedicated kind (v2 registry question).
+
+## ADR-003-C · Compose-for-overview / forms-for-authoring split (AMENDS SPEC-002 §6.3)
+- **Spec:** SPEC-003 §4. **Status:** Accepted. **Canon-affecting:** Yes — SPEC-002 §6.3's "form elements" phrase is amended: the composer renders *state* (overviews, strips, webs); editable forms are plain editors bound to `archive.draft/reviseDraft`, outside the composer. SPEC-002 §6.3 annotated at its next touch (queued).
+- **Why:** editable form state inside a pure, memoized compose function is a category error (C-1 purity vs. keystroke state).
+- **Reverses if:** never expected; a "form element" would re-litigate C-1.
+
+## ADR-003-D · The Lever Test fires at lock/plan, never at draft (EXECUTED in SPEC-001 v1.2)
+- **Context (verifier C3):** a new truth cannot carry an `unlocks` link before it exists; write-time E-1003 would make truths uncreatable.
+- **Decision:** drafts may be lever-less; `E-1003` fires at `charter.lock()`/`binding.plan()`; readiness counts only truths with an *active* unlocks link; the Forge renders a persistent "lever missing/broken" mark (incl. when the only unlocks link is later ended), never a save rejection.
+
+## ADR-003-E · SPEC-001 v1.2 additive amendment (EXECUTED 2026-07-14)
+- Readiness-visibility rule (core reads only core body fields); `ReadinessReport` shape enumerated; E-1003 timing (003-D); `E-1104 LockedEntry` on reviseDraft-of-locked. All additive; no existing contract changes. Driven by SPEC-003 verifier findings C1/C3/H1/H4.
+
 ## RESOLVED by Marcus (2026-07-12 rulings)
 
 - **ADR-R1-005 · SRD license → YES, SRD 5.1.** Marcus confirmed. The Rite content boundary is the 5e SRD 5.1; SPEC-R1's licensing-tracking-per-entry targets it. *(Legal ratified; engineering proceeds.)*
