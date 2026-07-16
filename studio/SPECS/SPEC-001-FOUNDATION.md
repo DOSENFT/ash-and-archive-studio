@@ -181,7 +181,7 @@ interface AshEvent<P = unknown> {
 
 ### 3.2 The event vocabulary (closed; additions bump `VOCAB_VERSION`)
 
-Sixty types, grouped. Payload fields listed are exhaustive for implementation; all payloads additionally validate `worldId`-scoped id references.
+Sixty-eight types, grouped *(erratum 2026-07-14, Marcus-signed via ADR-LOG: header previously read "Sixty"; the groups below sum to 68 and their per-group counts were verified accurate — no contract change)*. Payload fields listed are exhaustive for implementation; all payloads additionally validate `worldId`-scoped id references.
 
 **Session & scene (8):** `session.opened {plannedSessionEntry?}` · `session.closed {}` · `session.scope.declared {scope: string}` · `scene.framed {frame, offer?, ask?}` · `scene.ended {}` · `recap.read {}` · `warmup.completed {drillRepId?}` · `player.absence.ruled {beingId, ruling:'npc'|'safe'|'pause'}`
 

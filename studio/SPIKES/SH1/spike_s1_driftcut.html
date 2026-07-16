@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SPIKE-SH1-S1 — drift-cut vs hard cut</title>
+<style>
+  html,body{margin:0;height:100%;background:#141310;color:#9c8e7d;font:15px/1.55 system-ui}
+  #stage{position:relative;width:960px;height:540px;margin:24px auto;overflow:hidden}
+  .room{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+  #roomA{background:linear-gradient(160deg,#222019,#1a1a1a)}
+  #roomB{background:linear-gradient(200deg,#1d1b16,#16140f)}
+  #roomB input{width:320px;padding:10px;background:#222019;color:#ece6d7;border:1px solid #554f49;font:inherit}
+  /* the drift-cut: outgoing still as a non-interactive overlay above a LIVE page */
+  #overlay{position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(160deg,#222019,#1a1a1a)}
+  #overlay.run{opacity:1;transition:opacity 240ms cubic-bezier(.76,0,.24,1),transform 240ms cubic-bezier(.76,0,.24,1);transform:translateX(-12px);opacity:0}
+  #out{white-space:pre;font-family:Consolas,monospace;font-size:12px;margin:0 auto;width:960px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="room" id="roomA"><div>the Forge (outgoing)</div></div>
+  <div class="room" id="roomB" style="visibility:hidden"><div>the Chronicle (destination)</div><input id="dest" aria-label="destination input"></div>
+  <div id="overlay"></div>
+</div>
+<div id="out">idle — call runSpike() </div>
+<script>
+// SPIKE-SH1-S1: measures, per SH1 v0.3 law (tier-3 non-blocking overlay):
+//  m1: input-pipeline latency during the transition window [0,240ms]
+//      (MessageChannel round-trip lag sampled continuously; proxy for keystroke delay)
+//  m2: time until destination is interactive (focus + programmatic input processed)
+//  m3: long tasks in [0,1300ms]  m4: active animations after 300ms (must be 0)
+// Modes: 'hard' (instant swap) vs 'drift' (240ms overlay above a live page).
+const roomA=document.getElementById('roomA'),roomB=document.getElementById('roomB'),
+      overlay=document.getElementById('overlay'),dest=document.getElementById('dest'),
+      out=document.getElementById('out');
+function lagSampler(durMs){
+  return new Promise(res=>{
+    const lags=[],mc=new MessageChannel();let last=performance.now();const t0=last;
+    mc.port1.onmessage=()=>{const n=performance.now();lags.push(n-last-0);/*ideal 0*/
+      if(n-t0<durMs){last=n;mc.port2.postMessage(0);}else res(lags);};
+    mc.port2.postMessage(0);
+  });
+}
+async function trial(mode){
+  // reset
+  overlay.className='';overlay.style.opacity='0';roomB.style.visibility='hidden';
+  roomA.style.visibility='visible';dest.value='';
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  const longtasks=[];const po=new PerformanceObserver(l=>longtasks.push(...l.getEntries()));
+  po.observe({entryTypes:['longtask']});
+  const t0=performance.now();
+  // navigate:
+  if(mode==='hard'){ roomA.style.visibility='hidden'; roomB.style.visibility='visible'; }
+  else { // drift-cut: destination live at frame 0, overlay fades above it
+    roomB.style.visibility='visible'; roomA.style.visibility='hidden';
+    overlay.style.opacity='1'; void overlay.offsetWidth; overlay.classList.add('run');
+  }
+  dest.focus();
+  // interactive check: programmatic keystroke through the real input pipeline
+  let tInteractive=-1;
+  const p=new Promise(r=>dest.addEventListener('input',()=>{tInteractive=performance.now()-t0;r();},{once:true}));
+  dest.value='k';dest.dispatchEvent(new InputEvent('input',{bubbles:true}));
+  await p;
+  const lags=await lagSampler(300);           // covers the whole 240ms window
+  await new Promise(r=>setTimeout(r,80));      // settle to 380ms
+  const animsAfter=document.getAnimations().length;
+  await new Promise(r=>setTimeout(r,920));     // observe to 1300ms
+  po.disconnect();
+  const mx=Math.max(...lags);
+  return {tInteractive,maxLag:mx,meanLag:lags.reduce((a,b)=>a+b,0)/lags.length,
+          longtasks:longtasks.length,animsAfter};
+}
+function pct(a,p){const s=[...a].sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(p*s.length))];}
+async function runSpike(N=120){
+  const res={hard:[],drift:[]};
+  for(let i=0;i<N;i++){res.hard.push(await trial('hard'));res.drift.push(await trial('drift'));}
+  const agg=m=>({ tti_p50:pct(res[m].map(r=>r.tInteractive),.5), tti_p95:pct(res[m].map(r=>r.tInteractive),.95),
+    maxLag_p50:pct(res[m].map(r=>r.maxLag),.5), maxLag_p95:pct(res[m].map(r=>r.maxLag),.95),
+    longtasks:res[m].reduce((a,r)=>a+r.longtasks,0), animsAfter300:res[m].reduce((a,r)=>a+r.animsAfter,0)});
+  const H=agg('hard'),D=agg('drift');
+  const report={trials:N,hard:H,drift:D,
+    deltas:{tti_p50:+(D.tti_p50-H.tti_p50).toFixed(3),tti_p95:+(D.tti_p95-H.tti_p95).toFixed(3),
+            maxLag_p50:+(D.maxLag_p50-H.maxLag_p50).toFixed(3),maxLag_p95:+(D.maxLag_p95-H.maxLag_p95).toFixed(3)},
+    structural:{videoElements:document.querySelectorAll('video').length,
+                decodersPossible:false, animationsAfter300ms:D.animsAfter300}};
+  window.__S1=report;
+  out.textContent=JSON.stringify(report,null,2);
+  return report;
+}
+</script>
+</body>
+</html>

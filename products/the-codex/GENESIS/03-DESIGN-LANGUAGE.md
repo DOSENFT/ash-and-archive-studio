@@ -95,7 +95,7 @@ Every piece of content renders its provenance. This is new to the Ledger System 
 
 ## VI. Motion — the four registers
 
-Motion is meaning. Four durations, three easings, and a hard law that nothing else exists:
+Motion is meaning. Four durations, three easings, and a hard law that nothing else exists *(scope annotation, 2026-07-14, ADR-SH1-B Marcus-signed: these four registers govern every pixel that moves while a page is seated; the Studio shell's world layer adds two registers — Passage and Rite — that exist only while no page is seated, under canon clause 8 and SPEC-SH1; the two jurisdictions never run concurrently)*:
 
 | Register | Duration | Use |
 |---|---|---|
