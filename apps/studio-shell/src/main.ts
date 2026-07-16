@@ -132,10 +132,12 @@ async function navigate(to: SeatId, arrival: Arrival = 'drift-cut'): Promise<voi
       [{ opacity: 0, transform: `translate(${b.dx * drift}px, ${b.dy * drift}px)` }, { opacity: 1, transform: 'translate(0,0)' }],
       { duration: dur, easing: 'ease-out', fill: 'forwards' },
     );
-    const snap = () => { a1.finish(); }; // any input snaps the overlay (≤120ms law; here: instant)
-    addEventListener('keydown', snap, { once: true, capture: true });
+    // ANY input snaps the overlay (SH1 §2.4: key, click, wheel — no unskippable frame exists).
+    const snap = () => { a1.finish(); };
+    const snapEvents: (keyof WindowEventMap)[] = ['keydown', 'pointerdown', 'wheel'];
+    snapEvents.forEach((ev) => addEventListener(ev, snap, { once: true, capture: true }));
     await a1.finished.catch(() => {});
-    removeEventListener('keydown', snap, { capture: true } as EventListenerOptions);
+    snapEvents.forEach((ev) => removeEventListener(ev, snap, { capture: true } as EventListenerOptions));
     landing = false;
   }
 
@@ -178,11 +180,11 @@ function palRender(): void {
       li.textContent = ROOM_NAME[s];
       li.setAttribute('role', 'option');
       li.setAttribute('aria-selected', String(i === palSel));
+      li.setAttribute('data-seat', s);
       li.addEventListener('click', () => { palClose(); void navigate(s); });
       return li;
     }),
   );
-  palList.querySelectorAll('li').forEach((li, i) => li.setAttribute('data-seat', SEATS.filter((s) => ROOM_NAME[s].toLowerCase().includes(q))[i]));
 }
 function palOpen(): void { palette.classList.add('open'); palInput.value = ''; palSel = 0; palRender(); palInput.focus(); }
 function palClose(): void { palette.classList.remove('open'); instrument?.focusFirst(); }
