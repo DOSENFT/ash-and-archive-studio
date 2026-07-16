@@ -6,6 +6,8 @@ import { ok, fail, type Result } from "../result.js";
 import { DDL_VERSION, VOCAB_VERSION, STUDIO_DDL, WORLD_DDL } from "./ddl.js";
 import type { DbHandle, PlatformBinding } from "./platform.js";
 import { Ash } from "../ash/ash.js";
+import { Archive } from "../archive/archive.js";
+import { Rites } from "../rites/rites.js";
 
 export interface WorldMeta {
   id: string;
@@ -23,6 +25,8 @@ export interface VaultCapability {
 
 export class Vault {
   readonly ash: Ash;
+  readonly archive: Archive; // §5.2/§5.3 — the Archive surface of the Wing contract
+  readonly rites: Rites;     // §5.7 — per-vault Rite-set registry (no singletons)
 
   constructor(
     readonly worldId: string,
@@ -31,6 +35,8 @@ export class Vault {
     deviceId: string,
   ) {
     this.ash = new Ash(db, deviceId);
+    this.archive = new Archive(db, worldId, binding.ftsAvailable);
+    this.rites = new Rites();
   }
 
   /** §5.4 session lifecycle sugar over events. */
