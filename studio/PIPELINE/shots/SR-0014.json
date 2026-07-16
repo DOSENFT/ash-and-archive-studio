@@ -1,0 +1,15 @@
+{
+  "shotId": "SR-0014",
+  "routeOrScene": "lintel.chronicle",
+  "intent": "Corrected ambulatory take #1 (replaces SR-0005's slotting) \u2014 sprint deliverable.",
+  "generationSeconds": null,
+  "shippedDurationMs": null,
+  "elements": [
+    "PROP-ONE"
+  ],
+  "prompt": "(external-mcp-sprint \u2014 composed in the founder's MCP session under sealed SH2; Style Block v2 verbatim; Prop One + gate-frame references attached)",
+  "continuityNotes": "receive via: node studio/PIPELINE/intake.mjs --receive <file|url> --shot SR-0014 --pose lintel.chronicle [--gen-id <id>]",
+  "status": "generating",
+  "intake": null,
+  "takes": []
+}

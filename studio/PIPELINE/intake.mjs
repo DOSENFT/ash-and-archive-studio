@@ -7,6 +7,11 @@
 // Usage:
 //   node studio/PIPELINE/intake.mjs --queue                      list the intake queue
 //   node studio/PIPELINE/intake.mjs <shotId> --curator marcus    run the checklist on one asset
+//   node studio/PIPELINE/intake.mjs --receive <file|url> --shot SR-XXXX --pose <poseId> [--gen-id <id>]
+//       receive an externally-generated asset (the founder's MCP sprint): copies/
+//       downloads it to studio/ASSETS/stills/<poseId>.png, hashes it, writes the
+//       UNCURATED manifest slot + provenance row (tool: external-mcp-sprint), and
+//       queues the shot — so the later PASS verdict hot-swaps with zero code change.
 //
 // The checklist is SH2 HARVEST-INTAKE (drafts/SH2-HARVEST-INTAKE.md) §A (+§B for
 // pose stills). Answers y/n per item; any n = FAIL with the check ids recorded.
@@ -42,6 +47,66 @@ const CHECKLIST_B = [
 
 const args = process.argv.slice(2);
 const readShot = (id) => JSON.parse(readFileSync(join(SHOTS, `${id}.json`), 'utf8'));
+
+if (args.includes('--receive')) {
+  const { createHash } = await import('node:crypto');
+  const src = args[args.indexOf('--receive') + 1];
+  const shotId = args[args.indexOf('--shot') + 1];
+  const poseId = args[args.indexOf('--pose') + 1];
+  const genId = args.includes('--gen-id') ? args[args.indexOf('--gen-id') + 1] : null;
+  if (!src || !shotId || !poseId) { console.error('receive: --receive <file|url> --shot SR-XXXX --pose <poseId>'); process.exit(1); }
+
+  const stillsDir = join(here, '..', 'ASSETS', 'stills');
+  const destFile = `stills/${poseId}.png`;
+  const destPath = join(here, '..', 'ASSETS', destFile);
+  let bytes;
+  if (/^https?:\/\//.test(src)) {
+    const res = await fetch(src);
+    if (!res.ok) { console.error(`receive: fetch failed ${res.status}`); process.exit(1); }
+    bytes = Buffer.from(await res.arrayBuffer());
+  } else {
+    bytes = readFileSync(src);
+  }
+  writeFileSync(destPath, bytes);
+  const hash = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+
+  // Manifest slot: replace if the pose exists (a "corrected" take), append if new —
+  // either way UNCURATED until the curator's hand (R2 law).
+  const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8'));
+  const still = { hash, file: destFile, curation: 'UNCURATED', shotId };
+  const isApproach = poseId === 'approach';
+  if (isApproach) {
+    manifest.approach = { still, durationMs: 4000, reclaimable: true };
+  } else {
+    const existing = (manifest.poses ?? []).find((p) => p.poseId === poseId);
+    if (existing) existing.still = still;
+    else manifest.poses.push({ poseId, still, anchorSlots: [] });
+  }
+  writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + '\n');
+
+  // Provenance row (honest-determinism form; external sprint = founder's hand via MCP).
+  const provPath = join(here, '..', 'ASSETS', 'PROVENANCE.json');
+  const prov = JSON.parse(readFileSync(provPath, 'utf8'));
+  prov.assets = prov.assets.filter((a) => a.file !== destFile);
+  prov.assets.push({ file: destFile, hash, shotId, tool: 'external-mcp-sprint (Higgsfield MCP, founder-operated)', date: new Date().toISOString().slice(0, 10), operator: 'marcus', generationId: genId, inputs: 'sealed SH2 Style Block v2 + Prop One references; zero user content' });
+  writeFileSync(provPath, JSON.stringify(prov, null, 2) + '\n');
+
+  // Shot record: take row + queue for intake.
+  const shot = existsSync(join(SHOTS, `${shotId}.json`)) ? readShot(shotId) : {
+    shotId, routeOrScene: poseId, intent: `Received external sprint asset for ${poseId}.`,
+    generationSeconds: null, shippedDurationMs: null, elements: ['PROP-ONE'],
+    prompt: '(external-mcp-sprint — prompt held by the founder session; Style Block v2 per sealed SH2)',
+    continuityNotes: '', status: 'generating', intake: null, takes: [],
+  };
+  shot.routeOrScene = poseId;
+  shot.takes = shot.takes ?? [];
+  shot.takes.push({ takeId: shot.takes.length + 1, tool: 'higgsfield-mcp (external sprint)', date: new Date().toISOString().slice(0, 10), generationId: genId, result: destFile });
+  shot.status = 'intake-queued';
+  shot.intake = null;
+  writeFileSync(join(SHOTS, `${shotId}.json`), JSON.stringify(shot, null, 2) + '\n');
+  console.log(`received ${poseId} ← ${src}\n  ${hash}\n  manifest slot written (UNCURATED), provenance recorded, ${shotId} queued for your checklist.`);
+  process.exit(0);
+}
 
 if (args.includes('--queue') || args.length === 0) {
   const rows = readdirSync(SHOTS).filter((f) => f.endsWith('.json')).map((f) => readShot(f.replace('.json', '')));

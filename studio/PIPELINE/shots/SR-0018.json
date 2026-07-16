@@ -1,0 +1,23 @@
+{
+  "shotId": "SR-0018",
+  "routeOrScene": "bench.forge",
+  "intent": "Corrected Toybox/Forge bench (Prop One anchored, no hurricane silhouette).",
+  "generationSeconds": null,
+  "shippedDurationMs": null,
+  "elements": [
+    "PROP-ONE"
+  ],
+  "prompt": "(external-mcp-sprint — composed in the founder's MCP session under sealed SH2; Style Block v2 verbatim; Prop One + gate-frame references attached)",
+  "continuityNotes": "receive via: node studio/PIPELINE/intake.mjs --receive <file|url> --shot SR-0018 --pose bench.forge [--gen-id <id>]",
+  "status": "intake-queued",
+  "intake": null,
+  "takes": [
+    {
+      "takeId": 1,
+      "tool": "higgsfield-mcp (external sprint)",
+      "date": "2026-07-16",
+      "generationId": "placeholder-pre-sprint",
+      "result": "stills/bench.forge.png"
+    }
+  ]
+}

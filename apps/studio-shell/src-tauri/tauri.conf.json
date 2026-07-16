@@ -1,0 +1,34 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Ash & Archive — The Studio",
+  "version": "0.1.0",
+  "identifier": "com.ashandarchive.studio",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5175",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Ash & Archive — The Studio",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false,
+        "backgroundColor": "#141310"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' atelier: 'unsafe-inline'; img-src 'self' atelier: data:; media-src 'self' atelier:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi"],
+    "icon": ["icons/icon.ico"]
+  }
+}

@@ -1,0 +1,22 @@
+# The Studio Shell — Rust host (SPEC-SH3 §2.4). Scaffolded 2026-07-16 (issue #10);
+# first compile awaits the founder's cargo install (INSTALL-RUNBOOK.md).
+[package]
+name = "studio-shell"
+version = "0.1.0"
+description = "Ash & Archive: The Studio — the shell host"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[features]
+# by default Tauri runs in production mode; devMode (the C-7 compile-time law)
+# is `cargo tauri dev` vs `cargo tauri build` — never a runtime toggle.
+custom-protocol = ["tauri/custom-protocol"]
+default = ["custom-protocol"]

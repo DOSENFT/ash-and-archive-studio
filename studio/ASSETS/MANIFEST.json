@@ -41,12 +41,27 @@
         "shotId": "SR-0013"
       },
       "anchorSlots": []
+    },
+    {
+      "poseId": "bench.forge",
+      "still": {
+        "hash": "sha256:87bb15cb08f1796fb1cdfd53bbc1b313b6c816b2e41b863842a5f1fe4316e303",
+        "file": "stills/bench.forge.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0018"
+      },
+      "anchorSlots": []
     }
   ],
   "clips": [],
   "rites": [],
   "accretion": [],
-  "grades": { "kind": "lut", "count": 6, "files": [], "status": "pending-gamma" },
+  "grades": {
+    "kind": "lut",
+    "count": 6,
+    "files": [],
+    "status": "pending-gamma"
+  },
   "approach": {
     "still": {
       "hash": "sha256:85c4dcdda2537934201ef80871b382308fe3144f8b177581a3091e5de8e68ceb",
