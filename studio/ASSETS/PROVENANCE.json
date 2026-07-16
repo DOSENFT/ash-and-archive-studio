@@ -1,0 +1,11 @@
+{
+  "provenanceVersion": 1,
+  "note": "Honest-determinism form (SH2 §5.1 P-8 / ADR-SH2-E): consumer tools expose no seeds/schedulers; each row records {tool, date, operator, shotId}; the full chain lives in the shot record (studio/PIPELINE/shots/<shotId>.json). Regeneration re-passes A-checks against locked poses; bit-identity is claimed only for the accretion compositor.",
+  "assets": [
+    { "file": "stills/shelf.png", "hash": "sha256:00860ec0ee64af625829b45a4e8e312f83990d0168f7b7a752ec1abeca17ca62", "shotId": "SR-0004", "tool": "higgsfield-gui (founder-operated)", "date": "2026-07-15", "operator": "marcus", "inputs": "authored prompt + Canon Style Block lineage; zero user content" },
+    { "file": "stills/garth.center.png", "hash": "sha256:dbdd95bcbdc9ad8fc12e02b824a548d04373453eeeb3b89cccf6115276e7936e", "shotId": "SR-0007", "tool": "higgsfield-gui (founder-operated)", "date": "2026-07-15", "operator": "marcus", "inputs": "authored prompt + Canon Style Block lineage; zero user content" },
+    { "file": "stills/lintel.chronicle.png", "hash": "sha256:185b13916fc82325094729a30389691869dd0a49cadba9725e9664ed827cc1c9", "shotId": "SR-0005", "tool": "higgsfield-gui (founder-operated)", "date": "2026-07-15", "operator": "marcus", "inputs": "authored prompt + Canon Style Block lineage; zero user content" },
+    { "file": "stills/bench.chronicle.png", "hash": "sha256:cbef6d094ea257db8b1714b3d700c8a1d68aa68764e8d17ddd75e102c0f89ddc", "shotId": "SR-0013", "tool": "higgsfield-gui (founder-operated)", "date": "2026-07-16", "operator": "marcus", "inputs": "authored prompt + Canon Style Block lineage; zero user content" },
+    { "file": "stills/approach.png", "hash": "sha256:85c4dcdda2537934201ef80871b382308fe3144f8b177581a3091e5de8e68ceb", "shotId": "SR-0006", "tool": "higgsfield-gui (founder-operated)", "date": "2026-07-15", "operator": "marcus", "inputs": "authored prompt + Canon Style Block lineage; zero user content" }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "registryVersion": 1,
+  "note": "The canonical element registry (SPEC-SH3 §11.3). Elements are canon: the pipeline references identity by ID+hash, never re-describes it in prose. An unregistered element halts to the canon holder.",
+  "elements": [
+    {
+      "id": "PROP-ONE",
+      "name": "The Studio lantern",
+      "kind": "prop-canon",
+      "locked": "ADR-SH2-F (canon holder's selected render, 2026-07-14)",
+      "references": [
+        { "file": "../../../Assets/hf_20260715_034100_57440b6d-c51f-499d-af41-d6da6dcc27b0.png", "note": "reliquary form, close" },
+        { "file": "../../../Assets/ChatGPT Image Jul 14, 2026, 07_13_53 PM.png", "note": "second angle" }
+      ],
+      "deviations": ["proportions taller than drafted — ratified, taught-by-the-render", "maker's mark simplification queued (non-blocking inpaint)"]
+    },
+    { "id": "POSE:shelf", "kind": "pose-frame", "file": "../ASSETS/stills/shelf.png", "hash": "sha256:00860ec0ee64af625829b45a4e8e312f83990d0168f7b7a752ec1abeca17ca62" },
+    { "id": "POSE:garth.center", "kind": "pose-frame", "file": "../ASSETS/stills/garth.center.png", "hash": "sha256:dbdd95bcbdc9ad8fc12e02b824a548d04373453eeeb3b89cccf6115276e7936e" },
+    { "id": "POSE:lintel.chronicle", "kind": "pose-frame", "file": "../ASSETS/stills/lintel.chronicle.png", "hash": "sha256:185b13916fc82325094729a30389691869dd0a49cadba9725e9664ed827cc1c9" },
+    { "id": "POSE:bench.chronicle", "kind": "pose-frame", "file": "../ASSETS/stills/bench.chronicle.png", "hash": "sha256:cbef6d094ea257db8b1714b3d700c8a1d68aa68764e8d17ddd75e102c0f89ddc" }
+  ]
+}

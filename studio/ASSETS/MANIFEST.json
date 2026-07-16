@@ -1,0 +1,61 @@
+{
+  "manifestVersion": 1,
+  "register": "lanternlight-v1",
+  "poses": [
+    {
+      "poseId": "shelf",
+      "still": {
+        "hash": "sha256:00860ec0ee64af625829b45a4e8e312f83990d0168f7b7a752ec1abeca17ca62",
+        "file": "stills/shelf.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0004"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "garth.center",
+      "still": {
+        "hash": "sha256:dbdd95bcbdc9ad8fc12e02b824a548d04373453eeeb3b89cccf6115276e7936e",
+        "file": "stills/garth.center.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0007"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "lintel.chronicle",
+      "still": {
+        "hash": "sha256:185b13916fc82325094729a30389691869dd0a49cadba9725e9664ed827cc1c9",
+        "file": "stills/lintel.chronicle.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0005"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "bench.chronicle",
+      "still": {
+        "hash": "sha256:cbef6d094ea257db8b1714b3d700c8a1d68aa68764e8d17ddd75e102c0f89ddc",
+        "file": "stills/bench.chronicle.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0013"
+      },
+      "anchorSlots": []
+    }
+  ],
+  "clips": [],
+  "rites": [],
+  "accretion": [],
+  "grades": { "kind": "lut", "count": 6, "files": [], "status": "pending-gamma" },
+  "approach": {
+    "still": {
+      "hash": "sha256:85c4dcdda2537934201ef80871b382308fe3144f8b177581a3091e5de8e68ceb",
+      "file": "stills/approach.png",
+      "curation": "UNCURATED",
+      "shotId": "SR-0006"
+    },
+    "durationMs": 4000,
+    "reclaimable": true
+  },
+  "provenance": "PROVENANCE.json"
+}
