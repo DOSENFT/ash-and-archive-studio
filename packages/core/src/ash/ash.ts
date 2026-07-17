@@ -32,6 +32,8 @@ export class Ash {
   private readOnly = false;
   private readonly folds = new Map<FoldKey, FoldDef<unknown>>();
   private subscribers: Subscriber[] = [];
+  /** §6 — events appended inside a caller-owned transaction, awaiting txCommitted(). */
+  private pendingTx: AshEvent[] = [];
   /** Incremental world-scope states — appends update these O(1); snapshots and world
    *  subscribers read them. Rebuilt (snapshot fast-path) after a strike, because a
    *  strike retroactively removes an already-reduced event. */
@@ -75,13 +77,47 @@ export class Ash {
 
   append<T extends EventType>(type: T, payload: PayloadOf<T>, ctx: AppendCtx): Result<AshEvent<PayloadOf<T>>> {
     if (this.readOnly) return fail("E-1202", "Device sequence gap detected: ash is read-only. Export and restore.", undefined);
-    const schema = (EVENT_SCHEMAS as Record<string, (typeof EVENT_SCHEMAS)[EventType]>)[type];
-    if (!schema) return fail("E-1002", `Unknown event type: ${type}`);
-    const parsed = schema.safeParse(payload);
-    if (!parsed.success) {
-      return fail("E-1001", `Payload schema mismatch for ${type}`, parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })));
+    const validated = this.validate(type, payload);
+    if (!validated.ok) return validated as Result<AshEvent<PayloadOf<T>>>;
+    return this.writeEvent(type, validated.value, ctx, null);
+  }
+
+  /** §6 Binding internal — append inside the CALLER's open SQLite transaction (the
+   *  Binding is a single transaction; a killed process may never leave a partial
+   *  Binding, so its events must commit or vanish with the canon writes). No
+   *  BEGIN/COMMIT here; side effects (live folds, subscribers, snapshot cadence)
+   *  are deferred to txCommitted(); txRolledBack() restores the sequence counter. */
+  appendInTx<T extends EventType>(type: T, payload: PayloadOf<T>, ctx: AppendCtx): Result<AshEvent<PayloadOf<T>>> {
+    if (this.readOnly) return fail("E-1202", "Device sequence gap detected: ash is read-only. Export and restore.", undefined);
+    const validated = this.validate(type, payload);
+    if (!validated.ok) return validated as Result<AshEvent<PayloadOf<T>>>;
+    const e = this.buildEvent(type, validated.value, ctx, null);
+    this.insertEventRow(e);
+    this.nextSeq += 1;
+    this.pendingTx.push(e);
+    return ok(e as AshEvent<PayloadOf<T>>);
+  }
+
+  /** §6 Binding internal — the caller's transaction committed: run the deferred fan-out. */
+  txCommitted(): void {
+    const pend = this.pendingTx;
+    this.pendingTx = [];
+    let snapshotDue = false;
+    for (const e of pend) {
+      if (e.type === "state.snapshot") continue;
+      this.advanceLive(e);
+      if (e.deviceSeq % SNAPSHOT_EVERY === 0 || e.type === "session.closed") snapshotDue = true;
     }
-    return this.writeEvent(type, parsed.data, ctx, null);
+    if (snapshotDue && pend.length > 0) this.writeSnapshots(pend[pend.length - 1]!.actor);
+    for (const e of pend) this.notifySubscribers(e);
+  }
+
+  /** §6 Binding internal — the caller's transaction rolled back: the rows (and the
+   *  meta counter update) rolled back with it; resync the in-memory counter. */
+  txRolledBack(): void {
+    this.pendingTx = [];
+    const maxRow = this.db.get<{ m: number | null }>(`SELECT MAX(deviceSeq) m FROM events WHERE deviceId=?`, this.deviceId);
+    this.nextSeq = (maxRow?.m ?? 0) + 1;
   }
 
   /** §3.4 — Strike: mark target struck; folds skip it centrally. Struck stays visible. */
@@ -140,38 +176,44 @@ export class Ash {
 
   // ---- internal ----
 
-  private writeEvent(type: EventType, payload: unknown, ctx: AppendCtx, inverseOf: string | null): Result<AshEvent<never>> {
-    const e: AshEvent = {
+  private validate(type: EventType, payload: unknown): Result<unknown> {
+    const schema = (EVENT_SCHEMAS as Record<string, (typeof EVENT_SCHEMAS)[EventType]>)[type];
+    if (!schema) return fail("E-1002", `Unknown event type: ${type}`);
+    const parsed = schema.safeParse(payload);
+    if (!parsed.success) {
+      return fail("E-1001", `Payload schema mismatch for ${type}`, parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })));
+    }
+    return ok(parsed.data);
+  }
+
+  private buildEvent(type: EventType, payload: unknown, ctx: AppendCtx, inverseOf: string | null): AshEvent {
+    return {
       eventId: ulid(), sessionId: ctx.sessionId ?? null, sceneId: ctx.sceneId ?? null,
       type, schemaVersion: 1, payload, actor: ctx.actor, deviceId: this.deviceId,
       deviceSeq: this.nextSeq, lamport: this.nextSeq, // single-device v1: lamport tracks seq (§13 shape held)
       wallTime: new Date().toISOString(), inverseOf, struck: false,
     };
-    this.db.exec("BEGIN");
-    try {
-      this.db.run(
-        `INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0)`,
-        e.eventId, e.sessionId, e.sceneId, e.type, e.schemaVersion, JSON.stringify(e.payload),
-        e.actor, e.deviceId, e.deviceSeq, e.lamport, e.wallTime, e.inverseOf,
-      );
-      this.db.run(`UPDATE meta SET v=? WHERE k=?`, String(e.deviceSeq), `deviceSeq:${this.deviceId}`);
-      this.db.exec("COMMIT");
-    } catch (err) {
-      this.db.exec("ROLLBACK");
-      throw err; // storage failure is a defect surface, not a domain outcome
+  }
+
+  private insertEventRow(e: AshEvent): void {
+    this.db.run(
+      `INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0)`,
+      e.eventId, e.sessionId, e.sceneId, e.type, e.schemaVersion, JSON.stringify(e.payload),
+      e.actor, e.deviceId, e.deviceSeq, e.lamport, e.wallTime, e.inverseOf,
+    );
+    this.db.run(`UPDATE meta SET v=? WHERE k=?`, String(e.deviceSeq), `deviceSeq:${this.deviceId}`);
+  }
+
+  /** O(1) incremental fold advance — snapshots are provenance, never domain state. */
+  private advanceLive(e: AshEvent): void {
+    const fe: FoldEvent = { eventId: e.eventId, sessionId: e.sessionId, sceneId: e.sceneId,
+      type: e.type, payload: e.payload, actor: e.actor, deviceSeq: e.deviceSeq, lamport: e.lamport, inverseOf: e.inverseOf };
+    for (const def of this.folds.values()) {
+      this.live.set(def.key, def.reduce(this.live.get(def.key) ?? def.init(), fe));
     }
-    this.nextSeq += 1;
-    // O(1) incremental fold advance — snapshots are provenance, never domain state
-    if (type !== "state.snapshot") {
-      const fe: FoldEvent = { eventId: e.eventId, sessionId: e.sessionId, sceneId: e.sceneId,
-        type: e.type, payload: e.payload, actor: e.actor, deviceSeq: e.deviceSeq, lamport: e.lamport, inverseOf: e.inverseOf };
-      for (const def of this.folds.values()) {
-        this.live.set(def.key, def.reduce(this.live.get(def.key) ?? def.init(), fe));
-      }
-    }
-    if (type !== "state.snapshot" && (e.deviceSeq % SNAPSHOT_EVERY === 0 || type === "session.closed")) {
-      this.writeSnapshots(ctx.actor);
-    }
+  }
+
+  private notifySubscribers(e: AshEvent): void {
     for (const s of this.subscribers) {
       const inScope = "world" in s.scope || s.scope.sessionId === e.sessionId;
       if (!inScope) continue;
@@ -179,6 +221,24 @@ export class Ash {
       const st = this.fold(s.key, s.scope); // session scope replays a bounded session log
       if (st.ok) s.cb(e, st.value);
     }
+  }
+
+  private writeEvent(type: EventType, payload: unknown, ctx: AppendCtx, inverseOf: string | null): Result<AshEvent<never>> {
+    const e = this.buildEvent(type, payload, ctx, inverseOf);
+    this.db.exec("BEGIN");
+    try {
+      this.insertEventRow(e);
+      this.db.exec("COMMIT");
+    } catch (err) {
+      this.db.exec("ROLLBACK");
+      throw err; // storage failure is a defect surface, not a domain outcome
+    }
+    this.nextSeq += 1;
+    if (type !== "state.snapshot") this.advanceLive(e);
+    if (type !== "state.snapshot" && (e.deviceSeq % SNAPSHOT_EVERY === 0 || type === "session.closed")) {
+      this.writeSnapshots(ctx.actor);
+    }
+    this.notifySubscribers(e);
     return ok(e as AshEvent<never>);
   }
 

@@ -4,7 +4,9 @@
 //                 folds, snapshots-as-events, E-1202 read-only, subscriptions)
 //   [x] step 3 — §5 API + query builder (Archive reads/writes, EntryQuery, FTS search,
 //                 subgraph staging, §2.4 perspective redaction, §5.7 Rite-set registry)
-//   [ ] step 4 — §6 Binding · step 5 — §7 Charter · step 6 — §9 export/import
+//   [x] step 4 — §6 Binding (plan/ratify-as-data/commit, planHash idempotency,
+//                 §7.4 detectors at plan, E-13xx paths, chronicle Session entry)
+//   [ ] step 5 — §7 Charter · step 6 — §9 export/import
 //   [ ] step 7 — §15/§16 harnesses green in CI
 export { Studio, Vault, type WorldMeta, type VaultCapability } from "./vault/studio.js";
 export { nodeSqliteBinding, type PlatformBinding, type DbHandle } from "./vault/platform.js";
@@ -21,7 +23,13 @@ export {
 } from "./archive/archive.js";
 export { EntryQuery, type OrderField } from "./archive/query.js"; // §5.5 — compile stays behind the API line
 export {
+  Binding,
+  type BindingPlan, type BindingReceipt, type PlanItem, type EntryUpsert,
+  type Disposition, type ContradictionCase, type RatificationProtocol,
+} from "./binding/binding.js";
+export {
   ENTRY_KINDS, LINK_TYPES, KIND_SCHEMAS, UNKNOWN_STATUS_FIELDS, HIDDEN_FIELDS,
+  INVARIANT_WHEN_LOCKED, LINK_EXCLUSIONS,
   BODY_SCHEMA_VERSION, searchableBodyText,
   type EntryKind, type LinkType, type CanonStatus, type Provenance,
 } from "./archive/schemas.js";

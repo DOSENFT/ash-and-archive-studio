@@ -76,6 +76,22 @@ export const UNKNOWN_STATUS_FIELDS = z.looseObject({
   payoff: z.string().min(1),
 });
 
+// §7.4 detector 2 — schema-declared invariant fields ("each kind schema marks fields
+// invariantWhenLocked: true; e.g., a truth's lever, a clock's steps"). SPEC-001 names
+// exactly those two examples; further marks live in GENESIS kind schemas outside this
+// spec, so this registry carries only what the spec itself dictates.
+export const INVARIANT_WHEN_LOCKED: Record<EntryKind, readonly string[]> = {
+  being: [], place: [], thing: [], truth: ["lever"], clock: ["steps"], rite: [],
+  mask: [], scene: [], session: [], rep: [], ruling: [],
+};
+
+// §7.4 detector 3 — duplicate-with-conflict "per a small declared exclusion table
+// (e.g., `serves` and `threatens` both active between the same pair)". The spec
+// declares only that example pair; the table grows by amendment, not ad hoc.
+export const LINK_EXCLUSIONS: ReadonlyArray<readonly [LinkType, LinkType]> = [
+  ["serves", "threatens"],
+];
+
 // §2.4 — fields marked `hidden` in kind schemas are redacted under a perspective.
 // SPEC-001 marks no concrete field hidden (the marks live in GENESIS 02-I kind schemas);
 // the mechanism is enforced below the API line and this table is its single registry.

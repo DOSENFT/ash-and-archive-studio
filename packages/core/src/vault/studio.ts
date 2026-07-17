@@ -7,6 +7,7 @@ import { DDL_VERSION, VOCAB_VERSION, STUDIO_DDL, WORLD_DDL } from "./ddl.js";
 import type { DbHandle, PlatformBinding } from "./platform.js";
 import { Ash } from "../ash/ash.js";
 import { Archive } from "../archive/archive.js";
+import { Binding } from "../binding/binding.js";
 import { Rites } from "../rites/rites.js";
 
 export interface WorldMeta {
@@ -27,15 +28,17 @@ export class Vault {
   readonly ash: Ash;
   readonly archive: Archive; // §5.2/§5.3 — the Archive surface of the Wing contract
   readonly rites: Rites;     // §5.7 — per-vault Rite-set registry (no singletons)
+  readonly binding: Binding; // §6 — the only gate from ash to canon
 
   constructor(
     readonly worldId: string,
     private readonly db: DbHandle,
-    private readonly binding: PlatformBinding,
+    private readonly platform: PlatformBinding,
     deviceId: string,
   ) {
     this.ash = new Ash(db, deviceId);
-    this.archive = new Archive(db, worldId, binding.ftsAvailable);
+    this.archive = new Archive(db, worldId, platform.ftsAvailable);
+    this.binding = new Binding(db, worldId, this.ash);
     this.rites = new Rites();
   }
 
@@ -61,8 +64,8 @@ export class Vault {
     const ddl = this.db.get<{ v: string }>(`SELECT v FROM meta WHERE k='ddlVersion'`);
     const vocab = this.db.get<{ v: string }>(`SELECT v FROM meta WHERE k='vocabVersion'`);
     return {
-      engine: this.binding.kind,
-      fts: this.binding.ftsAvailable,
+      engine: this.platform.kind,
+      fts: this.platform.ftsAvailable,
       ddlVersion: Number(ddl?.v ?? 0),
       vocabVersion: Number(vocab?.v ?? 0),
     };
