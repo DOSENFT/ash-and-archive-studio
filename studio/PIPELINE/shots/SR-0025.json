@@ -1,0 +1,24 @@
+{
+  "shotId": "SR-0025",
+  "routeOrScene": "ENTER(chronicle)",
+  "intent": "VALIDATED FLIGHT METHOD \u2014 dive 8c0061aa: 5s, 1920x1080, first-frame RMS 9.76 vs canon Pose A; graded derivative produced. THE REFERENCE EXEMPLAR for all future motion (founder instrument 2026-07-16).",
+  "generationSeconds": 5,
+  "shippedDurationMs": 600,
+  "elements": [
+    "PROP-ONE"
+  ],
+  "prompt": "(external-mcp-sprint \u2014 texture-preservation preamble + motion/physics only per LOCK-V3; style carried by the still + lanternlight-v1 post-grade)",
+  "continuityNotes": "Motion Doctrine exemplar: short dive per LOCK-V1; grade lanternlight-v1 pre-intake; seam gate on graded extracted endpoint frames per LOCK-V4",
+  "status": "harvested",
+  "intake": null,
+  "takes": [
+    {
+      "takeId": 1,
+      "tool": "higgsfield-mcp (external sprint)",
+      "date": "2026-07-16",
+      "generationId": "8c0061aa",
+      "result": "(founder session; graded derivative exists)",
+      "firstFrameRMS": 9.76
+    }
+  ]
+}

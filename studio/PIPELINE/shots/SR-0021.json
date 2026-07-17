@@ -1,0 +1,23 @@
+{
+  "shotId": "SR-0021",
+  "routeOrScene": "bench.charter",
+  "intent": "Charter Room bay still \u2014 sprint deliverable.",
+  "generationSeconds": null,
+  "shippedDurationMs": null,
+  "elements": [
+    "PROP-ONE"
+  ],
+  "prompt": "(external-mcp-sprint \u2014 composed in the founder's MCP session under sealed SH2; Style Block v2 verbatim)",
+  "continuityNotes": "receive via: node studio/PIPELINE/intake.mjs --receive <file|url> --shot SR-0021 --pose bench.charter --gen-id ae4baf13",
+  "status": "generating",
+  "intake": null,
+  "takes": [
+    {
+      "takeId": 1,
+      "tool": "higgsfield-mcp (external sprint)",
+      "date": "2026-07-16",
+      "generationId": "ae4baf13",
+      "result": "(incoming this session)"
+    }
+  ]
+}

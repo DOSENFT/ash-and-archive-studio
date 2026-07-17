@@ -72,5 +72,6 @@
     "durationMs": 4000,
     "reclaimable": true
   },
-  "provenance": "PROVENANCE.json"
+  "provenance": "PROVENANCE.json",
+  "grade": "lanternlight-grade-v1"
 }

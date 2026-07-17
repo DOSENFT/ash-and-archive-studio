@@ -20,3 +20,7 @@ Seeded 2026-07-16 from the extraction's gotchas + the pilot's paid failures (Gat
 | LOCK-013 | One video model per chain (single-clip NSFW exception, recorded in the take row) | extraction |
 | LOCK-014 | Endpoint frames from RENDERS, never stills, at every mid-chain link | extraction (seam pop) |
 | LOCK-015 | No upscaling — encode what the tool natively returns | extraction |
+| LOCK-V1 | No generated clip traverses a full route or changes facing >30°; max displacement ≈3–5m level dolly; long journeys are chains of short clips, never single takes | founder instrument 2026-07-16 (retroactive) |
+| LOCK-V2 | Mirrored pose pairs are cut-pairs, not dolly-pairs: travel between them is chained dives joined on extracted frames, or the drift-cut — never one clip (cautionary exhibit: archived warp artifact `a4af6038`) | founder instrument 2026-07-16 (retroactive) |
+| LOCK-V3 | Film register is never requested from the video model: video prompts carry the texture-preservation preamble ("the world does not re-render; only the viewpoint moves") + motion and physics only; all style language lives in stills and the post-grade | founder instrument 2026-07-16 (retroactive) |
+| LOCK-V4 | Chain joints use frames extracted from ENCODED clips (ffmpeg), never source stills; vendor preset auto-substitution always declined (`declined_preset_id` mandatory when offered) | founder instrument 2026-07-16 (retroactive) |

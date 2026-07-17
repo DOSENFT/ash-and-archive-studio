@@ -39,3 +39,6 @@
 
 ## D · DISPOSITION per take
 `PASS → hash → PROVENANCE.json → asset bible` · `FAIL(check-ids) → archive raw, note why, regenerate` · `DEVIATION candidate (a render taught the spec) → queue for founder ruling, never self-ratify.`
+
+## C-bis · GRADED-OUTPUT LAW (founder instrument 2026-07-16)
+Every clip is graded via `studio/PIPELINE/grade/lanternlight-v1.sh` BEFORE intake; all §C seam checks run on the **graded** output; joint frames extracted from encoded clips only (LOCK-V4). Grade version pinned in the manifest; a grade change is an ADR (full-library re-render by design).
