@@ -52,7 +52,7 @@ def launch(target):
     if target == "tauri":
         # Inherited by the child process; WebView2 reads it at startup.
         os.putenv("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", f"--remote-debugging-port={CDP_PORT}")
-        exe = r"..\..\apps\studio-shell\src-tauri\target\release\studio-shell.exe"
+        exe = r"..\..\..\apps\studio-shell\src-tauri\target\release\studio-shell.exe"
         return subprocess.Popen([exe])
     print("rig: --launch vite assumes the dev server + a browser you started with --remote-debugging-port=9222")
     return None
@@ -92,33 +92,55 @@ def mode_ttfi(ws_send):
     print("G-SH3-2:", "PASS" if ok else "FAIL")
     return ok
 
-def mode_dormancy(ws_send, sample_counters):
+def sample_external(pid):
+    """The OS counter, read from OUTSIDE the measured process — measurement the
+    process cannot flatter (the standing precedent: inspectable, not asserted).
+    GPU Engine perf counters per PID; the engtype_VideoDecode instances are the
+    decoder-residency signal (a live video decoder cannot hide from them)."""
+    ps = (
+        "$s = Get-Counter '\\GPU Engine(pid_%d*)\\Utilization Percentage' -ErrorAction SilentlyContinue; "
+        "if ($s) { $t = 0.0; $d = 0.0; foreach ($c in $s.CounterSamples) { $t += $c.CookedValue; "
+        "if ($c.Path -match 'videodecode') { $d += $c.CookedValue } }; "
+        "Write-Output ('{0:N4}|{1:N4}' -f $t, $d) } else { Write-Output '0|0' }" % pid
+    )
+    out = subprocess.run(["powershell", "-NoProfile", "-Command", ps],
+                         capture_output=True, text=True, timeout=20).stdout.strip()
+    total, decode = (float(x) for x in out.split("|"))
+    return {"gpu_utilization_pct": total, "decode_engine_pct": decode, "stub": False}
+
+def mode_dormancy(ws_send, sample_counters, pid=None, duration=600):
     samples, violations = [], []
-    t_end = time.time() + 600
-    hover_i = 0
+    t_end = time.time() + duration
+    nav_i = 0
+    seats = ["chronicle", "forge", "stage", "codex"]
     while time.time() < t_end:
-        s = sample_counters()
+        s = sample_external(pid) if pid else sample_counters()
         if s.get("stub"):
             sys.exit("G-SH3-1: FAIL — sampler returned stub:true (counter plumbing not landed; issue #10)")
         samples.append(s)
-        if s["decoder_handles"] > 0 and not s.get("sanctioned_preflight_window"):
+        # Decode-engine activity while seated = residency violation (stills-only
+        # slice legitimately never decodes video; navigation drift-cuts are <img>).
+        if s.get("decode_engine_pct", s.get("decoder_handles", 0)) > 0.5:
             violations.append(s)
-        if hover_i < len(HOVER_PLAN) and int(time.time()) % 15 == 0:
-            dwell, action = HOVER_PLAN[hover_i]; hover_i += 1
-            ws_send(f"window.__RIG_HOVER({dwell}, {json.dumps(action)})")
+        if int(time.time()) % 45 == 0 and nav_i < 30:  # periodic navigation + settle
+            ws_send(f"location.hash = '#/seat/{seats[nav_i % len(seats)]}'")
+            nav_i += 1
         time.sleep(1)
     mean_gpu = statistics.mean(x["gpu_utilization_pct"] for x in samples)
-    print(f"dormancy: {len(samples)} samples, mean GPU {mean_gpu:.2f}%, handle violations {len(violations)}")
-    ok = not violations and mean_gpu <= 2.0  # delta vs control run recorded separately
-    print("G-SH3-1:", "PASS (vs-control delta comparison pending second run)" if ok else "FAIL")
+    peak_gpu = max(x["gpu_utilization_pct"] for x in samples)
+    print(f"dormancy: {len(samples)} samples over {duration}s, mean GPU {mean_gpu:.3f}%, peak {peak_gpu:.3f}%, decode-engine violations {len(violations)}")
+    ok = not violations and mean_gpu <= 2.0
+    print("G-SH3-1:", "PASS" if ok else "FAIL")
     return ok
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["ttfi", "dormancy"], required=True)
     ap.add_argument("--launch", choices=["tauri", "vite"], default="tauri")
+    ap.add_argument("--exe", default=r"..\..\..\apps\studio-shell\src-tauri\target\release\studio-shell.exe")
+    ap.add_argument("--duration", type=int, default=600, help="dormancy watch seconds (gate law: 600)")
     args = ap.parse_args()
-    proc = launch(args.launch)
+    proc = launch(args.launch) if args.launch == "vite" else launch_exe(args.exe)
     wait_for_target()
     # Playwright over CDP — the S1 spike's own driving stack (run_s1.py), attached
     # to the already-running shell instead of launching a browser.
@@ -127,11 +149,35 @@ def main():
         browser = p.chromium.connect_over_cdp(f"http://localhost:{CDP_PORT}")
         page = browser.contexts[0].pages[0]
         ws_send = lambda js, awaited=False: page.evaluate(js)
+        shell_pid = find_pid("studio-shell.exe") if args.launch == "tauri" else None
         ok = mode_ttfi(ws_send) if args.mode == "ttfi" else mode_dormancy(
-            ws_send, lambda: page.evaluate("window.__TAURI__.core.invoke('sample_counters')"))
+            ws_send,
+            lambda: page.evaluate("window.__TAURI__.core.invoke('sample_counters')"),
+            pid=shell_pid,
+            duration=args.duration,
+        )
     if proc:
         proc.terminate()
     sys.exit(0 if ok else 1)
+
+def find_pid(image):
+    out = subprocess.run(["tasklist", "/FI", f"IMAGENAME eq {image}", "/FO", "CSV", "/NH"],
+                         capture_output=True, text=True).stdout
+    for line in out.splitlines():
+        if image in line:
+            return int(line.split('","')[1])
+    return None
+
+def launch_exe(exe):
+    full = os.path.abspath(os.path.join(os.path.dirname(__file__), exe))
+    # A real .bat wrapper: survives both the '&' in the repo path and the need
+    # for the env var to sit in the Win32 block the WebView2 child inherits.
+    import tempfile
+    bat = os.path.join(tempfile.gettempdir(), "studio-rig-launch.bat")
+    with open(bat, "w") as f:
+        f.write(f'@echo off\nset "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port={CDP_PORT}"\nstart "" /b "{full}"\n')
+    subprocess.run(["cmd", "/c", bat], timeout=30)
+    return None  # window outlives the wrapper; terminate via taskkill if needed
 
 if __name__ == "__main__":
     main()

@@ -112,7 +112,10 @@ async function navigate(to: SeatId, arrival: Arrival = 'drift-cut'): Promise<voi
   const fromUrl = from && from !== 'sanctum' ? mf?.stillUrl(`bench.${from}`) ?? mf?.stillUrl(`lintel.${from}`) : mf?.stillUrl('garth.center');
   const toUrl = to !== 'sanctum' ? mf?.stillUrl(`bench.${to}`) ?? mf?.stillUrl(`lintel.${to}`) : mf?.stillUrl('garth.center');
   const wasUncurated = (id: string | null) => !!id && !!mf?.isUncurated(id);
-  if (arrival === 'drift-cut' && mf && fromUrl && toUrl && !landing) {
+  // Rig seam (test instrumentation, inert unless the harness sets it): the S1
+  // methodology's hard-cut control arm — skips the overlay entirely.
+  const rigHardcut = (globalThis as Record<string, unknown>).__RIG_FORCE_HARDCUT === true;
+  if (arrival === 'drift-cut' && mf && fromUrl && toUrl && !landing && !rigHardcut) {
     landing = true;
     const b = from ? bearing(from, to) : { dx: 0, dy: 0 };
     const drift = reducedMotion ? 0 : 12;
