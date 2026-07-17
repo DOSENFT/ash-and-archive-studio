@@ -82,3 +82,19 @@ html, body { margin: 0; height: 100%; background: var(--obsidian); color: var(--
 /* Local grounding for page surfaces over full-fidelity artwork: a gradient
    vignette scoped to the card's own footprint — the paper sits IN the room. */
 .folio, .page-card { position: relative; box-shadow: 0 2px 18px rgba(10, 9, 7, 0.55), 0 0 90px 40px rgba(10, 9, 7, 0.38); }
+
+/* ---- THE GRAND TOUR: Lanternlight theme over the vendored engine (@layer sw
+   defaults lose to these unlayered tokens — the engine's own design). ---- */
+#tour.sw-root {
+  --sw-bg: #141310;
+  --sw-ink: #c9c2b4;
+  --sw-ink-soft: #8a8375;
+  --sw-accent: #c9a227;
+  --sw-font-display: 'Crimson Pro', Georgia, serif;
+  --sw-font-body: 'IBM Plex Sans', system-ui, sans-serif;
+}
+#tour .sw-copy__title { font-weight: 500; }        /* serif carries weight; 700 would shout */
+#tour .sw-copy__tags li { background: var(--page); color: var(--ink); border-color: #3a362e; }
+#tour .sw-btn--primary { background: var(--gold); color: #141310; border-radius: 2px; }
+#tour .sw-btn--ghost { border-radius: 2px; }
+#tour .sw-nav, #tour .sw-brand { display: none; }  /* no template chrome in the Studio */

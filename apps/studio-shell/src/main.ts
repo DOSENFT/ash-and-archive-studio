@@ -9,6 +9,11 @@ import { BAYS, bearing, ringDistance, ringNeighbor, creditTraversal, LocalFamili
 import type { SeatId, LoadedManifest } from '../../../packages/atelier/src/index.ts';
 import type { SeatSurface, SeatContext, SeatedInstrument, Arrival } from '../../../packages/atelier/src/seat-surface.d.ts';
 import { ThrowawayFolio } from './folios/ThrowawayFolio_DELETE_BY_DESIGN.ts';
+import './vendor/scrub-engine.js'; // the ingested engine, vendored verbatim (window.mountScrollWorld)
+
+declare global {
+  interface Window { mountScrollWorld(container: HTMLElement, config: unknown): void }
+}
 
 const ROOM_NAME: Record<string, string> = {
   forge: 'The Forge', charter: 'The Charter Room', codex: 'The Codex', stage: 'The Stage',
@@ -39,6 +44,7 @@ const pageHost = document.getElementById('page-host')!;
 const world = document.getElementById('world')!;
 const backdrop = document.getElementById('backdrop')!;
 const chip = document.getElementById('uncurated-chip')!;
+document.body.appendChild(chip); // chrome layer outlives #shell visibility (tour mode)
 const announcer = document.getElementById('announcer')!;
 
 const announce = (t: string) => { announcer.textContent = t; };
@@ -283,149 +289,87 @@ addEventListener('keydown', (e) => {
 
 addEventListener('hashchange', () => {
   const m = location.hash.match(/^#\/seat\/(\w+)$/);
-  if (m && SEATS.includes(m[1] as SeatId) && m[1] !== current) void navigate(m[1] as SeatId, 'deep-link');
+  if (m && SEATS.includes(m[1] as SeatId)) {
+    if (tourActive) teardownTour();
+    if (m[1] !== current) void navigate(m[1] as SeatId, tourActive ? 'passage' : 'deep-link');
+  }
 });
 
-// ---------- THE GRAND TOUR (ADR-SH1-SCROLL, canon holder's hand 2026-07-17) ----------
-// One continuous connected flight: scroll scrubs flight time — the camera
-// genuinely moves, scroll only drives time (the ingested scrub-engine doctrine:
-// blob-seek, frame-accurate, no autoplay dependence). Segments without a clip
-// yet bridge as dissolves — continuous today, upgrading clip-by-clip, zero rework.
-type JSeg =
-  | { kind: 'dissolve'; fromUrl: string; toUrl: string; ms: number }
-  | { kind: 'clip'; file: string; ms: number };
+// ---------- THE GRAND TOUR (ADR-SH1-SCROLL) — the INGESTED ENGINE, mounted verbatim ----------
+// The founder convicted the hand-rolled scrubber (2026-07-17: "disjointed junk").
+// Correction: the fork's scrub engine IS the tour — a real scroll document with
+// fixed full-bleed scenes, scroll-band crossfades, Ken Burns motion on stills,
+// clip scrubbing, dwell pacing, pinned copy. Lanternlight-themed via its own
+// @layer token override; atmosphere/particles OFF (performing pixels).
+let tourActive = false;
+let tourContainer: HTMLElement | null = null;
 
-interface Journey { segs: JSeg[]; total: number; nodes: number[] }
-
-function buildJourney(): Journey | null {
-  const approach = mf?.manifest.approach ? `/${mf.manifest.approach.still.file}` : undefined;
+function enterTour(): void {
+  const ext = mf?.manifest as unknown as {
+    approach?: { still: { file: string } };
+    travelFrames?: { ambulatoryA?: string; ambulatoryB?: string };
+    devProof?: { flight?: { file: string } };
+  };
+  const approach = ext?.approach ? `/${ext.approach.still.file}` : undefined;
   const gate = mf?.stillUrl('shelf');
-  const ext = (mf?.manifest as unknown as { travelFrames?: { ambulatoryA?: string; ambulatoryB?: string }; devProof?: { flight?: { file: string } } });
   const ambA = ext?.travelFrames?.ambulatoryA ? `/${ext.travelFrames.ambulatoryA}` : undefined;
-  const ambB = ext?.travelFrames?.ambulatoryB ? `/${ext.travelFrames.ambulatoryB}` : undefined;
   const garth = mf?.stillUrl('garth.center');
-  const flight = __DEV_BUILD__ ? ext?.devProof?.flight?.file : undefined;
-  if (!approach || !gate || !garth) return null;
-  const segs: JSeg[] = [{ kind: 'dissolve', fromUrl: approach, toUrl: gate, ms: 900 }];
-  if (ambA) segs.push({ kind: 'dissolve', fromUrl: gate, toUrl: ambA, ms: 900 });
-  if (flight) segs.push({ kind: 'clip', file: flight, ms: 5000 }); // real duration read at load
-  if (ambB) segs.push({ kind: 'dissolve', fromUrl: ambB, toUrl: garth, ms: 900 });
-  else segs.push({ kind: 'dissolve', fromUrl: ambA ?? gate, toUrl: garth, ms: 900 });
-  const nodes = [0];
-  for (const s of segs) nodes.push(nodes[nodes.length - 1] + s.ms);
-  return { segs, total: nodes[nodes.length - 1], nodes };
+  const flight = __DEV_BUILD__ && ext?.devProof?.flight ? `/${ext.devProof.flight.file}` : undefined;
+  if (!approach || !gate || !garth) { void navigate('sanctum', 'passage'); return; }
+
+  tourActive = true;
+  shell.style.display = 'none';            // the rail is DEAD during the journey (founder ruling)
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
+  document.body.style.height = 'auto';
+  tourContainer = document.createElement('div');
+  tourContainer.id = 'tour';
+  document.body.appendChild(tourContainer);
+  setChip(true);                           // the whole harvest is UNCURATED; the chip says so
+  announce('The Studio. Scroll to approach.');
+
+  // Provisional copy (content fixed, wording provisional — the copy law).
+  window.mountScrollWorld(tourContainer, {
+    hint: 'scroll — the Studio waits',
+    nav: false,
+    atmosphere: false,                     // no particles, no glow: nothing performs
+    diveScroll: 1.35,
+    connScroll: 0.9,
+    sections: [
+      { id: 'approach', label: 'The Approach', still: approach, accent: '#c9a227',
+        eyebrow: 'ASH & ARCHIVE', title: 'The Studio', body: 'A workshop for the worlds you keep.' },
+      { id: 'gate', label: 'The Gate', still: gate, accent: '#c9a227',
+        title: 'The Gate', body: 'The door is never locked to its keeper.' },
+      { id: 'ambulatory', label: 'The Ambulatory', still: ambA ?? gate,
+        poster: ambA, clip: flight, accent: '#c9a227',
+        scroll: flight ? 2.4 : 1.35, linger: flight ? 0.35 : 0,
+        title: 'The Ambulatory', body: 'The ring the hand learns.' },
+      { id: 'garth', label: 'The Sanctum', still: garth, accent: '#c9a227',
+        title: 'The Sanctum', body: 'Every doorway faces the garth.',
+        cta: { primary: { label: 'Be seated', href: '#/seat/sanctum' } } },
+    ],
+    connectors: [null, null, null],        // crossfade bridges until the sprint's connectors land
+  });
 }
 
-const SCRUB_MS_PER_PX = 3.5; // one wheel tick (~100px) ≈ 350ms of journey — the hand owns the pace
-let journeyActive = false;
-
-async function runJourney(j: Journey): Promise<void> {
-  journeyActive = true;
-  setChip(true); // the whole harvest is UNCURATED; the chip states it for the tour
-  announce('The Studio. Scroll to approach.');
-  // Stage: two imgs (dissolve) + one video (clip), all mounted for the tour's life.
-  const imgA = new Image(); const imgB = new Image(); const video = document.createElement('video');
-  video.muted = true; video.playsInline = true; video.preload = 'auto';
-  world.replaceChildren(imgA, imgB, video);
-  let blobUrl: string | null = null;
-  const clipSeg = j.segs.find((s): s is Extract<JSeg, { kind: 'clip' }> => s.kind === 'clip');
-  if (clipSeg) {
-    try {
-      const blob = await (await fetch(`/${clipSeg.file}`)).blob(); // blob-sourced: always seekable (the doctrine)
-      blobUrl = URL.createObjectURL(blob);
-      video.src = blobUrl;
-      await new Promise<void>((r) => { video.onloadedmetadata = () => r(); video.onerror = () => r(); });
-      if (video.duration && isFinite(video.duration)) {
-        clipSeg.ms = video.duration * 1000;
-        j.nodes.length = 1;
-        for (const s of j.segs) j.nodes.push(j.nodes[j.nodes.length - 1] + s.ms);
-        j.total = j.nodes[j.nodes.length - 1];
-      }
-    } catch { /* the chain bridges without it — a broken flight may not exist */ }
-  }
-
-  let pos = 0, target = 0, lastWheel = 0, settling = false, seeking = false, done = false;
-
-  const render = (p: number) => {
-    let acc = 0;
-    for (const s of j.segs) {
-      if (p <= acc + s.ms || s === j.segs[j.segs.length - 1]) {
-        const t = Math.max(0, Math.min(1, (p - acc) / s.ms));
-        if (s.kind === 'dissolve') {
-          video.style.opacity = '0';
-          imgA.src === s.fromUrl || (imgA.src = s.fromUrl);
-          imgB.src === s.toUrl || (imgB.src = s.toUrl);
-          imgA.style.opacity = String(1 - t);
-          imgB.style.opacity = String(t);
-        } else {
-          imgA.style.opacity = '0'; imgB.style.opacity = '0';
-          video.style.opacity = '1';
-          // Seek-coalescing (the doctrine): never queue a seek while one is in flight.
-          if (!seeking && video.duration) {
-            const want = (t * s.ms) / 1000;
-            if (Math.abs(video.currentTime - want) > 0.033) {
-              seeking = true;
-              video.currentTime = want;
-              video.onseeked = () => { seeking = false; };
-            }
-          }
-        }
-        return;
-      }
-      acc += s.ms;
-    }
-  };
-
-  const seat = () => {
-    if (done) return;
-    done = true;
-    journeyActive = false;
-    if (blobUrl) URL.revokeObjectURL(blobUrl); // decoder released — dormancy law
-    world.replaceChildren();
-    void navigate('sanctum', 'passage');
-  };
-
-  const wheel = (e: WheelEvent) => {
-    if (done) return;
-    e.preventDefault();
-    lastWheel = performance.now();
-    settling = false;
-    target = Math.max(0, Math.min(j.total, target + e.deltaY * SCRUB_MS_PER_PX));
-  };
-  // Discrete input skips to the seat (≤120ms law); the palette stays sovereign.
-  const skip = (e: Event) => {
-    const k = e as KeyboardEvent;
-    if (k.ctrlKey || k.metaKey) return;
-    seat();
-  };
-  addEventListener('wheel', wheel, { passive: false });
-  addEventListener('keydown', skip, { capture: true });
-  addEventListener('pointerdown', skip, { capture: true });
-
-  const loop = () => {
-    if (done) {
-      removeEventListener('wheel', wheel);
-      removeEventListener('keydown', skip, { capture: true } as EventListenerOptions);
-      removeEventListener('pointerdown', skip, { capture: true } as EventListenerOptions);
-      return;
-    }
-    // Released ≥250ms ⇒ the engine settles to the nearest endpoint and seats (the ADR's law).
-    if (!settling && performance.now() - lastWheel > 250 && lastWheel > 0) {
-      settling = true;
-      const nearest = j.nodes.reduce((a, b) => (Math.abs(b - target) < Math.abs(a - target) ? b : a));
-      target = nearest;
-    }
-    pos += (target - pos) * 0.18; // rAF smoothing (the doctrine)
-    if (settling && Math.abs(target - pos) < 8) {
-      pos = target;
-      if (pos >= j.total - 1) { seat(); return; }
-      settling = false; lastWheel = 0; // holding at an interior node, hand may resume
-    }
-    render(pos);
-    requestAnimationFrame(loop);
-  };
-  render(0);
-  requestAnimationFrame(loop);
+function teardownTour(): void {
+  if (!tourActive) return;
+  tourActive = false;
+  // Dormancy law: decoders die with the tour. (The engine has no destroy() yet —
+  // its idle rAF over empty segments is CPU-nil; a destroy() lands with SH3-β.)
+  tourContainer?.querySelectorAll('video').forEach((v) => {
+    try { v.pause(); URL.revokeObjectURL(v.src); } catch { /* revoked */ }
+    v.remove();
+  });
+  tourContainer?.remove();
+  tourContainer = null;
+  document.getElementById('sw-css')?.remove();
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  document.body.style.height = '100%';
+  window.scrollTo(0, 0);
+  shell.style.display = '';
+  setChip(false);
 }
 
 // ---------- first light: the Approach (once, ≤4s, skippable), then the Gate ----------
@@ -434,56 +378,12 @@ async function boot(): Promise<void> {
   const deep = location.hash.match(/^#\/seat\/(\w+)$/);
   if (deep && SEATS.includes(deep[1] as SeatId)) return navigate(deep[1] as SeatId, 'deep-link'); // deep links land seated; cold resume never flies
 
-  // THE GRAND TOUR is the entrance (ADR-SH1-SCROLL): scroll scrubs the flight in;
-  // any discrete input skips to the seat; reduced-motion takes the static path.
-  const j = !reducedMotion ? buildJourney() : null;
-  if (j) {
-    const played = localStorage.getItem('atelier.approach.played');
-    localStorage.setItem('atelier.approach.played', '1');
-    if (__DEV_BUILD__ || !played) return runJourney(j); // dev replays every launch (founder ruling)
-    return navigate('sanctum', 'passage'); // returning user: cold resume never flies; scroll-back re-entry is the β chapter
-  }
-
-  // Dev builds replay the Approach every launch (founder ruling 2026-07-17:
-  // once-per-install gating makes dev walks worldless); production keeps the law.
-  const approachPlayed = __DEV_BUILD__ ? null : localStorage.getItem('atelier.approach.played');
-  if (!approachPlayed && mf?.manifest.approach) {
-    // The one scale-reveal: a held still, a dissolve — never replayed, skippable by any input.
-    const still = document.createElement('img');
-    still.src = `/${mf.manifest.approach.still.file}`;
-    still.alt = '';
-    world.replaceChildren(still);
-    setChip(mf.manifest.approach.still.curation === 'UNCURATED');
-    localStorage.setItem('atelier.approach.played', '1');
-    await new Promise<void>((done) => {
-      const t = setTimeout(done, Math.min(mf!.manifest.approach!.durationMs, 4000));
-      const skip = () => { clearTimeout(t); done(); };
-      addEventListener('keydown', skip, { once: true });
-      addEventListener('pointerdown', skip, { once: true });
-    });
-    world.replaceChildren();
-    setChip(false);
-  }
-
-  // The Gate (shelf pose): the door at human scale; any input crosses the threshold.
-  const shelfUrl = mf?.stillUrl('shelf');
-  if (shelfUrl) {
-    const gate = document.createElement('div');
-    gate.id = 'gate-view';
-    gate.innerHTML = `<img alt="The Studio door, lamplit" /><div class="gate-hint">Enter — the Waking</div>`;
-    gate.querySelector('img')!.src = shelfUrl;
-    pageHost.appendChild(gate);
-    setChip(!!mf?.isUncurated('shelf'));
-    announce('The door. The Studio waits.');
-    await new Promise<void>((done) => {
-      const cross = () => done();
-      gate.addEventListener('pointerdown', cross, { once: true });
-      addEventListener('keydown', cross, { once: true });
-    });
-    gate.remove();
-    setChip(false);
-  }
-  await navigate('sanctum', 'passage'); // land in the garth; the walk begins
+  // THE GRAND TOUR is the entrance (ADR-SH1-SCROLL): the ingested engine's scroll
+  // document. Dev replays every launch; prod flies once, then cold resume seats.
+  const played = localStorage.getItem('atelier.approach.played');
+  localStorage.setItem('atelier.approach.played', '1');
+  if (!reducedMotion && (__DEV_BUILD__ || !played)) { enterTour(); return; }
+  await navigate('sanctum', 'passage');
 }
 
 void boot();
