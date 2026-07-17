@@ -132,21 +132,29 @@ export class Archive {
       return fail("E-1101", `Entry not found: ${id}`); // §2.4 — existence undisclosed
     }
     const dir = opts?.direction ?? "both";
-    const where: string[] = [];
-    const params: unknown[] = [];
-    if (dir === "from") { where.push("fromEntry=?"); params.push(id); }
-    else if (dir === "to") { where.push("toEntry=?"); params.push(id); }
-    else { where.push("(fromEntry=? OR toEntry=?)"); params.push(id, id); }
-    if (opts?.type !== undefined) { where.push("type=?"); params.push(opts.type); }
+    // §15 (links p99 ≤ 3ms): direction 'both' as one OR-query defeats both link
+    // indexes at scale — probe each side separately and merge deterministically.
+    const tail: string[] = [];
+    const tailParams: unknown[] = [];
+    if (opts?.type !== undefined) { tail.push("type=?"); tailParams.push(opts.type); }
     if (opts?.at !== undefined) {
       // Temporal graph (§2.3): active at a version — ULIDs order version time.
-      where.push("sinceVersion <= ? AND (endedByVersion IS NULL OR endedByVersion > ?)");
-      params.push(opts.at, opts.at);
+      tail.push("sinceVersion <= ? AND (endedByVersion IS NULL OR endedByVersion > ?)");
+      tailParams.push(opts.at, opts.at);
     } else {
-      where.push("endedByVersion IS NULL");
+      tail.push("endedByVersion IS NULL");
     }
-    const rows = this.db.all<LinkRow>(
-      `SELECT * FROM links WHERE ${where.join(" AND ")} ORDER BY createdAt ASC, id ASC`, ...params);
+    const side = (col: "fromEntry" | "toEntry"): LinkRow[] => this.db.all<LinkRow>(
+      `SELECT * FROM links WHERE ${col}=? AND ${tail.join(" AND ")}`, id, ...tailParams);
+    let rows: LinkRow[];
+    if (dir === "from") rows = side("fromEntry");
+    else if (dir === "to") rows = side("toEntry");
+    else {
+      const merged = new Map<string, LinkRow>(); // a self-referencing row appears once
+      for (const r of [...side("fromEntry"), ...side("toEntry")]) merged.set(r.id, r);
+      rows = [...merged.values()];
+    }
+    rows.sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : a.id < b.id ? -1 : 1));
     const perspective = opts?.perspective;
     const visible = perspective === undefined
       ? rows

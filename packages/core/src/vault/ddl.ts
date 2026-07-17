@@ -30,6 +30,7 @@ CREATE INDEX ix_entries_status ON entries(canonStatus) WHERE archivedAt IS NULL;
 CREATE INDEX ix_entries_kind_created ON entries(kind, createdAt, id) WHERE archivedAt IS NULL;
 CREATE INDEX ix_entries_kind_name ON entries(kind, name, id) WHERE archivedAt IS NULL;
 CREATE INDEX ix_entries_kind_bound ON entries(kind, boundAt, id) WHERE archivedAt IS NULL;
+CREATE INDEX ix_entries_kind_status ON entries(kind, canonStatus, id) WHERE archivedAt IS NULL;
 
 CREATE TABLE entry_versions (
   versionId TEXT PRIMARY KEY, entryId TEXT NOT NULL REFERENCES entries(id),
@@ -38,6 +39,11 @@ CREATE TABLE entry_versions (
   canonStatus TEXT NOT NULL, provenance TEXT NOT NULL,
   boundBy TEXT, citations TEXT NOT NULL DEFAULT '[]', supersedes TEXT, note TEXT,
   createdAt TEXT NOT NULL, UNIQUE(entryId, ordinal));
+-- §15 binding.plan law: plan()'s pencil-draft lookup filters provenance='pencil' and
+-- LIKE-scans citations; this partial index bounds that scan to pencil working
+-- versions (a handful) instead of the whole version history. Physical tuning,
+-- additive to §4.2; flagged in the step-7 build report for sign-off.
+CREATE INDEX ix_versions_pencil ON entry_versions(versionId) WHERE provenance = 'pencil';
 
 CREATE TABLE links (
   id TEXT PRIMARY KEY, fromEntry TEXT NOT NULL, toEntry TEXT NOT NULL, type TEXT NOT NULL,
@@ -58,6 +64,10 @@ CREATE TABLE events (
   UNIQUE(deviceId, deviceSeq));
 CREATE INDEX ix_events_session ON events(sessionId, deviceSeq);
 CREATE INDEX ix_events_type ON events(type, deviceSeq);
+-- §15 cold-resume law: MAX(lamport) at open and the snapshot-tail filter
+-- (lamport > ?) must not scan a campaign lifetime. Physical tuning, additive to
+-- §4.2; flagged in the step-7 build report for sign-off.
+CREATE INDEX ix_events_lamport ON events(lamport);
 
 CREATE TABLE snapshots (eventId TEXT PRIMARY KEY REFERENCES events(eventId),
   foldKey TEXT NOT NULL, upToDeviceSeq INTEGER NOT NULL);

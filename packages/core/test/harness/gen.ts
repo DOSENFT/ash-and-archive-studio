@@ -95,7 +95,13 @@ function kindFor(rnd: () => number): EntryKind {
  *  harder world than production produces; deviation logged in the build report). */
 const SNAP_EVERY = 500;
 
-export function generateWorld(dir: string, seed: number, entriesN: number, eventsN: number): GeneratedWorld {
+/** Periodic event-loop yield: generation at L/XL is minutes of otherwise-synchronous
+ *  SQLite work, and a starved worker event loop trips vitest's 60s RPC heartbeat
+ *  ("Timeout calling onTaskUpdate") — failing a green run by exit code. Content is
+ *  untouched: same seed still ⇒ byte-identical world. */
+const yieldLoop = (): Promise<void> => new Promise((r) => setImmediate(r));
+
+export async function generateWorld(dir: string, seed: number, entriesN: number, eventsN: number): Promise<GeneratedWorld> {
   const rnd = mulberry32(seed);
   const ids = new DetIds(mulberry32(seed ^ 0x9e3779b9));
   const binding = nodeSqliteBinding(dir);
@@ -129,6 +135,7 @@ export function generateWorld(dir: string, seed: number, entriesN: number, event
   let disclosures = 0;
 
   for (let i = 0; i < entriesN; i++) {
+    if (i % 10_000 === 9_999) await yieldLoop();
     const kind = kindFor(rnd);
     const id = ids.next();
     const versionId = ids.next();
@@ -241,6 +248,7 @@ export function generateWorld(dir: string, seed: number, entriesN: number, event
   };
 
   while (totalEvents < eventsN) {
+    await yieldLoop(); // once per generated session (~400 events)
     const sessionId = ids.next();
     sessionIds.push(sessionId);
     let inSession = 0;

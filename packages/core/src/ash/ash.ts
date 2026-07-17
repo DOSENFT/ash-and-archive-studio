@@ -42,6 +42,13 @@ export class Ash {
    *  subscribers read them. Rebuilt (snapshot fast-path) after a strike, because a
    *  strike retroactively removes an already-reduced event. */
   private live = new Map<FoldKey, unknown>();
+  /** §15 ash.append: gzipped snapshot bodies memoized BY STATE REFERENCE — reducers
+   *  return the same object when an event does not concern them (§5.6 purity), so an
+   *  unchanged fold's snapshot re-serializes for free on the §3.3 cadence. Bytes
+   *  written are identical to the uncached path; only recomputation is skipped.
+   *  (At the L world the stage fold's state is ~100KB of revealed-truth ids; level-9
+   *  gzip of that per fold per 50 appends was the measured append-p99 spike.) */
+  private snapGz = new Map<FoldKey, { ref: unknown; gz: string }>();
 
   constructor(
     private readonly db: DbHandle,
@@ -279,21 +286,49 @@ export class Ash {
   }
 
   /** §3.3 — snapshots are events (they travel with export, provenance-honest),
-   *  serialized from the incremental live states: O(state), never O(log). */
+   *  serialized from the incremental live states: O(state), never O(log).
+   *  All folds' snapshots land in ONE transaction: the §15 ash.append law (p99 ≤ 5ms)
+   *  pays this cadence, and one commit per fold was the measured p99 spike at L
+   *  scale. Atomicity also strengthens the §16.8 contract — a kill mid-cadence
+   *  leaves either every fold's snapshot or none. */
   private writeSnapshots(actor: string): void {
-    for (const def of this.folds.values()) {
-      const state = this.live.get(def.key) ?? def.init();
-      const gz = gzipSync(Buffer.from(stableJson({ v: def.schemaVersion, state })), { level: 9 }).toString("base64");
-      const upTo = this.nextSeq - 1;
-      const r = this.writeEvent("state.snapshot", { foldKey: def.key, gzippedState: gz, upToDeviceSeq: upTo }, { actor }, null);
-      if (r.ok) this.db.run(`INSERT INTO snapshots VALUES (?,?,?)`, r.value.eventId, def.key, upTo);
+    const written: AshEvent[] = [];
+    this.db.exec("BEGIN");
+    try {
+      for (const def of this.folds.values()) {
+        const state = this.live.get(def.key) ?? def.init();
+        const memo = this.snapGz.get(def.key);
+        let gz: string;
+        if (memo !== undefined && memo.ref === state) {
+          gz = memo.gz;
+        } else {
+          gz = gzipSync(Buffer.from(stableJson({ v: def.schemaVersion, state })), { level: 9 }).toString("base64");
+          this.snapGz.set(def.key, { ref: state, gz });
+        }
+        const upTo = this.nextSeq - 1;
+        const e = this.buildEvent("state.snapshot", { foldKey: def.key, gzippedState: gz, upToDeviceSeq: upTo }, { actor }, null);
+        this.insertEventRow(e);
+        this.nextSeq += 1;
+        this.maxLamport = e.lamport;
+        this.db.run(`INSERT INTO snapshots VALUES (?,?,?)`, e.eventId, def.key, upTo);
+        written.push(e);
+      }
+      this.db.exec("COMMIT");
+    } catch (err) {
+      try { this.db.exec("ROLLBACK"); } catch { /* connection dead (§16.8): the open tx dies with it */ }
+      try { this.txRolledBack(); } catch { /* connection dead: counters die with the handle */ }
+      throw err; // storage failure is a defect surface, not a domain outcome
     }
+    for (const e of written) this.notifySubscribers(e);
   }
 
   private latestSnapshot(key: FoldKey, schemaVersion: number): { state: unknown; lamport: number } | null {
+    // Newest-first walk of the snapshots PK (eventId is a ULID — append order) with an
+    // early exit on the first foldKey hit: O(fold count), not O(snapshot history) —
+    // this query IS the §15 cold-resume path, it must not scan a campaign's lifetime.
     const row = this.db.get<{ payload: string; lamport: number }>(
       `SELECT e.payload, e.lamport FROM snapshots s JOIN events e ON e.eventId=s.eventId
-       WHERE s.foldKey=? ORDER BY e.lamport DESC LIMIT 1`, key);
+       WHERE s.foldKey=? ORDER BY s.eventId DESC LIMIT 1`, key);
     if (!row) return null;
     const payload = JSON.parse(row.payload) as { gzippedState: string; upToDeviceSeq: number };
     const decoded = JSON.parse(gunzipSync(Buffer.from(payload.gzippedState, "base64")).toString()) as { v: number; state: unknown };

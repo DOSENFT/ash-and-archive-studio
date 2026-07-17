@@ -85,8 +85,14 @@ export class Vault {
         opts.plannedSessionEntry ? { plannedSessionEntry: opts.plannedSessionEntry } : {},
         { actor: opts.actor, sessionId });
     },
-    close: (sessionId: string, actor: string): ReturnType<Ash["append"]> =>
-      this.ash.append("session.closed", {}, { actor, sessionId }),
+    close: (sessionId: string, actor: string): ReturnType<Ash["append"]> => {
+      const r = this.ash.append("session.closed", {}, { actor, sessionId });
+      // §4.3 — "WAL checkpoint on session close and app blur" (auto-checkpoint is
+      // off at the binding so mid-play appends never stall on it, §15 append p99).
+      // Planner-stat refresh rides the same cadence (see openWorld).
+      if (r.ok) this.db.exec("PRAGMA analysis_limit=1000; PRAGMA optimize; PRAGMA wal_checkpoint(TRUNCATE);");
+      return r;
+    },
     current: (): string | null => {
       const row = this.db.get<{ sessionId: string | null; type: string }>(
         `SELECT sessionId, type FROM events WHERE type IN ('session.opened','session.closed')
@@ -106,11 +112,31 @@ export class Vault {
     };
   }
 
-  /** §4.3 — PRAGMA integrity on open; failure routes to the restore flow, never silent. */
-  integrityCheck(): Result<void> {
-    const row = this.db.get<{ quick_check: string }>(`PRAGMA quick_check`);
-    if (row?.quick_check === "ok") return ok(undefined);
-    return fail("E-1402", "Vault integrity check failed; restore flow required (explicit consent).", row);
+  /** §4.3 integrity on open — implemented per the §15 open law's own words: "Vault
+   *  open (integrity FAST-check + heads) ≤ 500ms". A whole-file PRAGMA quick_check
+   *  is O(file) and events-dominated (measured 1.7s at the L world, 1.3s of it the
+   *  events table alone — the P05 spike's "watch at XL" come due), so the fast check
+   *  is per-table quick_check over the canon-structural tables, skipping the two
+   *  append-only bulk tables whose integrity is guarded separately: `events` by the
+   *  §11 E-1202 gapless-counter check at Ash init (meta counter vs MAX(deviceSeq))
+   *  plus its UNIQUE(deviceId,deviceSeq) constraint, and `entry_versions` by head
+   *  resolution on every read path. `{full:true}` runs the whole-file quick_check —
+   *  wired to §9 export (a backup is verified before it becomes the §4.3 restore
+   *  source), so the full check runs on the §9.4 backup cadence, not on open.
+   *  Failure routes to the restore flow, never silent. */
+  integrityCheck(opts?: { full?: boolean }): Result<void> {
+    if (opts?.full === true) {
+      const row = this.db.get<{ quick_check: string }>(`PRAGMA quick_check`);
+      if (row?.quick_check === "ok") return ok(undefined);
+      return fail("E-1402", "Vault integrity check failed; restore flow required (explicit consent).", row);
+    }
+    for (const t of ["meta", "entries", "links", "disclosures", "snapshots", "attachments"]) {
+      const rows = this.db.all<{ quick_check: string }>(`PRAGMA quick_check(${t})`);
+      if (rows.length !== 1 || rows[0]!.quick_check !== "ok") {
+        return fail("E-1402", `Vault integrity fast-check failed (${t}); restore flow required (explicit consent).`, rows);
+      }
+    }
+    return ok(undefined);
   }
 
   /** §9.1/§9.4 — write the full human-readable export tree under `dest` and record
@@ -118,6 +144,10 @@ export class Vault {
    *  state (no timestamps), so `export → import → export` reproduces it (§9.2);
    *  the marker event is appended AFTER writing, so no export contains its own. */
   export(dest: string): Result<ExportResult> {
+    // The FULL integrity check lives here (§9.4 backup cadence), not on open: a
+    // backup must be verified before it can serve as the §4.3 restore source.
+    const ic = this.integrityCheck({ full: true });
+    if (!ic.ok) return fail(ic.error.code, ic.error.message, ic.error.data);
     const result = exportWorld(this.db, this.worldMeta, this.platform.fileRoot, dest);
     if (!this.ash.isReadOnly()) {
       const destinationHash = createHash("sha256").update(result.root).digest("hex");
@@ -131,6 +161,7 @@ export class Vault {
 
   close(): void {
     this.craft.flush(); // §12 — persisted metrics travel with the world (and its exports)
+    try { this.db.exec("PRAGMA analysis_limit=1000; PRAGMA optimize; PRAGMA wal_checkpoint(TRUNCATE);"); } catch { /* closing anyway */ }
     this.db.close();
   }
 }
@@ -190,6 +221,13 @@ export class Studio {
       vault.close();
       return fail("E-1502", `World file identity mismatch: shelf=${worldId} file=${storedId?.v ?? "missing"}`);
     }
+    // §15 paint-path ("indexed" is only half the law): without sqlite_stat1 the
+    // planner cannot know link fan-out is tiny while kind partitions are huge, and
+    // the §5.5 linkedFrom shape drives from the wrong side (measured p50 2.6ms at
+    // the L world; 0.11ms with stats). Bounded ANALYZE via PRAGMA optimize: the
+    // first open of a grown world pays a one-time cost (~270ms at L), later opens
+    // are no-ops; the close cadence (Vault.close / session.close) keeps it fresh.
+    wdb.exec("PRAGMA analysis_limit=1000; PRAGMA optimize;");
     this.db.run(`UPDATE worlds SET lastOpenedAt=? WHERE id=?`, new Date().toISOString(), worldId);
     return ok(vault);
   }
