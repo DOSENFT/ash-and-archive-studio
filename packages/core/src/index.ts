@@ -6,7 +6,11 @@
 //                 subgraph staging, §2.4 perspective redaction, §5.7 Rite-set registry)
 //   [x] step 4 — §6 Binding (plan/ratify-as-data/commit, planHash idempotency,
 //                 §7.4 detectors at plan, E-13xx paths, chronicle Session entry)
-//   [ ] step 5 — §7 Charter · step 6 — §9 export/import
+//   [x] step 5 — §7 Charter (lock/demote with the §7.1 status machine, E-1003 at
+//                 lock per v1.2/ADR-003-D, docket over contradicts links + live
+//                 scans, resolve with the three §7.4 patches, §7.5 readiness with
+//                 the v1.2 ReadinessReport shape, rulings surface)
+//   [ ] step 6 — §9 export/import
 //   [ ] step 7 — §15/§16 harnesses green in CI
 export { Studio, Vault, type WorldMeta, type VaultCapability } from "./vault/studio.js";
 export { nodeSqliteBinding, type PlatformBinding, type DbHandle } from "./vault/platform.js";
@@ -23,10 +27,15 @@ export {
 } from "./archive/archive.js";
 export { EntryQuery, type OrderField } from "./archive/query.js"; // §5.5 — compile stays behind the API line
 export {
-  Binding,
+  Binding, normalizeName,
   type BindingPlan, type BindingReceipt, type PlanItem, type EntryUpsert,
   type Disposition, type ContradictionCase, type RatificationProtocol,
 } from "./binding/binding.js";
+export {
+  Charter,
+  type PatchChoice, type ReadinessReport, type ReadinessDomain, type ReadinessDomainKey,
+  type MissingMinimum, type BuildStep,
+} from "./charter/charter.js";
 export {
   ENTRY_KINDS, LINK_TYPES, KIND_SCHEMAS, UNKNOWN_STATUS_FIELDS, HIDDEN_FIELDS,
   INVARIANT_WHEN_LOCKED, LINK_EXCLUSIONS,

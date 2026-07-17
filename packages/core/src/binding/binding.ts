@@ -84,9 +84,11 @@ interface HeadRow {
 }
 interface HeadVersionRow { versionId: string; ordinal: number; body: string }
 
-// Case/diacritic-insensitive comparison for detector 1 (§7.4).
-const normalize = (s: string): string =>
+// Case/diacritic-insensitive comparison for detector 1 (§7.4). Exported as the
+// canon-semantics primitive the §7 Charter's docket and lock-time detection share.
+export const normalizeName = (s: string): string =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+const normalize = normalizeName;
 
 export class Binding {
   constructor(
@@ -667,7 +669,9 @@ export class Binding {
         this.db.run(
           `INSERT INTO links (id,fromEntry,toEntry,type,sinceVersion,endedByVersion,note,createdAt)
            VALUES (?,?,?,'contradicts',?,NULL,?,?)`,
-          ulid(), a, b, this.head(a)!.headVersion, c.explanation, now);
+          // Note carries the case kind as a machine-readable prefix so the §7 docket
+          // reconstructs the typed ContradictionCase from the link (step 5).
+          ulid(), a, b, this.head(a)!.headVersion, `[${c.kind}] ${c.explanation}`, now);
       }
     }
   }

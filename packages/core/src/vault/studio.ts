@@ -8,6 +8,7 @@ import type { DbHandle, PlatformBinding } from "./platform.js";
 import { Ash } from "../ash/ash.js";
 import { Archive } from "../archive/archive.js";
 import { Binding } from "../binding/binding.js";
+import { Charter } from "../charter/charter.js";
 import { Rites } from "../rites/rites.js";
 
 export interface WorldMeta {
@@ -29,6 +30,7 @@ export class Vault {
   readonly archive: Archive; // §5.2/§5.3 — the Archive surface of the Wing contract
   readonly rites: Rites;     // §5.7 — per-vault Rite-set registry (no singletons)
   readonly binding: Binding; // §6 — the only gate from ash to canon
+  readonly charter: Charter; // §7 — canon semantics: lock/demote/docket/resolve/readiness/rulings
 
   constructor(
     readonly worldId: string,
@@ -39,6 +41,7 @@ export class Vault {
     this.ash = new Ash(db, deviceId);
     this.archive = new Archive(db, worldId, platform.ftsAvailable);
     this.binding = new Binding(db, worldId, this.ash);
+    this.charter = new Charter(db, worldId, this.archive);
     this.rites = new Rites();
   }
 
