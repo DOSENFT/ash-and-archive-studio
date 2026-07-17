@@ -1,0 +1,23 @@
+{
+  "shotId": "SR-0029",
+  "routeOrScene": "travel.ambulatoryA",
+  "intent": "Asset-drop scene ambulatory-a (role ring-pose).",
+  "generationSeconds": null,
+  "shippedDurationMs": null,
+  "elements": [
+    "PROP-ONE"
+  ],
+  "prompt": "(external-mcp-sprint \u2014 founder session under sealed SH2)",
+  "continuityNotes": "",
+  "status": "intake-queued",
+  "intake": null,
+  "takes": [
+    {
+      "takeId": 1,
+      "tool": "higgsfield-mcp (external sprint)",
+      "date": "2026-07-17",
+      "generationId": "dc9597b0",
+      "result": "stills/travel.ambulatoryA.png"
+    }
+  ]
+}

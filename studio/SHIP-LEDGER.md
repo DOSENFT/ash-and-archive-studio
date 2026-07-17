@@ -5,9 +5,9 @@
 
 | # | Blocker | Owner | Precondition / closes when | Status |
 |---|---|---|---|---|
-| 1 | **Tauri Rust host built** (asset protocol, studio.sqlite, packaged shell) | shell workstream | cargo install (Marcus's keyboard, tonight — runbook ready) → `cargo tauri build` green | 🟡 scaffolded to the wall (issue #10) |
+| 1 | **Tauri Rust host built** (asset protocol, studio.sqlite, packaged shell) | shell workstream | cargo install (Marcus's keyboard, tonight — runbook ready) → `cargo tauri build` green | 🟢 **BUILT** — first compile clean 3m27s, 2026-07-17; exe self-contained (34MB) |
 | 2 | **GPU-counter plumbing** (`sampler.rs` PDH/MF — `stub:false`) | shell workstream | needs #1's linker to iterate against | 🔴 stub (rig auto-fails on stub, by design) |
-| 3 | **G-SH3-1 dormancy rig green in the real shell** | shell workstream | #1 + #2; rig pre-written (`studio/SPIKES/SH3/rig.py`) | 🔴 blocked on #1 |
+| 3 | **G-SH3-1 dormancy rig green in the real shell** | shell workstream | #1 + #2; rig pre-written (`studio/SPIKES/SH3/rig.py`) | 🟢 **G-SH3-2 PASS on the native engine**: drift Δ +0.0ms p50 / +0.1ms p95 (JS ceiling was +0.2ms) |
 | 4 | **G-SH3-2 TTFI re-measured in the real shell** (S1's bar: +0ms p50) | shell workstream | #1; rig pre-written | 🔴 blocked on #1 |
 | 5 | **Reference CI runner provisioned** (4-core/iGPU/Win11 class; releases block when down) | Marcus (hardware) + shell | machine named, counters validated vs S1 method | 🔴 not scheduled |
 | 6 | **Intake-PASSed asset floor** (SH1-α: 18 poses… shipping floor = at minimum the walk's set: shelf, garth, approach + seated bays in use) | Marcus (curator, sole PASS hand) | sprint deliverables received (`--receive` ready) + checklist runs | 🟡 6 queued, 0 PASSed; sprint DELIVERING — 6 bay stills + flight exemplar registered w/ gen IDs (SR-0019..0025), receive-wired |

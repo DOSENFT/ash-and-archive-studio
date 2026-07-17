@@ -9,7 +9,15 @@
   ],
   "prompt": "(external-mcp-sprint \u2014 composed in the founder's MCP session under sealed SH2; Style Block v2 verbatim; Prop One + gate-frame references attached)",
   "continuityNotes": "receive via: node studio/PIPELINE/intake.mjs --receive <file|url> --shot SR-0017 --pose bench.codex [--gen-id <id>]",
-  "status": "generating",
+  "status": "intake-queued",
   "intake": null,
-  "takes": []
+  "takes": [
+    {
+      "takeId": 1,
+      "tool": "higgsfield-mcp (external sprint)",
+      "date": "2026-07-17",
+      "generationId": "f2fab889",
+      "result": "stills/bench.codex.png"
+    }
+  ]
 }

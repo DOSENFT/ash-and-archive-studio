@@ -9,7 +9,7 @@
   ],
   "prompt": "(external-mcp-sprint \u2014 texture-preservation preamble + motion/physics only per LOCK-V3; style carried by the still + lanternlight-v1 post-grade)",
   "continuityNotes": "Motion Doctrine exemplar: short dive per LOCK-V1; grade lanternlight-v1 pre-intake; seam gate on graded extracted endpoint frames per LOCK-V4",
-  "status": "harvested",
+  "status": "intake-queued",
   "intake": null,
   "takes": [
     {
@@ -18,6 +18,15 @@
       "date": "2026-07-16",
       "generationId": "8c0061aa",
       "result": "(founder session; graded derivative exists)",
+      "firstFrameRMS": 9.76
+    },
+    {
+      "takeId": 2,
+      "tool": "higgsfield-mcp (external sprint)",
+      "date": "2026-07-17",
+      "generationId": "8c0061aa",
+      "result": "clips/flight_amb-a-push_8c0061aa_GRADED.mp4",
+      "grade": "lanternlight-v1",
       "firstFrameRMS": 9.76
     }
   ]

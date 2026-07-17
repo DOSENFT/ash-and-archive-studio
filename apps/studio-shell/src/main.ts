@@ -5,7 +5,7 @@
 // a NON-BLOCKING overlay above an already-live page (SH1 F-1). The world layer
 // is DOM-absent while seated — dormancy provable by inspection.
 import './style.css';
-import { BAYS, bearing, ringNeighbor, creditTraversal, LocalFamiliarity, loadManifest } from '../../../packages/atelier/src/index.ts';
+import { BAYS, bearing, ringDistance, ringNeighbor, creditTraversal, LocalFamiliarity, loadManifest } from '../../../packages/atelier/src/index.ts';
 import type { SeatId, LoadedManifest } from '../../../packages/atelier/src/index.ts';
 import type { SeatSurface, SeatContext, SeatedInstrument, Arrival } from '../../../packages/atelier/src/seat-surface.d.ts';
 import { ThrowawayFolio } from './folios/ThrowawayFolio_DELETE_BY_DESIGN.ts';
@@ -23,6 +23,7 @@ const shell = document.getElementById('shell')!;
 shell.innerHTML = `
   <nav id="rail" aria-label="Rooms"><h2>THE STUDIO</h2></nav>
   <main id="seat">
+    <div id="backdrop" aria-hidden="true"></div>
     <div id="page-host"></div>
     <div id="world" aria-hidden="true"></div>
   </main>
@@ -36,6 +37,7 @@ shell.innerHTML = `
 const rail = document.getElementById('rail')!;
 const pageHost = document.getElementById('page-host')!;
 const world = document.getElementById('world')!;
+const backdrop = document.getElementById('backdrop')!;
 const chip = document.getElementById('uncurated-chip')!;
 const announcer = document.getElementById('announcer')!;
 
@@ -49,6 +51,40 @@ try {
   if (__DEV_BUILD__) mf.warnings.forEach((w) => console.warn('[manifest]', w));
 } catch (e) {
   console.warn('[atelier] world layer off:', e); // quiet note; navigation never hostage to art
+}
+
+// ---------- the bay's presence (founder ruling 2026-07-17) ----------
+// A STATIC still behind the page — zero motion, zero decode, painted once; the
+// page composed brighter than the world (SH2 A-2's law carried into the chrome
+// via the scrim). Distinct from the WorldStage: this layer never animates, so
+// bench silence (clause 8: "zero motion of any kind") holds; the dormancy
+// precedent (DOM-absent WorldStage) governs the MOTION machinery, which stays
+// absent when seated. Recorded as a presentation-law distinction, not silently.
+function seatStillUrl(seat: SeatId): string | undefined {
+  return seat === 'sanctum' ? mf?.stillUrl('garth.center') : mf?.stillUrl(`bench.${seat}`);
+}
+function setBackdrop(seat: SeatId | null): void {
+  backdrop.replaceChildren();
+  const url = seat && seatStillUrl(seat);
+  if (!url) { setChip(false); return; }
+  const img = new Image();
+  img.src = url;
+  img.alt = '';
+  backdrop.appendChild(img);
+  const poseId = seat === 'sanctum' ? 'garth.center' : `bench.${seat}`;
+  setChip(!!mf?.isUncurated(poseId));
+}
+// Travel reads as moving through the building: ring-distance 1–2 departs through
+// the ambulatory (stations A/B alternate by destination parity); distance ≥3
+// crosses the garth (the chord); the Waking departs from the door.
+function travelFromUrl(from: SeatId | null, to: SeatId): string | undefined {
+  const ext = (mf?.manifest as unknown as { travelFrames?: { ambulatoryA?: string; ambulatoryB?: string } })?.travelFrames;
+  if (!from) return mf?.stillUrl('shelf');
+  if (from === 'sanctum' || to === 'sanctum') return seatStillUrl(from);
+  const dist = ringDistance(from as never, to as never);
+  if (dist >= 3) return mf?.stillUrl('garth.center');
+  const station = BAYS.indexOf(to as never) % 2 === 0 ? ext?.ambulatoryA : ext?.ambulatoryB;
+  return station ? `/${station}` : seatStillUrl(from);
 }
 
 // ---------- instruments ----------
@@ -107,11 +143,49 @@ async function navigate(to: SeatId, arrival: Arrival = 'drift-cut'): Promise<voi
     instrument = benchCard(to).mount(pageHost, ctx);
   }
 
+  // The bay's presence lands with the page (static; any overlay plays above it).
+  setBackdrop(to);
+
+  // THE PROOF FLIGHT (founder ruling 2026-07-17): one Passage demonstrates true
+  // motion — chronicle→academy plays the graded ambulatory push at tier-1 rate
+  // (1.5×), skippable by any input. Dev-only manifest extension, NOT a lawful
+  // clips[] entry (the seam gate needs ffmpeg endpoint extraction first).
+  const devProof = __DEV_BUILD__ ? (mf?.manifest as unknown as { devProof?: { flight?: { file: string } } })?.devProof?.flight : undefined;
+  const rigHard = (globalThis as Record<string, unknown>).__RIG_FORCE_HARDCUT === true;
+  if (devProof && from === 'chronicle' && to === 'academy' && !rigHard && !landing) {
+    landing = true;
+    setChip(true);
+    const video = document.createElement('video');
+    video.muted = true;
+    video.playsInline = true;
+    world.replaceChildren(video);
+    try {
+      const blob = await (await fetch(`/${devProof.file}`)).blob(); // blob-sourced: revocation = provable teardown
+      const url = URL.createObjectURL(blob);
+      video.src = url;
+      video.playbackRate = 1.5; // tier-1 familiarity, per the ruling
+      await video.play().catch(() => {});
+      await new Promise<void>((done) => {
+        const skip = () => { try { video.currentTime = video.duration || 0; } catch { /* landing anyway */ } done(); };
+        video.addEventListener('ended', () => done(), { once: true });
+        addEventListener('keydown', skip, { once: true, capture: true });
+        addEventListener('pointerdown', skip, { once: true, capture: true });
+      });
+      URL.revokeObjectURL(url);
+    } catch { /* a broken flight may not exist — land as a cut */ }
+    world.replaceChildren(); // decoder released, element gone — dormancy resumes
+    landing = false;
+    setChip(!!mf?.isUncurated(`bench.${to}`));
+    resolveMotion();
+    instrument?.focusFirst();
+    if (from) creditTraversal(familiarity, from, to);
+    return;
+  }
+
   // The drift-cut: a visual overlay ABOVE the live page. pointer-events: none —
   // input is delivered directly to the page; no queued hold, no replay needed.
-  const fromUrl = from && from !== 'sanctum' ? mf?.stillUrl(`bench.${from}`) ?? mf?.stillUrl(`lintel.${from}`) : mf?.stillUrl('garth.center');
-  const toUrl = to !== 'sanctum' ? mf?.stillUrl(`bench.${to}`) ?? mf?.stillUrl(`lintel.${to}`) : mf?.stillUrl('garth.center');
-  const wasUncurated = (id: string | null) => !!id && !!mf?.isUncurated(id);
+  const fromUrl = travelFromUrl(from, to);
+  const toUrl = seatStillUrl(to);
   // Rig seam (test instrumentation, inert unless the harness sets it): the S1
   // methodology's hard-cut control arm — skips the overlay entirely.
   const rigHardcut = (globalThis as Record<string, unknown>).__RIG_FORCE_HARDCUT === true;
@@ -123,10 +197,7 @@ async function navigate(to: SeatId, arrival: Arrival = 'drift-cut'): Promise<voi
     const imgA = new Image(); imgA.src = fromUrl;
     const imgB = new Image(); imgB.src = toUrl;
     world.replaceChildren(imgA, imgB);
-    setChip(
-      wasUncurated(from && from !== 'sanctum' ? `bench.${from}` : 'garth.center') ||
-      wasUncurated(to !== 'sanctum' ? `bench.${to}` : 'garth.center'),
-    );
+    setChip(true); // every travel frame in the current harvest is UNCURATED; the chip states it
     const a1 = imgA.animate(
       [{ opacity: 1, transform: 'translate(0,0)' }, { opacity: 0, transform: `translate(${-b.dx * drift}px, ${-b.dy * drift}px)` }],
       { duration: dur, easing: 'ease-out', fill: 'forwards' },
@@ -144,9 +215,10 @@ async function navigate(to: SeatId, arrival: Arrival = 'drift-cut'): Promise<voi
     landing = false;
   }
 
-  // Teardown: the world layer leaves the DOM — dormancy begins here (G-SH3-1's start line).
+  // Teardown: the MOTION layer leaves the DOM — dormancy begins here (G-SH3-1's
+  // start line; the static backdrop is presence, not motion — founder ruling).
   world.replaceChildren();
-  setChip(false);
+  setChip(!!(to === 'sanctum' ? mf?.isUncurated('garth.center') : mf?.isUncurated(`bench.${to}`)));
   resolveMotion(); // the airlock opens: registered page motion is now permitted
   instrument?.focusFirst();
   if (from) creditTraversal(familiarity, from, to);
@@ -220,7 +292,9 @@ async function boot(): Promise<void> {
   const deep = location.hash.match(/^#\/seat\/(\w+)$/);
   if (deep && SEATS.includes(deep[1] as SeatId)) return navigate(deep[1] as SeatId, 'deep-link'); // deep links land seated; cold resume never flies
 
-  const approachPlayed = localStorage.getItem('atelier.approach.played');
+  // Dev builds replay the Approach every launch (founder ruling 2026-07-17:
+  // once-per-install gating makes dev walks worldless); production keeps the law.
+  const approachPlayed = __DEV_BUILD__ ? null : localStorage.getItem('atelier.approach.played');
   if (!approachPlayed && mf?.manifest.approach) {
     // The one scale-reveal: a held still, a dissolve — never replayed, skippable by any input.
     const still = document.createElement('img');

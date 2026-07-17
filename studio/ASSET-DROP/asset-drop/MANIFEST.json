@@ -1,0 +1,26 @@
+{
+  "provenance": "external-mcp-sprint",
+  "register": "lanternlight-1983-surreal-cut",
+  "curatorFirstPass": "strategist-seat (machine); canon holder intake REQUIRED before any PASS",
+  "propOneReference": "2f8e874f",
+  "stills": [
+    {"scene":"prop-one","file":"stills/prop-one_2f8e874f.png","jobId":"2f8e874f","role":"locked-reference"},
+    {"scene":"approach","file":"stills/approach_27142742.png","jobId":"27142742","role":"scale-reveal"},
+    {"scene":"gate","file":"stills/gate_df21455e.png","jobId":"df21455e","role":"threshold"},
+    {"scene":"ambulatory-a","file":"stills/ambulatory-a_dc9597b0.png","jobId":"dc9597b0","role":"ring-pose"},
+    {"scene":"ambulatory-b","file":"stills/ambulatory-b_d9c26d16.png","jobId":"d9c26d16","role":"ring-pose"},
+    {"scene":"garth","file":"stills/garth_be8a7181.png","jobId":"be8a7181","role":"sanctum"},
+    {"scene":"codex","file":"stills/codex_f2fab889.png","jobId":"f2fab889","role":"bay"},
+    {"scene":"toybox","file":"stills/toybox_d48ad7e8.png","jobId":"d48ad7e8","role":"bay"},
+    {"scene":"chronicle","file":"stills/chronicle_e0ea5cc9.png","jobId":"e0ea5cc9","role":"bay"},
+    {"scene":"forge","file":"stills/forge_34652505.png","jobId":"34652505","role":"bay"},
+    {"scene":"charter","file":"stills/charter_ae4baf13.png","jobId":"ae4baf13","role":"bay"},
+    {"scene":"stage","file":"stills/stage_fd9a6ff3.png","jobId":"fd9a6ff3","role":"bay"},
+    {"scene":"academy","file":"stills/academy_7a97107c.png","jobId":"7a97107c","role":"bay"},
+    {"scene":"press","file":"stills/press_db5c7eca.png","jobId":"db5c7eca","role":"bay"}
+  ],
+  "motion": [
+    {"route":"ambulatory-a-forward-push","fileGraded":"motion/flight_amb-a-push_8c0061aa_GRADED.mp4","fileRaw":"motion/flight_amb-a-push_8c0061aa_RAW.mp4","jobId":"8c0061aa","seamRmsVsPoseA":9.76,"resolution":"1920x1080","gradeVersion":"lanternlight-v1"}
+  ],
+  "videoLocks":["V1 max ~3-5m level dolly, no turns >30deg","V2 mirrored pairs are cut-pairs","V3 style from post-grade only; physics-only prompts","V4 chain joints from encoded frames; vendor presets always declined"]
+}

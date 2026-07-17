@@ -9,7 +9,7 @@
   ],
   "prompt": "(external-mcp-sprint \u2014 composed in the founder's MCP session under sealed SH2; Style Block v2 verbatim)",
   "continuityNotes": "receive via: node studio/PIPELINE/intake.mjs --receive <file|url> --shot SR-0020 --pose bench.forge --gen-id 34652505",
-  "status": "generating",
+  "status": "intake-queued",
   "intake": null,
   "takes": [
     {
@@ -18,6 +18,13 @@
       "date": "2026-07-16",
       "generationId": "34652505",
       "result": "(incoming this session)"
+    },
+    {
+      "takeId": 2,
+      "tool": "higgsfield-mcp (external sprint)",
+      "date": "2026-07-17",
+      "generationId": "34652505",
+      "result": "stills/bench.forge.png"
     }
   ]
 }

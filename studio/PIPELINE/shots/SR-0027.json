@@ -1,0 +1,23 @@
+{
+  "shotId": "SR-0027",
+  "routeOrScene": "approach",
+  "intent": "Asset-drop scene approach (role scale-reveal).",
+  "generationSeconds": null,
+  "shippedDurationMs": null,
+  "elements": [
+    "PROP-ONE"
+  ],
+  "prompt": "(external-mcp-sprint \u2014 founder session under sealed SH2)",
+  "continuityNotes": "",
+  "status": "intake-queued",
+  "intake": null,
+  "takes": [
+    {
+      "takeId": 1,
+      "tool": "higgsfield-mcp (external sprint)",
+      "date": "2026-07-17",
+      "generationId": "27142742",
+      "result": "stills/approach.png"
+    }
+  ]
+}

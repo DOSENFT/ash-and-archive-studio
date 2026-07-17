@@ -1,0 +1,23 @@
+{
+  "shotId": "SR-0026",
+  "routeOrScene": "shelf",
+  "intent": "Asset-drop scene gate (role threshold).",
+  "generationSeconds": null,
+  "shippedDurationMs": null,
+  "elements": [
+    "PROP-ONE"
+  ],
+  "prompt": "(external-mcp-sprint \u2014 founder session under sealed SH2)",
+  "continuityNotes": "",
+  "status": "intake-queued",
+  "intake": null,
+  "takes": [
+    {
+      "takeId": 1,
+      "tool": "higgsfield-mcp (external sprint)",
+      "date": "2026-07-17",
+      "generationId": "df21455e",
+      "result": "stills/shelf.png"
+    }
+  ]
+}

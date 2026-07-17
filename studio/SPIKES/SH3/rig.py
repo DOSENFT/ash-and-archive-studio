@@ -41,7 +41,7 @@ def wait_for_target(timeout=30):
     while time.time() - t0 < timeout:
         try:
             for t in cdp():
-                if t.get("type") == "page" and ("localhost:5175" in t.get("url", "") or "atelier" in t.get("url", "")):
+                if t.get("type") == "page" and any(m in t.get("url", "") for m in ("localhost:5175", "tauri.localhost", "atelier")):
                     return t
         except OSError:
             pass
