@@ -10,6 +10,7 @@ import { Archive } from "../archive/archive.js";
 import { Binding } from "../binding/binding.js";
 import { Charter } from "../charter/charter.js";
 import { Rites } from "../rites/rites.js";
+import { Metrics, type CraftMetrics } from "./metrics.js";
 import { exportWorld, type ExportResult, type WorldExportMeta } from "./exporter.js";
 import { applyImport, planArchiveImport, type ImportPlan, type ImportSource } from "./importer.js";
 import { createHash } from "node:crypto";
@@ -49,6 +50,8 @@ export class Vault {
   readonly binding: Binding; // §6 — the only gate from ash to canon
   readonly charter: Charter; // §7 — canon semantics: lock/demote/docket/resolve/readiness/rulings
 
+  private readonly craft: Metrics; // §12 — local craft metrics (the Ledger is the analytics)
+
   constructor(
     readonly worldId: string,
     private readonly db: DbHandle,
@@ -56,12 +59,23 @@ export class Vault {
     deviceId: string,
     private readonly worldMeta: WorldExportMeta,
   ) {
-    this.ash = new Ash(db, deviceId);
-    this.archive = new Archive(db, worldId, platform.ftsAvailable);
-    this.binding = new Binding(db, worldId, this.ash);
+    this.craft = new Metrics(db);
+    this.ash = new Ash(db, deviceId, (ms) => this.craft.latency("fold", ms));
+    this.archive = new Archive(db, worldId, platform.ftsAvailable, (ms) => this.craft.latency("search", ms));
+    this.binding = new Binding(db, worldId, this.ash, (ms, reasons) => {
+      this.craft.latency("binding", ms);
+      for (const r of reasons) this.craft.bump("deferralReasons", r);
+    });
     this.charter = new Charter(db, worldId, this.archive);
     this.rites = new Rites();
   }
+
+  /** §12 — `vault.metrics.read()`: local-only craft metrics, for the Wings and the
+   *  user's own eyes. `count()` feeds wrong-turn counters (the composer's hook). */
+  readonly metrics = {
+    read: (): CraftMetrics => this.craft.read(),
+    count: (key: string): void => this.craft.count(key),
+  };
 
   /** §5.4 session lifecycle sugar over events. */
   readonly session = {
@@ -115,7 +129,10 @@ export class Vault {
   /** Internal: single accessor for the write layers built in §19 steps 2+. */
   handle(): DbHandle { return this.db; }
 
-  close(): void { this.db.close(); }
+  close(): void {
+    this.craft.flush(); // §12 — persisted metrics travel with the world (and its exports)
+    this.db.close();
+  }
 }
 
 export class Studio {

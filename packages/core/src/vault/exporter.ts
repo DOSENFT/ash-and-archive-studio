@@ -226,6 +226,11 @@ export function exportWorld(db: DbHandle, meta: WorldExportMeta, fileRoot: strin
 
   put("WORLD.md", worldMarkdown(meta));
 
+  // §12 — "Export includes them (they're the user's)": persisted craft metrics travel
+  // as metrics.json. Deterministic (verbatim meta state); absent when never recorded.
+  const craft = db.get<{ v: string }>(`SELECT v FROM meta WHERE k='craftMetrics'`);
+  if (craft) put("metrics.json", craft.v + "\n");
+
   const snapshots = db.get<{ c: number }>(`SELECT COUNT(*) c FROM snapshots`)?.c ?? 0;
   const counts: Record<string, number> = {
     attachments: attachmentRows.length,

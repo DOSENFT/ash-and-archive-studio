@@ -13,11 +13,18 @@
 //   [x] step 6 — §9 export/import (the ownership covenant: deterministic human-
 //                 readable export tree, MANIFEST integrity, staged ImportPlan →
 //                 transactional apply with §9.2 edit-tolerance, §9.4 backup policy)
-//   [ ] step 7 — §15/§16 harnesses green in CI
+//   [x] step 7 — §15/§16 harnesses green in CI (seeded S/M/L/XL world generator,
+//                 §15 budgets as assertions, §16.2 golden logs, §16.3 properties,
+//                 §16.5 perspective-leak adversarial suite, §16.7 migration scaffold,
+//                 §16.8 chaos, coverage; §12 vault.metrics.read() landed)
 export {
   Studio, Vault,
   type WorldMeta, type VaultCapability, type BackupPolicy, type ImportReceipt,
 } from "./vault/studio.js";
+export {
+  eventFamily,
+  type CraftMetrics, type LatencySummary, type EventFamily, type LatencySeries,
+} from "./vault/metrics.js";
 export { exportWorld, type ExportResult, type WorldExportMeta } from "./vault/exporter.js";
 export {
   planArchiveImport,

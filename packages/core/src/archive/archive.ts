@@ -74,6 +74,8 @@ export class Archive {
     private readonly db: DbHandle,
     private readonly worldId: string,
     private readonly ftsAvailable: boolean,
+    /** §12 — Vault wires the craft-metrics recorder for search latencies. */
+    private readonly onSearchLatency?: (ms: number) => void,
   ) {}
 
   // ---- §5.2 reads ----
@@ -91,29 +93,44 @@ export class Archive {
     return ok(this.toView(e, v, opts?.perspective));
   }
 
-  query(q: EntryQuery): Result<EntryView[]> {
+  /** §2.4 — query surfaces accept `perspective?`; when present, results exclude
+   *  undisclosed truth entries and redact fields marked hidden. Enforcement is here,
+   *  below the API line — a Wing cannot accidentally leak what it never receives. */
+  query(q: EntryQuery, opts?: { perspective?: string }): Result<EntryView[]> {
     const { sql, params } = compileEntryQuery(q);
     const rows = this.db.all<JoinedRow>(sql, ...params);
-    return ok(rows.map((r) => this.joinedToView(r)));
+    const perspective = opts?.perspective;
+    const visible = perspective === undefined
+      ? rows
+      : rows.filter((r) => r.kind !== "truth" || this.isDisclosed(r.id, perspective));
+    return ok(visible.map((r) => this.joinedToView(r, perspective)));
   }
 
-  history(id: string): Result<EntryVersion[]> {
-    const e = this.db.get<{ id: string }>(`SELECT id FROM entries WHERE id=?`, id);
+  history(id: string, opts?: { perspective?: string }): Result<EntryVersion[]> {
+    const e = this.db.get<{ id: string; kind: string }>(`SELECT id, kind FROM entries WHERE id=?`, id);
     if (!e) return fail("E-1101", `Entry not found: ${id}`);
+    if (opts?.perspective !== undefined && e.kind === "truth" && !this.isDisclosed(id, opts.perspective)) {
+      // §2.4/§17 leak-safety: an undisclosed truth's existence is itself undisclosed.
+      return fail("E-1101", `Entry not found: ${id}`);
+    }
     const rows = this.db.all<VersionRow>(
       `SELECT * FROM entry_versions WHERE entryId=? ORDER BY ordinal ASC`, id);
     return ok(rows.map((v) => ({
       versionId: v.versionId, entryId: v.entryId, ordinal: v.ordinal,
-      body: JSON.parse(v.body), bodySchemaVersion: v.bodySchemaVersion,
+      body: this.redact(e.kind as EntryKind, JSON.parse(v.body), opts?.perspective),
+      bodySchemaVersion: v.bodySchemaVersion,
       canonStatus: v.canonStatus as CanonStatus, provenance: v.provenance as Provenance,
       boundBy: v.boundBy, citations: JSON.parse(v.citations) as string[],
       supersedes: v.supersedes, note: v.note, createdAt: v.createdAt,
     })));
   }
 
-  links(id: string, opts?: { type?: LinkType; at?: string; direction?: "from" | "to" | "both" }): Result<LinkView[]> {
-    const e = this.db.get<{ id: string }>(`SELECT id FROM entries WHERE id=?`, id);
+  links(id: string, opts?: { type?: LinkType; at?: string; direction?: "from" | "to" | "both"; perspective?: string }): Result<LinkView[]> {
+    const e = this.db.get<{ id: string; kind: string }>(`SELECT id, kind FROM entries WHERE id=?`, id);
     if (!e) return fail("E-1101", `Entry not found: ${id}`);
+    if (opts?.perspective !== undefined && e.kind === "truth" && !this.isDisclosed(id, opts.perspective)) {
+      return fail("E-1101", `Entry not found: ${id}`); // §2.4 — existence undisclosed
+    }
     const dir = opts?.direction ?? "both";
     const where: string[] = [];
     const params: unknown[] = [];
@@ -130,7 +147,12 @@ export class Archive {
     }
     const rows = this.db.all<LinkRow>(
       `SELECT * FROM links WHERE ${where.join(" AND ")} ORDER BY createdAt ASC, id ASC`, ...params);
-    return ok(rows.map((r) => this.toLinkView(r)));
+    const perspective = opts?.perspective;
+    const visible = perspective === undefined
+      ? rows
+      // §2.4 — a LinkView naming an undisclosed truth would leak its existence.
+      : rows.filter((r) => this.endpointVisible(r.fromEntry, perspective) && this.endpointVisible(r.toEntry, perspective));
+    return ok(visible.map((r) => this.toLinkView(r)));
   }
 
   /** §5.2/§8 — Dramaturg staging: BFS from seeds over active links, perspective-redacted,
@@ -182,8 +204,22 @@ export class Archive {
 
   /** §5.2 search — FTS5; degrades to LIKE when FTS is unavailable (E-1601 behavior:
    *  degrade + flag; the flag is vault.capability().fts). Archived entries excluded. */
-  search(text: string, opts?: { kinds?: EntryKind[]; limit?: number }): Result<SearchHit[]> {
+  search(text: string, opts?: { kinds?: EntryKind[]; limit?: number; perspective?: string }): Result<SearchHit[]> {
+    if (this.onSearchLatency === undefined) return this.searchNow(text, opts);
+    const t0 = performance.now();
+    const r = this.searchNow(text, opts);
+    this.onSearchLatency(performance.now() - t0); // §12 — search latencies
+    return r;
+  }
+
+  private searchNow(text: string, opts?: { kinds?: EntryKind[]; limit?: number; perspective?: string }): Result<SearchHit[]> {
     const limit = opts?.limit ?? 20;
+    const perspective = opts?.perspective;
+    // §2.4 — an undisclosed truth must not surface as a hit (name/alias/body are all
+    // leak vectors). Filtered below the API line, after ranking, before return.
+    const guard = (hits: SearchHit[]): SearchHit[] => perspective === undefined
+      ? hits
+      : hits.filter((h) => h.kind !== "truth" || this.isDisclosed(h.entryId, perspective));
     const tokens = text.split(/\s+/).filter((t) => t.length > 0);
     if (tokens.length === 0) return ok([]);
     const kindsClause = opts?.kinds && opts.kinds.length > 0
@@ -195,7 +231,7 @@ export class Archive {
         `SELECT e.id, e.kind, e.name FROM entries e
          WHERE e.archivedAt IS NULL AND (e.name LIKE ? OR e.aliases LIKE ?)${kindsClause}
          ORDER BY e.name ASC, e.id ASC LIMIT ?`, like, like, ...kindsParams, limit);
-      return ok(rows.map((r) => ({ entryId: r.id, kind: r.kind as EntryKind, name: r.name, score: 0 })));
+      return ok(guard(rows.map((r) => ({ entryId: r.id, kind: r.kind as EntryKind, name: r.name, score: 0 }))));
     }
     const match = tokens.map((t) => `"${t.replace(/"/g, '""')}"`).join(" ");
     const rows = this.db.all<{ id: string; kind: string; name: string; score: number }>(
@@ -212,7 +248,7 @@ export class Archive {
       seen.add(r.id);
       out.push({ entryId: r.id, kind: r.kind as EntryKind, name: r.name, score: r.score });
     }
-    return ok(out);
+    return ok(guard(out));
   }
 
   // ---- §5.3 writes (working layer only) ----
@@ -356,6 +392,13 @@ export class Archive {
       `SELECT id FROM disclosures WHERE entryId=? AND knownBy=?`, entryId, knownBy) !== undefined;
   }
 
+  /** §2.4 — true unless the entry is a truth undisclosed to this perspective. */
+  private endpointVisible(entryId: string, perspective: string): boolean {
+    const row = this.db.get<{ kind: string }>(`SELECT kind FROM entries WHERE id=?`, entryId);
+    if (!row) return true; // dangling reference carries no knowledge
+    return row.kind !== "truth" || this.isDisclosed(entryId, perspective);
+  }
+
   /** §2.4 — fields marked hidden in kind schemas are redacted under a perspective. */
   private redact(kind: EntryKind, body: unknown, perspective: string | undefined): unknown {
     if (perspective === undefined) return body; // omniscient owner default
@@ -385,13 +428,15 @@ export class Archive {
     };
   }
 
-  private joinedToView(r: JoinedRow): EntryView {
+  private joinedToView(r: JoinedRow, perspective?: string): EntryView {
     return {
       id: r.id, worldId: this.worldId, kind: r.kind as EntryKind,
       name: r.name, aliases: JSON.parse(r.aliases) as string[],
       canonStatus: r.canonStatus as CanonStatus, provenance: r.provenance as Provenance,
       headVersion: r.headVersion, createdAt: r.createdAt, boundAt: r.boundAt, archivedAt: r.archivedAt,
-      versionId: r.versionId, ordinal: r.ordinal, body: JSON.parse(r.body), bodySchemaVersion: r.bodySchemaVersion,
+      versionId: r.versionId, ordinal: r.ordinal,
+      body: this.redact(r.kind as EntryKind, JSON.parse(r.body), perspective),
+      bodySchemaVersion: r.bodySchemaVersion,
     };
   }
 

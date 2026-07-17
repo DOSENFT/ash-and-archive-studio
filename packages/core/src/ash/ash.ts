@@ -43,7 +43,13 @@ export class Ash {
    *  strike retroactively removes an already-reduced event. */
   private live = new Map<FoldKey, unknown>();
 
-  constructor(private readonly db: DbHandle, private readonly deviceId: string) {
+  constructor(
+    private readonly db: DbHandle,
+    private readonly deviceId: string,
+    /** §12 — Vault wires the craft-metrics recorder; Wing-visible fold() calls are
+     *  timed, internal maintenance (rebuildLive, registration) is not a craft metric. */
+    private readonly onFoldLatency?: (ms: number) => void,
+  ) {
     for (const f of CORE_FOLDS) this.folds.set(f.key, f);
     // §11 E-1202 — gapless per-device counter: meta counter and MAX(events) must agree.
     const metaRow = this.db.get<{ v: string }>(`SELECT v FROM meta WHERE k=?`, `deviceSeq:${deviceId}`);
@@ -63,7 +69,7 @@ export class Ash {
 
   private rebuildLive(): void {
     for (const def of this.folds.values()) {
-      const r = this.fold(def.key, { world: true }); // snapshot fast-path keeps this cheap
+      const r = this.foldNow(def.key, { world: true }); // snapshot fast-path keeps this cheap
       this.live.set(def.key, r.ok ? r.value : def.init());
     }
   }
@@ -75,7 +81,7 @@ export class Ash {
     if (this.folds.has(def.key)) return fail("E-1001", `Fold key already registered: ${def.key}`);
     if (!def.key.startsWith("wing:")) return fail("E-1001", `Wing fold keys must be namespaced 'wing:<name>:<fold>'`);
     this.folds.set(def.key, def);
-    const r = this.fold(def.key, { world: true });
+    const r = this.foldNow(def.key, { world: true });
     this.live.set(def.key, r.ok ? r.value : def.init());
     return ok(undefined);
   }
@@ -158,8 +164,17 @@ export class Ash {
     return ok(filtered.map(toEvent));
   }
 
-  /** §5.4 fold — snapshot fast-path for world scope, full replay otherwise. */
+  /** §5.4 fold — snapshot fast-path for world scope, full replay otherwise.
+   *  Wing-visible calls are timed into the §12 craft metrics. */
   fold<S = unknown>(key: FoldKey, scope: FoldScope): Result<S> {
+    if (this.onFoldLatency === undefined) return this.foldNow(key, scope);
+    const t0 = performance.now();
+    const r = this.foldNow<S>(key, scope);
+    this.onFoldLatency(performance.now() - t0);
+    return r;
+  }
+
+  private foldNow<S = unknown>(key: FoldKey, scope: FoldScope): Result<S> {
     const def = this.folds.get(key);
     if (!def) return fail("E-1001", `Unregistered fold: ${key}`);
     let state = def.init();
@@ -225,7 +240,7 @@ export class Ash {
       const inScope = "world" in s.scope || s.scope.sessionId === e.sessionId;
       if (!inScope) continue;
       if ("world" in s.scope) { s.cb(e, this.live.get(s.key)); continue; }
-      const st = this.fold(s.key, s.scope); // session scope replays a bounded session log
+      const st = this.foldNow(s.key, s.scope); // session scope replays a bounded session log
       if (st.ok) s.cb(e, st.value);
     }
   }

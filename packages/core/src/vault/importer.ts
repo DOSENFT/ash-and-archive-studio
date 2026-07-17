@@ -52,6 +52,8 @@ export interface ImportData {
   events: ParsedEvent[];
   attachmentFiles: string[];        // rel paths present on disk
   promptFiles: string[];
+  /** §12 — metrics.json verbatim (they're the user's); restored into meta at apply. */
+  metricsJson?: string;
 }
 
 interface ParsedEntry {
@@ -275,6 +277,19 @@ export function planArchiveImport(path: string): Result<ImportPlan> {
       }
     });
     if (!eventsItem.valid) data.events = [];
+  }
+
+  // §12 — craft metrics travel with the export; machine file (hash-checked above).
+  const metricsPath = join(root, "metrics.json");
+  if ("metrics.json" in manifest.files && existsSync(metricsPath)) {
+    try {
+      const raw = readFileSync(metricsPath, "utf8").replace(/\n$/, "");
+      JSON.parse(raw); // shape is owned by core; parseability is the import gate
+      data.metricsJson = raw;
+    } catch (err) {
+      issue(mkItem("metrics.json", "file"), "json", (err as Error).message,
+        "metrics.json is a machine record; restore it from the export or delete it and its MANIFEST.json line");
+    }
   }
 
   for (const rel of Object.keys(manifest.files)) {
@@ -503,6 +518,12 @@ export function applyImport(plan: ImportPlan, db: DbHandle, fileRoot: string): A
         item.issues.push({ file: item.file, field: "apply", error: (err as Error).message, suggestion: "restore ash/events.jsonl from the export" });
         failedItems.push(item);
       }
+    }
+
+    // §12 — restore persisted craft metrics (they're the user's; round-trip identity).
+    if (plan.data.metricsJson !== undefined) {
+      db.run(`INSERT INTO meta (k,v) VALUES ('craftMetrics',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v`,
+        plan.data.metricsJson);
     }
 
     db.exec("COMMIT");

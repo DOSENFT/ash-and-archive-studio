@@ -95,6 +95,8 @@ export class Binding {
     private readonly db: DbHandle,
     private readonly worldId: string,
     private readonly ash: Ash,
+    /** §12 — Vault wires the craft-metrics recorder: binding durations + deferral reasons. */
+    private readonly onCommitMetrics?: (durationMs: number, deferralReasons: string[]) => void,
   ) {}
 
   // ---- Phase 1 — PLAN (pure; no writes) ----
@@ -256,6 +258,7 @@ export class Binding {
   // ---- Phase 3 — COMMIT (single SQLite transaction) ----
 
   commit(plan: BindingPlan, actor: string, mode: "full" | "banked"): Result<BindingReceipt> {
+    const t0 = performance.now();
     if (this.ash.isReadOnly()) return fail("E-1202", "Ash is read-only; the Binding cannot seal.");
 
     // Idempotency by planHash: E-1301 AlreadyBound → the original receipt (no writes).
@@ -332,6 +335,16 @@ export class Binding {
 
       this.db.exec("COMMIT");
       this.ash.txCommitted();
+      if (this.onCommitMetrics !== undefined) {
+        // §12 — deferral reasons: what stayed out of canon at this seal, and why.
+        const reasons: string[] = [];
+        for (const item of plan.items) {
+          if (mode === "banked") { if (item.disposition !== "blowAway") reasons.push("banked"); continue; }
+          if (item.disposition !== "holdAsAsh") continue;
+          reasons.push(item.challenged ? "challenged" : item.leverTestFailed ? "lever-test" : "held");
+        }
+        this.onCommitMetrics(performance.now() - t0, reasons);
+      }
       return ok({
         planHash: plan.planHash, mode, sessionId: plan.sessionId,
         chronicleEntry, boundVersions,
