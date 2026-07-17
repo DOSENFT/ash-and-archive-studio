@@ -116,25 +116,40 @@ export class Vault {
    *  open (integrity FAST-check + heads) ≤ 500ms". A whole-file PRAGMA quick_check
    *  is O(file) and events-dominated (measured 1.7s at the L world, 1.3s of it the
    *  events table alone — the P05 spike's "watch at XL" come due), so the fast check
-   *  is per-table quick_check over the canon-structural tables, skipping the two
-   *  append-only bulk tables whose integrity is guarded separately: `events` by the
-   *  §11 E-1202 gapless-counter check at Ash init (meta counter vs MAX(deviceSeq))
-   *  plus its UNIQUE(deviceId,deviceSeq) constraint, and `entry_versions` by head
-   *  resolution on every read path. `{full:true}` runs the whole-file quick_check —
-   *  wired to §9 export (a backup is verified before it becomes the §4.3 restore
-   *  source), so the full check runs on the §9.4 backup cadence, not on open.
-   *  Failure routes to the restore flow, never silent. */
+   *  is per-table quick_check over the structural tables PLUS a head-resolution
+   *  probe, sized so the whole check is sub-500ms even at XL (quick_check(entries)
+   *  alone is ~290ms at 100k entries — measured over budget when combined with the
+   *  heads read, so entries earn their check differently):
+   *  - quick_check: meta, links, disclosures, snapshots, attachments (small/mid
+   *    b-trees; ~90ms at XL, links-dominated).
+   *  - entries + entry_versions: every head pointer must resolve (LEFT JOIN probe) —
+   *    a full scan of entries with a PK probe per row, which is exactly the
+   *    corruption signal open depends on ("+ heads" is the law's own wording) and
+   *    exercises both b-trees end-to-end.
+   *  - events: guarded by the §11 E-1202 gapless-counter check at Ash init (meta
+   *    counter vs MAX(deviceSeq)) plus its UNIQUE(deviceId,deviceSeq) constraint.
+   *  `{full:true}` runs the whole-file quick_check — wired to §9 export (a backup
+   *  is verified before it becomes the §4.3 restore source), so the full check runs
+   *  on the §9.4 backup cadence, not on open. Index-level corruption in the two
+   *  bulk-adjacent tables is caught there. Failure routes to the restore flow,
+   *  never silent. */
   integrityCheck(opts?: { full?: boolean }): Result<void> {
     if (opts?.full === true) {
       const row = this.db.get<{ quick_check: string }>(`PRAGMA quick_check`);
       if (row?.quick_check === "ok") return ok(undefined);
       return fail("E-1402", "Vault integrity check failed; restore flow required (explicit consent).", row);
     }
-    for (const t of ["meta", "entries", "links", "disclosures", "snapshots", "attachments"]) {
+    for (const t of ["meta", "links", "disclosures", "snapshots", "attachments"]) {
       const rows = this.db.all<{ quick_check: string }>(`PRAGMA quick_check(${t})`);
       if (rows.length !== 1 || rows[0]!.quick_check !== "ok") {
         return fail("E-1402", `Vault integrity fast-check failed (${t}); restore flow required (explicit consent).`, rows);
       }
+    }
+    const dangling = this.db.get<{ c: number }>(
+      `SELECT COUNT(*) c FROM entries e LEFT JOIN entry_versions v ON v.versionId = e.headVersion
+       WHERE v.versionId IS NULL`);
+    if ((dangling?.c ?? 1) !== 0) {
+      return fail("E-1402", `Vault integrity fast-check failed (${dangling?.c} unresolved head version(s)); restore flow required (explicit consent).`, dangling);
     }
     return ok(undefined);
   }
