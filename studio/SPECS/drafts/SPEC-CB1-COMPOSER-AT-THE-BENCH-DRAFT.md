@@ -162,11 +162,15 @@ interface BenchCapability {
 
 ```ts
 type BenchEventType =        // 12 types; exhaustive; extension = amendment to THIS spec
-  | 'inscription.added' | 'inscription.struck'                   // Inscribe / Strike
+                             // (Gate 1 recount: inscription.struck removed — Strike flows through
+                             //  bench.ash.strike ONLY, one door — and pencil.dismissed added for
+                             //  §5.3; 12 − 1 + 1 = 12. The count is stated here and nowhere else.)
+  | 'inscription.added'                                          // Inscribe
   | 'damage.taken' | 'healing.applied'                           // the DamageHealInput
   | 'autoturn.granted' | 'autoturn.revoked'                      // the earned wheel (§4.3)
   | 'reaction.taken' | 'reaction.declined'                       // ribbons (β)
   | 'margin.allocated' | 'margin.cleared'                        // pencil slots (β)
+  | 'pencil.dismissed'                                           // pencil-note dismissal (§5.3)
   | 'layout.saved'                                               // desktop layout persistence
   | 'action.spent';                                              // economy pips
 type BenchAppend = <T extends BenchEventType>(type: T, payload: PayloadOf<T>) => Result<AshEvent>;
@@ -181,10 +185,10 @@ An attempted append outside the allowlist is a **defect** (throws in dev; produc
 `mount(host, ctx)` — called exactly once per landing (frozen law) — executes:
 
 1. **Consistency check:** `ctx.worldId === bench.worldId` (else defect, §2.2). ≤0ms class.
-2. **Runtime construction:** `new ComposerRuntime(vaultFacade, riteSet, profile, budgets)` — where `vaultFacade` adapts `bench.ash.fold/subscribe` + `bench.archive` to the constructor's sealed shape. Per sealed §4: subscribes the six folds, **precomposes every folio in the spread** (4 × ≤15ms p95 = ≤60ms worst case, inside the seat-paint budget).
-3. **`GameState` assembly** (§2.6) for the first compose. Budget: ≤5ms (named, §8.1).
-4. **Static render** of the active folio (`vitals` at α): complete, zero motion when `ctx.arrival !== 'cold'` (the Table's law, generalized — proposal §4.2). `uiState.reducedMotion := ctx.reducedMotion` — the seat context's flag flows into the sealed compose argument; one source.
-5. **`ready` resolves** — the folio is painted and focusable. The bench's own budget for steps 1–5 is the 80ms seat-paint gate (G-CB1-1b); the contract's 2,000ms deadline is the shell's patience, never the bench's target.
+2. **Runtime construction:** `new ComposerRuntime(vaultFacade, riteSet, profile, budgets)` — where `vaultFacade` adapts `bench.ash.fold/subscribe` + `bench.archive` to the constructor's sealed shape. Subscribes the six folds.
+3. **`GameState` assembly** (§2.6) for the first compose. Budget: ≤1ms (named, §8.1; the veil-interval index's one-time mount build runs here too, outside the per-delta clock).
+4. **Active folio first:** the active folio (`vitals` at α) is composed (≤15ms) and **statically rendered** — complete, zero motion when `ctx.arrival !== 'cold'` (the Table's law, generalized — proposal §4.2). `uiState.reducedMotion := ctx.reducedMotion` — the seat context's flag flows into the sealed compose argument; one source. **The mount-path budget, named: ≤80ms to `ready` = 1 (assembly) + 15 (active compose) + 64 (render) — the same arithmetic as the delta path (§8.1); the seat-paint budget is spent exactly once.**
+5. **`ready` resolves** — the folio is painted and focusable. **Immediately post-`ready`:** the remaining spread folios are precomposed (3 × ≤15ms p95 = ≤45ms, off the gate, before idle) — the sealed §4 precompose-the-spread obligation is fulfilled within the mount dance, *ordered* so it never contends with the first paint; a Turn issued before a neighbor's precompose completes composes it on demand (≤15ms, still inside the Turn's own budget). The contract's 2,000ms deadline is the shell's patience, never the bench's target.
 6. **`ctx.announce('The Codex. Seated.')`** — once (frozen law; further polite strings per CB1-AM-2).
 7. **Await `ctx.pageMotionPermitted`** — until resolution, every registered motion (anything with a duration and an easing) is mechanically refused by the bench's single motion gate (§3.4); input echo flows immediately (exempt class).
 8. **`focusFirst()`** (shell-called, post-teardown): §7.2's target rule.
@@ -197,7 +201,7 @@ Per sealed §3.1/§3.3, assembled by the runtime facade on each delta:
 - Five fold snapshots + `activeFolio` — direct from subscriptions.
 - **`beingToActor` / `perspectiveBeings`** — built from each Being entry's controlling-principal field via `archive.query(kind:'being')` at mount and refreshed only on being-entry deltas (it is in every folio's `inputMap` closure).
 - **`prevHandOrder`** — in-runtime per ADR-002-B; falls back to riteRef-ULID order on cold resume (sealed §7.2.4).
-- **`lastEvent` redaction (C-8):** the α filter — undisclosed `truth.revealed`, veiled-interval events (per P-CB1-CORE-1's interim scan), hidden-creature events → `undefined`. Owner perspective passes everything in v1; the filter and its fixture exist from α so the player-perspective β work changes data, not code.
+- **`lastEvent` redaction (C-8):** the α filter — undisclosed `truth.revealed`, veiled-interval events, hidden-creature events → `undefined`. Veiled-interval membership is answered by the **veil-interval index** (P-CB1-CORE-1's interim shape): built once at mount, updated O(1) on `veil.raised`/`veil.lifted` deltas; the per-delta path performs a sorted-interval lookup, never a session scan — "assembly copies, it never computes" holds, because the index's maintenance is the veil delta's own O(1) bookkeeping, and the filter runs inside the ≤1ms assembly clock asserted in G-CB1-1a. Owner perspective passes everything in v1; the filter and its fixture exist from α so the player-perspective β work changes data, not code.
 - **`uiState.savedLayout`** — latest `layout.saved{roomKey}` via `ash.window({types:['layout.saved']})` at mount (a mechanical read; not a fold; not paint-path).
 - **`uiState.ribbonState`** — bench-local per scene (armed/dismissed), reset on `scene.framed`/`scene.ended`.
 
@@ -210,11 +214,11 @@ Per sealed §3.1/§3.3, assembled by the runtime facade on each delta:
 **The risk named:** CB1's "plain but lawful" bench quietly becomes the de-facto design system nobody sealed. **The answer is structural, not promissory — four mechanical fences:**
 
 1. **The bench is app-local, not a package.** It lives at `apps/studio-shell/src/bench/`, publishes nothing, and *cannot* be imported by any package (workspace direction forbids it). The name `@ash-archive/ledger-ui` is **never claimed** — the design-production campaign arrives to an unsquatted identity. A design system that cannot be depended upon cannot become de-facto.
-2. **Token-only rendering, CI-enforced.** Bench styles may reference **only** `@ash-archive/ledger-tokens` custom properties and the GENESIS 03 numeric canon (scale, spacing, registers, easings). A CI lint (`bench-lint`) fails the build on: any raw color literal, any `transition`/`animation` duration not ∈ {120, 280, 520, 880}ms (plus the sanctioned candle loop and reduced-motion's 200ms crossfade), any easing not one of the three named, any font-family outside the three faces, **any definition of a new CSS custom property** inside `src/bench/`. Zero minted visual identity is a lint result, not an intention.
+2. **Token-only rendering, CI-enforced.** Bench styles may reference **only** `@ash-archive/ledger-tokens` custom properties and the GENESIS 03 numeric canon (scale, spacing, registers, easings). A CI lint (`bench-lint`) fails the build on: any raw color literal, any `transition`/`animation` duration not ∈ {120, 280, 520, 880}ms (plus the sanctioned candle loop and reduced-motion's 200ms crossfade), any easing not one of the three named, any font-family outside the three faces, **any definition of a new CSS custom property** inside `src/bench/`, any `box-shadow`, any `border-radius`, any spacing value ∉ {8, 16, 32}, and any opacity literal outside 0.85–1.0 and the 15% page-cast. **The fence's sentence, narrowed to what the lint proves:** the lint proves the bench mints no colors, durations, easings, faces, custom properties, shadows, radii, off-scale spacing, or unlicensed opacities — it does *not* prove taste, layout restraint, or that a lawful combination cannot still be ugly; those remain the header discipline's burden (fence 3) and the deferred campaign's jurisdiction.
 3. **The PROVISIONAL header, verbatim and audited:** every file under `src/bench/render/` opens with
    `// PROVISIONAL RENDER — design-production campaign supersedes. Licensed for wholesale deletion.`
    `bench-lint` fails any render file without it. The later campaign's license to delete is **proven now**: a CI job compiles the workspace with `src/bench/` replaced by a stub SeatSurface — only `apps/studio-shell` requires changes; every package builds untouched (rubric item 9).
-4. **The bench renders sealed shapes only.** Its renderer table (§3.3) is the SPEC-002 §2.1 union — no bench-only visual components exist beyond enumerated *page furniture* (runner, index, margins, page ground, search field, the unbuilt-shape card §3.5, the read-only line §6), each of which is itself named here and PROVISIONAL-headed.
+4. **The bench renders sealed shapes only.** Its renderer table (§3.3) is the SPEC-002 §2.1 union — no bench-only visual components exist beyond enumerated *page furniture* (runner, index, margins, page ground, search field §3.7, the unbuilt-shape card §3.5, **the read-only line §6, the Bind-absence line §4.5, and the helm glyph §4.3**), each of which is itself named here and PROVISIONAL-headed. **The furniture law (bench-minted ink lines):** every ink line the bench itself mints renders in **dedicated page furniture — a fixed furniture register outside the composed margin — exempt from `maxMarginSlots` and never displacing a `Folio.margin` slot**; the composer's two-slot margin budget is spent only by composed `MarginSlot`s, so a bench confession can never evict a composed whisper.
 
 > **ADR-CB1-B · The provisional-render line is real, and it is enforced by structure** — *proposed for Marcus's seal.*
 > **Options:** (a) defer all render to design-production (no shippable bench; the critical path dies) · (b) build `@ash-archive/ledger-ui` "lite" as a package (the de-facto-design-system trap, verbatim) · (c) the four fences above: app-local, token-only-linted, PROVISIONAL-headed with a proven deletion license, sealed-shapes-only.
@@ -236,6 +240,8 @@ interface RenderCtx {
 ```
 Reconciliation is keyed on the sealed stable `Element.id` (§7.4) — the change-blindness guard the composer computed is honored by construction; the pinned zone renders in a fixed grid that no recomposition may move (C-4 asserted by a layout test: pinned bounding boxes byte-equal across the stress replay).
 
+**The focus law (named; Gate 1 F-2):** *recompose MUST NOT move focus, collapse a focused Unfold or Quill, or discard uncommitted input text.* The typing hand outranks the arriving world. Mechanically: unfold/open state's home is **bench-local `uiState.openElements`** — a set of sealed `Element.id`s owned by the bench (like `ribbonState`, §2.6), carried across every recompose and re-keyed by id, so an open detail stays open as long as its element survives composition; focus is tracked by `Element.id` + inner target and restored identically after commit; uncommitted Quill/DamageHealInput/search text lives in the input's own DOM state, which reconciliation-by-id never destroys. An element that composition itself removes while focused hands focus to its composed successor in reading order (never to `body`), and its uncommitted text, if any, is preserved in the Quill's abort buffer rather than dropped. Fixture: rubric 15 — type mid-Quill through the full stress replay; zero focus moves, zero lost characters.
+
 ### 3.3 The renderer roster (α scope; β/γ enumerated, never implied)
 
 | Sealed shape | α | Notes (all render in raw tokens) |
@@ -246,7 +252,7 @@ Reconciliation is keyed on the sealed stable `Element.id` (§7.4) — the change
 | `Quill` · `MoreAffordance` | ✅ | Quill per GENESIS 04-V verbatim (unfold 280ms, `I`, Return-stays-open, Esc aborts) |
 | MarginSlots: `whisper` (ink), `concentration` | ✅ | Candle = the sanctioned ~800ms flicker, gutters on flagged state, paused when hidden; static under reduced-motion |
 | Ribbons: `previously`, `place` | ✅ | Static edge affordances, ink |
-| `DeathSave` (whole-folio ceremony) | β | Ceremony register; one of the two β ceremonies |
+| `DeathSave` (whole-folio ceremony) | β | Ceremony register; the one β ceremony (the exhale is Transition — §3.4, Gate 1 T-1) |
 | `HandCard`, `CastStackDivider`, `StageRailMark`, `CohortMark`, `ClockQuarter`, `SceneFrame`, `ResourceStrip`, `RestInstrument` | β | The full player spread; re-rank reflow 280ms at `turn.started` (sealed §7.2) |
 | Ribbon: `reaction` (+ MarginSlot `pencil`) | β | Slide-in 280ms; requires registered rite set + enrich wiring |
 | DM elements (`OfferLine`…`PacingThread`) | β | With `codex.table.dm` |
@@ -256,7 +262,7 @@ Reconciliation is keyed on the sealed stable `Element.id` (§7.4) — the change
 
 | Motion | Register | Duration | Easing | Trigger | Airlock/notes |
 |---|---|---|---|---|---|
-| Pip dim/relight; HP numeral value crossfade | Micro | 120ms | considered | fold delta | the numeral never *moves* (C-4); crossfade only |
+| Pip dim/relight; HP numeral value crossfade | Micro | 120ms | considered | fold delta | the numeral never *moves* (C-4); crossfade only. **Named (T-5): Micro, not State, because a vital that arrives 280ms late reads as the instrument doubting the blow; the distress marks accumulate at State** |
 | Unfold / fold | State | 280ms | reveal / dismiss | verb | gated by `motionGate` |
 | Rubrication bleed-in | State | 280ms | reveal | composer sets `rubric` | sealed §9.1's render half |
 | Quill unfold/fold | State | 280ms | reveal / dismiss | `I` / tap | |
@@ -264,17 +270,25 @@ Reconciliation is keyed on the sealed stable `Element.id` (§7.4) — the change
 | Hand re-rank reflow | State | 280ms | considered | `turn.started` (β) | once per turn, sealed §7.2 |
 | Turn (folio swap) | Transition | 520ms | considered | verb / `auto` directive | plain directional slide; art deferred (§0.2); reduced-motion ⇒ 200ms crossfade |
 | Reaction ribbon slide (β) | State | 280ms | reveal | stage-6 emission | top edge, never a turn |
-| Death-save takeover; combat-end exhale (β) | Ceremony | 880ms | considered | sealed ceremony list only | second-in-scene demotes to 520ms (GENESIS 03-VI) |
+| Death-save takeover (β) | Ceremony | 880ms | considered | sealed ceremony list only | second-in-scene demotes to 520ms (GENESIS 03-VI) |
+| Combat-end exhale (β) | Transition | 520ms | considered | `combat.ended` | **demoted from Ceremony at Gate 1 (T-1) — GENESIS 03-VI's strict list holds and combat's end is not on it; named: the end of combat is the page returning to itself, a transition, not a rite — 880ms belongs to the moments the canon enumerated, and to no others** |
 | Concentration candle | sanctioned loop | ~800ms irregular | — | concentration active | the ONE perpetual; pauses hidden; static reduced-motion |
 
 All of it flows through **one `MotionGate`**: refuses starts before `pageMotionPermitted`, finishes everything on `snapToEnd()`, downgrades per `reducedMotion`. There is no second code path to animate — the airlock is enforceable because it has exactly one door.
 
 ### 3.5 The unbuilt-shape card (honest scaffolding, per Q3's doctrine)
 
-A composed Element whose renderer is not yet built (a β variant reached by Turning at α) renders as the **unbuilt-shape card**: the variant's kind in small caps, its name, and the mono caption `PROVISIONAL — SHAPE UNRENDERED`, all in `--ink-muted`, static, zero gold, correct `live` accounting, full `A11yContract` announcement ("provisional"). Composition is never hidden and never faked — the page tells the truth about the bench's own incompleteness. (Burden of proof on ceremony, never on silence; and silence is forbidden.)
+A composed Element whose renderer is not yet built (a β variant reached by Turning at α) renders as the **unbuilt-shape card**: the variant's kind in small caps, its name, and the mono caption `PROVISIONAL — SHAPE UNRENDERED`, all in `--ink-muted`, static, zero gold, correct `live` accounting, full `A11yContract` announcement ("provisional"). Composition is never hidden and never faked — the page tells the truth about the bench's own incompleteness.
 
 ### 3.6 Editorial voids & provisional copy
-Empty states render per GENESIS 03-XI-a (composed, one line, in-voice) — but the bench's *copy* is design-production's to supersede: every void string lives in `src/bench/copy.provisional.ts` under the PROVISIONAL header. No "No data" exists anywhere; `bench-lint` greps for it.
+Empty states render per GENESIS 03-XI-a (composed, one line, in-voice) — but the bench's *copy* is design-production's to supersede. **The copy-jurisdiction clause (T-6): every bench-visible string lives in `src/bench/copy.provisional.ts` under the PROVISIONAL header; strings quoted in this spec fix content, not final wording** — the spec legislates what a line must say and where it may appear; the exact words remain provisional until design-production. No "No data" exists anywhere; `bench-lint` greps for it.
+
+### 3.7 The desk-time search field (authored, not implied — T-4/ADR-CB1-E)
+The field the cold-resume clock ends on is a designed object, not a default `<input>`:
+- **Face & ink:** IBM Plex Sans at body scale, `--ink-body` on page ground; the placeholder line in `--ink-muted`; no chrome beyond a single ink hairline beneath the text — the field is a ruled line on the page, not a control floating over it.
+- **Focus register: named stillness.** Focus adds the caret and darkens the hairline to `--ink-body` — no glow, no ring animation, no motion of any register; a reader putting a pen to a ruled line is not an event the page remarks on. (This is a deliberate absence, named so it cannot be read as an omission.)
+- **Empty results:** one composed line from `copy.provisional.ts` — provisional content: "The archive holds nothing by that name — yet." — in-voice per 03-XI-a, never a bare void.
+- **Visibility:** desk-time only (no live session), per ADR-CB1-E; during play the field is absent and the Table stays clean. It is page furniture (fence 4), never a composed element, and `search` never enters the paint path (sealed §3.2).
 
 ---
 
@@ -297,7 +311,9 @@ Type-ahead safety: the search field and Quill accept input from frame 0 (`ready`
 The bench binds gestures **only** to `Element.affords` — the composer declared them (sealed §2.2); the bench never invents an affordance. `RenderCtx.affordanceLive(verb)` intersects the declaration with the dependency ladder (§4.5): declared-but-unbuilt renders the named absence (ink-muted, no gold, a11y "unavailable — not yet built"), declared-and-built renders gold.
 
 ### 4.3 Auto-turn consent, surfaced lawfully (ADR-002-A executed)
-Offers arrive as ink whispers in the margin (disposition computed purely, sealed §8.2); one tap executes the turn (a render act, no event — sealed §4). The bench keeps the consecutive-accept counter (shell-owned per ADR-002-A, N=3 default, user-overridable); at N the book asks once, in ink; acceptance appends `autoturn.granted{eventType}`. The helm glyph (who steers) renders in the margin; every auto-turn emits the polite live-region string via `announce` (CB1-AM-2) plus the visible "just turned" label (GENESIS 03-X).
+Offers arrive as ink whispers in the margin (disposition computed purely, sealed §8.2); one tap executes the turn (a render act, no event — sealed §4). The bench keeps the consecutive-accept counter (shell-owned per ADR-002-A, N=3 default, user-overridable); at N the book asks once, in ink. **The ask has words (T-7), in `copy.provisional.ts`:** *"The book has offered this turn three times and you have taken it three times. Shall it turn itself?"* — rendered in ink, asked exactly once, with dismiss-forever always available beside accept; acceptance appends `autoturn.granted{eventType}`. **The helm glyph (who steers) is slot-exempt page furniture** (fence 4's law): it is the page's own statement of who is turning it — bench state, not composed content — so it can neither spend nor be evicted from a composed margin slot. Every auto-turn emits the polite live-region string via `announce` (CB1-AM-2; suppressed-if-declined per §0.4) plus the visible "just turned" label (GENESIS 03-X).
+
+**The typing-hand override (F-3, law):** an `auto` directive received while any text input has focus **and uncommitted content** downgrades to an *offer* — the page never turns itself out from under a writing hand; the whisper waits in the margin, and the counter is untouched by the downgrade. Fixture: rubric 15.
 
 ### 4.4 Undo
 `ash.undo(target)` for the registered inverses only; `E-1201 NonInvertibleEvent` surfaces as an inline, in-register line (no toast theater).
@@ -315,7 +331,7 @@ Offers arrive as ink whispers in the margin (disposition computed purely, sealed
 | Kindle, DM spread | DM profile renderers + allowlist amendment | β | not rendered (player spread only) |
 | **Bind** (rest instrument's bind-class hold; the Binding itself) | **core §19 step 4 — §6 Binding transaction (UNBUILT; next in core's lane)** + the Ledger ceremony surface (SPEC-004, unspecced) | γ | **the named absence**, below |
 
-**The named absence:** at α/β, `RestInstrument` (the one bind-class act on the player Table) renders its shape with the hold-ring affordance in `--ink-muted`, labeled `THE BINDING AWAITS — FOUNDATION STEP 4` in mono caption; the margin carries one ink line naming it once per session. Banked/full seal references in composed folios (`provenanceSeal`, chronicle marks) render their *data* truthfully — the seals that exist exist; the ceremony that doesn't is named as unbuilt, on the page, in ink.
+**The named absence (as re-authored at Gate 1, C-11/T-2/F-7):** at α/β, `RestInstrument` (the one bind-class act on the player Table) renders its shape with the hold-ring affordance in `--ink-muted`, captioned **`THE BINDING AWAITS`** alone — mono caption, `--ink-muted`, the string in `copy.provisional.ts`; **the repo's step number never touches the user's page — "foundation step 4" goes to the route log** where builders read. **Unfold on the muted ring yields the one full explanation** (what a Binding is, why this one waits — in-voice, provisional copy). The margin's ink line naming the absence fires **once per world, at first seating only** — never per-session — and renders as **slot-exempt page furniture** per fence 4's furniture law, never displacing a composed margin slot. Banked/full seal references in composed folios (`provenanceSeal`, chronicle marks) render their *data* truthfully — the seals that exist exist; the ceremony that doesn't is named as unbuilt, on the page, in ink.
 
 > **ADR-CB1-C · CB1-α ships with Bind visibly absent; the six-verb grammar is a product-ship gate, not an α gate** — *proposed for Marcus's seal; flagged **canon-adjacent** (canon §4: "six verbs. Frozen.").*
 > **Options:** (a) hold CB1-α until core step 4 + a Binding ceremony surface exist (serializes the critical path behind the apex ceremony; the seat contract, render layer, and 80ms budget all go unverified in the meantime — exactly the half-built-features-running-as-done risk, inverted into nothing-running-at-all) · (b) stub Bind with a non-canonical write path (**forbidden** — I-1, no auto-bind, no fake ceremony; a pretend Bind is the worst possible lie in this product) · (c) α seats read+inscribe+strike+unfold+turn truthfully and **names** the missing verbs as unbuilt on the page (§3.5's doctrine applied to verbs); Bind arrives at γ behind core step 4, and **the Codex ship gate requires all six verbs live**.
@@ -328,7 +344,7 @@ Offers arrive as ink whispers in the margin (disposition computed purely, sealed
 
 1. **Pencil-only, margin-only, no chat surface, ever** (canon §5; C-5 structural). The bench renders pencil exclusively as `MarginSlot{kind:'pencil'}` — Crimson italic, `--pencil` grey, the ° colophon, never animated to attract (GENESIS 04-VI). The Table column carries ink+ash only (03-III's Table simplification).
 2. **α:** the Dramaturg is not wired; the margin shows ink whispers and, where the composer emits nothing, nothing — plus the unlit ° when a world has a configured-but-unreachable Dramaturg (degradation, not absence of the law).
-3. **β wiring:** the runtime invokes `enrich(folio, entryGraph, dramaturgHandle)` post-paint under the sealed race rule (§10 — stale patches discarded by `inputHash`); the handle comes from SPEC-AI1's runtime via a second constructor-injected capability (`subgraph` + `pencil.proposed` append only — the Dramaturg boundary, SPEC-001 §8, verbatim). Accepting a pencil note = Inscribe-over (appends `inscription.added` citing `proposalId`, then `margin.cleared`); dismissal = `pencil.dismissed`. Slot allocation events (`margin.allocated/cleared`) are the I-7 record.
+3. **β wiring:** the runtime invokes `enrich(folio, entryGraph, dramaturgHandle)` post-paint under the sealed race rule (§10 — stale patches discarded by `inputHash`); the handle comes from SPEC-AI1's runtime via a second constructor-injected capability (`subgraph` + `pencil.proposed` append only — the Dramaturg boundary, SPEC-001 §8, verbatim). Accepting a pencil note = Inscribe-over (appends `inscription.added` citing `proposalId`, then `margin.cleared`); dismissal = `pencil.dismissed` (allowlisted, §2.4 — Gate 1 C-3 closed the second door this event once was). Slot allocation events (`margin.allocated/cleared`) are the I-7 record.
 4. **Offer accept/decline (turn offers):** §4.3. **Which core steps must exist — the ladder made explicit:** everything offers need (the steering fold, `autoturn.*`, `pencil.*`, `subgraph`) shipped in steps 2–3 (**built**); *no* offer surface waits on step 4. Only Bind does (§4.5).
 
 ---
@@ -341,7 +357,8 @@ Offers arrive as ink whispers in the margin (disposition computed purely, sealed
 | Compose budget overrun | Never interrupted (synchronous, sealed C-2); measured by G-CB1-1a and convicted in CI, not at runtime |
 | `mount()` throws / `ready` overrun 2,000ms | Shell law (frozen): page-card vignette, teardown proceeds, overrun logged. The bench's own budget is 80ms; hitting the shell's deadline is a CB1 defect |
 | Stale fold delta (after `dispose()`) / capability revoked (`bench.revoked`) | Delta dropped; dev assert fires; all bench surfaces render the read-only line and gold extinguishes — a revoked world never half-works |
-| `E-1202 SequenceGap` (core enters read-only) | The **read-only line**: one margin-register ink line — `THIS WORLD IS READ-ONLY — THE RECORD NEEDS REPAIR. EXPORT FIRST.` — append-verbs render muted; reads/Turn/Unfold live on; guidance per SPEC-001 §11, no error theater |
+| `E-1202 SequenceGap` (core enters read-only) | The **read-only line**: one ink line in slot-exempt page furniture (fence 4's law), content per `copy.provisional.ts` — *"This world is read-only while the record awaits repair. Reading, turning, and export remain yours."* — append-verbs render muted; reads/Turn/Unfold live on; guidance per SPEC-001 §11, no error theater, no scolding |
+| **Fold subscription gap** (fold sequence discontinuity detected, or the shell-side liveness check fails — a silently dead subscription) | **Resubscribe + full fold re-read**, once, automatically; on success the folio recomposes against the re-read truth and the incident is a route-log row only. On failure: the read-only-line treatment above, plus one **stale-page ink line** in the same furniture register naming that the page may lag the record — the bench never presents a quietly frozen folio as live |
 | `RiteSet` absent / `legality` throws | Sealed §12 rows verbatim: rules-blind flags, `blocked · unruled homebrew` per card, the folio never crashes |
 | `enrich()` error / Dramaturg offline | Folio unchanged; unlit ° (sealed §12) |
 | Vault absent (no world open) | The bay's editorial void (provisional copy, §3.6): one line, one gold door to the Worldshelf |
@@ -353,7 +370,7 @@ Offers arrive as ink whispers in the margin (disposition computed purely, sealed
 
 1. **Keyboard-complete grammar:** every §4.1 binding; every affordance reachable by Tab in composition order (pinned → body → margin → ribbons → Quill); folios are landmark regions with the vertical runner as the region label (GENESIS 03-X).
 2. **Focus law:** `focusFirst()` targets the desk-time search field when no session is active (satisfying G-CB1-2's clock); with a live session, the active folio's first gold affordance. The shell owns *when*; the bench owns *what* (proposal §2's finding, kept).
-3. **One announcer:** all speech flows through `ctx.announce` (CB1-AM-2). Landing once; auto-turn strings verbatim from `Folio` a11y metadata, polite, never assertive; provenance/status announcements per the sealed `A11yContract` ("Dramaturg note, pencil, proposed"; "Provisional"). The bench defines **zero** `aria-live` regions — double-speak is structurally impossible.
+3. **One announcer:** all speech flows through `ctx.announce` (CB1-AM-2; behavior-when-declined named in §0.4 — suppression plus the visible label, logged as a blocked WCAG requirement, never a second live region). Landing once; auto-turn strings verbatim from `Folio` a11y metadata, polite, never assertive; provenance/status announcements per the sealed `A11yContract` ("Dramaturg note, pencil, proposed"; "Provisional"). The bench defines **zero** `aria-live` regions — double-speak is structurally impossible.
 4. Color never alone (icon/weight pairing carried on Elements per sealed §2.3); contrast matrix inherited from the token package's Phase-0 CI; reduced-motion per §3.4; plain-page mode strips the ornament set (page furniture only — there is little ornament to strip at the bench, by design).
 5. Touch ≥44px with padding-extended hit zones; primary actions lower-half (the thumb audit is a rubric item, not a hope).
 
@@ -361,21 +378,35 @@ Offers arrive as ink whispers in the margin (disposition computed purely, sealed
 
 ## 8. PERFORMANCE PLAN
 
-### 8.1 The 80ms budget, decomposed (every number named — see the register)
+### 8.1 The 80ms budget, decomposed against the named clock (every number named — see the register)
 
-| Segment | Budget | Naming |
+**The clock is G-CB1-1a's, and the decomposition starts where the clock starts:** `vault.ash.subscribe` callback entry. Fold-delta *delivery* (≤4ms p99, SPEC-001 §15, sealed) happens **before** the clock starts and is therefore **outside the 80ms** — it bounds how stale the callback's moment is, not how the 80ms is spent. The v0.1 table double-counted it (Gate 1 C-1); the corrected sum: **1 + 15 + 64 = 80.**
+
+| Segment (inside the clock) | Budget | Naming |
 |---|---|---|
-| Fold delta delivery | ≤4ms p99 | SPEC-001 §15, sealed |
-| `GameState` assembly | **≤5ms** | fold-delta p99 (4ms) + 1ms for map refresh; assembly copies snapshots, it never computes |
+| `GameState` assembly | **≤1ms** | map refresh + snapshot copies + the O(1) veil-index lookup (§2.6); assembly copies, it never computes; delivery's 4ms lives outside the clock, where the clock's own definition puts it |
 | `compose()` | ≤15ms p95 | SPEC-002 §11.6, sealed |
-| Render + layout + paint | **≤60ms p50** | the remainder: 80 − 15 − 5; the render half of the budget is *defined as the remainder*, exactly as the skeleton demands, so no one later "finds" room that was never there |
+| Render + layout + paint | **≤64ms p50** | the remainder: 80 − 15 − 1; the render half of the budget is *defined as the remainder*, exactly as the skeleton demands, so no one later "finds" room that was never there |
 | Paint-path reads inside compose | p99 ≤3ms each | SPEC-001 §15 v1.1, sealed; `search` is banned from this path (sealed §3.2) |
 
+The mount path spends the identical arithmetic once (§2.5 step 4); each segment is asserted separately by G-CB1-1a's dev-mode clocks.
+
 ### 8.2 The memoization law (recompose only on fold delta)
-Sealed §11.2–3 implemented verbatim: `inputHash` covers exactly what compose reads; selective recomposition by `inputMap`; unrelated deltas are cache hits. **G-CB1-6 is the law's teeth:** 1,000 unrelated deltas ⇒ 0 recomposes, 0 DOM mutations. Turn = precomposed swap, never a compose. Dev builds carry visible recompose/render counters (the bench's contract-monitor heritage, §9).
+Sealed §11.2–3 implemented verbatim: `inputHash` covers exactly what compose reads; selective recomposition by `inputMap`; unrelated deltas are cache hits. **G-CB1-6 is the law's teeth:** 1,000 unrelated deltas ⇒ 0 recomposes, 0 DOM mutations. Turn = precomposed swap, never a compose. **The LRU's bound is named:** 24 entries — the sealed live ceiling (≤7 live folios) × 3 retained input generations, rounded up; above it, G-CB1-7's flat-memory assertion would let a leak hide inside lawful cache growth. Dev builds carry visible recompose/render counters (the bench's contract-monitor heritage, §9).
+
+**The coalescing law (F-4):** fold deltas touching the same folio **within one frame collapse to one recompose, against the latest `GameState`** — compose is pure over state, not over deltas, so replaying intermediates buys nothing and spends the budget N times. At most **one uncommitted render per folio** exists at any instant; a delta arriving while that folio's render is uncommitted supersedes it rather than queuing behind it. Fixture: rubric 16 — a burst of N≥5 same-tick deltas to one folio produces exactly 1 paint per affected folio.
+
+### 8.4 The input-priority law (the mechanism behind the 16ms — F-1)
+The echo number is a *consequence* of scheduling law, not an assertion:
+1. **A pending recompose/commit MUST yield to buffered input events.** On fold-delta arrival, if the input queue is non-empty (or a keystroke arrives before the recompose's commit), the recompose for the active folio is **deferred and scheduled after the input queue drains** — echo is painted first, always. Coalescing (§8.2) makes the deferral free: the deferred recompose runs once, against the latest state.
+2. **Input handling and echo paint are the only work classes permitted to preempt a scheduled recompose.** Nothing preempts an echo.
+3. `compose()` itself is never interrupted (synchronous, sealed C-2) — the law governs *when it is started*, which is the only lawful lever: at ≤15ms it can cost at most one frame of a keystroke that arrives mid-flight, which the ≤16ms p95 absorbs; the render remainder, the larger tenant, commits only when the input queue is empty.
+4. The focus law (§3.2) governs *what the deferred recompose may do* when it finally commits under a typing hand.
+
+G-CB1-7's collision buckets are this law's trial: keystrokes deliberately landed against delta arrival must still echo ≤16ms p95.
 
 ### 8.3 Soak
-G-CB1-7 (30-minute typing-under-subscriptions; echo ≤16ms p95) plus the bench rides SH3's 4-hour long day unchanged. Renders never allocate per-frame; the candle is the only running animation and pauses when hidden.
+G-CB1-7 (30-minute typing-under-subscriptions with deliberate collision buckets; echo ≤16ms p95) runs per-commit; **nightly, the same 30-minute script loops ×20 as a 10-hour soak** — the session length the product actually claims — with the identical flat-memory, flat-handle, zero-swallowed-keystroke assertions; a slope invisible at 30 minutes has ten hours to confess. The bench also rides SH3's 4-hour long day unchanged. Renders never allocate per-frame; the candle is the only running animation and pauses when hidden.
 
 ---
 
@@ -384,7 +415,7 @@ G-CB1-7 (30-minute typing-under-subscriptions; echo ≤16ms p95) plus the bench 
 1. **The swap:** `apps/studio-shell`'s seat table entry for `'codex'` changes from the ThrowawayFolio to `makeCodexBench(...)`. One line; the route machine is untouched (that untouchability is itself the proof the seat contract held).
 2. **The final evidentiary run:** before deletion, the dev contract monitor runs its full transcript **against the real bench** — 20 landings / 20 departures (G-CB1-4's counts), the airlock probe now a *real* registered motion (the 280ms unfold) instead of the throwaway's 880ms fixture bar, keystroke replay, the wedge test (a build-flagged never-resolving `ready` → teardown at 2,000ms, vignette painted). Transcript filed at `studio/SPIKES/CB1/seat-final-run.md`. The fixture dies only after the real folio passes the fixture's own trial — the proposal's §6 promise, kept.
 3. **Deletion:** `ThrowawayFolio_DELETE_BY_DESIGN.tsx` + its monitor wiring removed **in the same commit** as the swap (a commit that leaves both seated is a commit that leaves neither honest). G-CB1-8 audits.
-4. **`seat-surface.d.ts` version note:** header appended — *"v0.2 frozen → v0.3: proven by the ThrowawayFolio (falsification record in PROPOSAL-SEAT-SURFACE-TO-SPEC002.md) and re-proven by the first real instrument (CB1, final-run transcript); amendments CB1-AM-1 (data-silence clause) and CB1-AM-2 (announce = the single polite channel) applied by [Marcus seal ref]; constitutional per the proposal's §4 at SPEC-002's revision."* The amendments land as the diff the proposal invited; the file remains frozen until that seal.
+4. **`seat-surface.d.ts` version note:** header appended — *"v0.2 frozen → v0.3: proven by the ThrowawayFolio (falsification record in PROPOSAL-SEAT-SURFACE-TO-SPEC002.md) and re-proven by the first real instrument (CB1, final-run transcript); amendments CB1-AM-1 (data-silence clause) and CB1-AM-2 (announce = the single polite channel) applied by [Marcus seal ref], which is the amendments' sole authority."* The amendments land as the diff the proposal invited; the file remains frozen until that seal.
 
 ---
 
@@ -395,16 +426,16 @@ G-CB1-7 (30-minute typing-under-subscriptions; echo ≤16ms p95) plus the bench 
 - **R1 · Shell-global runtime** (one runtime for all seats, owned by the route layer): forces `packages/atelier` or the route machine to know composer and core — the dependency law dies; a dormant bench would hold live fold subscriptions, violating the bench-is-silent clause of canon §8's spirit at the data layer. **Dies.**
 - **R2 · Worker-resident runtime:** `Folio` is JSON-serializable (it would cross), but `compose()` makes synchronous p99≤3ms archive reads and ≤1ms rite calls — a worker boundary per read is a paint-path massacre, and the sealed function is synchronous by law (C-2). **Dies.**
 - **R3 · Persistent cross-landing runtime** (survives unmount to warm the next landing): a "dormant" instrument holding subscriptions and cache is residency by another name; SH3's dormancy standard is *inspectable, not asserted* (Marcus precedent ledger) — DOM absence with live subscriptions is a lie with good manners. **Dies.**
-- **VICTOR · In-seat runtime:** constructed at `mount`, disposed at `unmount`, one per seated instrument, no singletons (the SPEC-001 §1.2 shape, echoed). Re-landing cost is bounded by the sealed precompose path (≤60ms) and G-CB1-1b proves it. Dormant means *gone*.
+- **VICTOR · In-seat runtime:** constructed at `mount`, disposed at `unmount`, one per seated instrument, no singletons (the SPEC-001 §1.2 shape, echoed). Re-landing cost is bounded by the mount path's named arithmetic (≤80ms to `ready`, neighbors ≤45ms post-`ready` — §2.5) and G-CB1-1b proves it. Dormant means *gone*.
 
 ### 10.2 ADRs raised by this spec
-**ADR-CB1-A** (seat boundary: constructor-injected BenchCapability; contract amendment CB1-AM-1) · **ADR-CB1-B** (the four-fence provisional-render line) · **ADR-CB1-C** (Bind absent at α, named on the page; six verbs gate the ship, not the slice — canon-adjacent, flagged) · **ADR-CB1-D** ("Codex Desk stance" = bench posture; α seats the sealed `codex.table.player` profile, `stance:'table'`) · proposed contract amendments **CB1-AM-1/2** (offered as `.d.ts` diffs per the proposal's protocol, applied only at Marcus's seal). All to be appended to `ADR-LOG.md` at seal; none executed before it.
+**ADR-CB1-A** (seat boundary: constructor-injected BenchCapability; contract amendment CB1-AM-1) · **ADR-CB1-B** (the four-fence provisional-render line) · **ADR-CB1-C** (Bind absent at α, named on the page; six verbs gate the ship, not the slice — canon-adjacent, flagged) · **ADR-CB1-D** ("Codex Desk stance" = bench posture; α seats the sealed `codex.table.player` profile, `stance:'table'`) · **ADR-CB1-E** (the search field is desk-time page chrome, invisible at the live Table — §0.4/§3.7) · proposed contract amendments **CB1-AM-1/2** (offered as `.d.ts` diffs per the proposal's protocol, applied only at Marcus's seal). All to be appended to `ADR-LOG.md` at seal; none executed before it.
 
 ### 10.3 The adversarial rubric (fresh-context; any fail blocks)
 1. G-CB1-1a/1b/2 on the reference machine, seeded vault, world layer installed.
 2. Purity-through-render (G-CB1-3), two mounts, byte-diff both artifacts.
 3. Airlock frame-capture (G-CB1-4) incl. arrival-static on `passage`/`drift-cut`/`deep-link`; `snapToEnd` mid-unfold ≤120ms, zero overlap frames.
-4. Keystroke replay (G-CB1-5) ×50 mashes, mid-flight and mid-reroute.
+4. Keystroke replay (G-CB1-5) ×50 mashes (the SH3 reroute-mash count, inherited — see the register), mid-flight and mid-reroute.
 5. Memoization (G-CB1-6) with dev counters as evidence.
 6. Pull the RiteSet: rules-blind folio per §12, `unruled` flags visible, nothing crashes.
 7. Sever the Dramaturg (β): unlit °, folio unchanged, no retry storm.
@@ -415,27 +446,35 @@ G-CB1-7 (30-minute typing-under-subscriptions; echo ≤16ms p95) plus the bench 
 12. Screen-reader session: one announcer, landing once, auto-turn polite strings verbatim, provenance announcements per contract; zero bench-owned live regions in the DOM.
 13. Retirement audit (G-CB1-8): tree clean, transcript filed, version note present, same-commit rule verified in history.
 14. A hostile reviewer replays SPEC-002's §14.6 ambiguity corpus at the bench: no wrong `auto` ever reaches the page.
+15. **The typing-hand trial (F-2/F-3):** type mid-Quill through the full stress replay — zero focus moves, zero collapsed focused Unfolds/Quills, zero lost characters (the §3.2 focus law); within the same run, an `auto` directive fired against the focused, uncommitted Quill downgrades to an offer and the page does not turn (§4.3).
+16. **The burst trial (F-4):** N≥5 same-tick deltas to one folio ⇒ exactly 1 recompose and 1 paint per affected folio, against the latest `GameState` (§8.2's coalescing law), dev counters as evidence.
 
 ### 10.4 Staging
 
 - **CB1-α · One real composed folio at the bench (the seal's implementation target):** `@ash-archive/composer` built per SPEC-002 §17 with §14.1–14.3 + stress fixture green · `WorldSession` + `BenchCapability` · the Codex bench seated in the **SH3-α slice**, Codex bay, against the **CB1 seeded vault** · active folio `vitals` (sealed player profile, ADR-CB1-D), full spread precomposed, β-shapes as unbuilt-shape cards · verbs: Turn, Unfold, Inscribe, Strike (+undo) · rules-blind acceptable if `rites-5e` lags · Bind named-absent per ADR-CB1-C · gates G-CB1-1a/1b/2/3/4/5/6/7/8 green · **ThrowawayFolio retired per §9.**
-- **CB1-β · The full Table:** all player+DM renderers, registered RiteSet (legality, rubrication, ribbons, the disposition table live end-to-end, wrong-turn counter recording), enrich + pencil margins under SPEC-AI1, Kindle + allowlist amendment, the two ceremonies (death save, combat-end exhale), player-perspective redaction fixtures activated.
+- **CB1-β · The full Table:** all player+DM renderers, registered RiteSet (legality, rubrication, ribbons, the disposition table live end-to-end, wrong-turn counter recording), enrich + pencil margins under SPEC-AI1, Kindle + allowlist amendment, the death-save ceremony and the combat-end exhale (Transition register per Gate 1 T-1), player-perspective redaction fixtures activated.
 - **CB1-γ · Bind:** opens **only** when core §19 step 4 is green; the Table's bind-class acts (rest instrument) go live here; the Binding ceremony itself remains SPEC-004's jurisdiction — CB1-γ delivers the Table-side affordances and hands the ceremony its seat.
 
 ---
 
 ## NAMED-NUMBER REGISTER (every number this spec minted, and its naming; inherited numbers cite their law)
 
-- **≤5ms `GameState` assembly** — fold-delta delivery p99 (4ms, SPEC-001 §15) + 1ms map refresh; assembly copies, it never computes.
-- **≤60ms render remainder (p50)** — 80 − 15 − 5: the seat's render half is *defined as the remainder* so the budget cannot be double-spent.
-- **≤16ms keystroke echo (p95)** — one frame at 60Hz; echo is the airlock-exempt input class and must never wait on compose.
-- **30-minute typing soak** — session-length scale: long enough for GC/subscription leak slopes to show at 90wpm, short enough to run nightly; the 4-hour long day is inherited from SH3, not duplicated.
+- **≤1ms `GameState` assembly** — map refresh + snapshot copies + the O(1) veil-index lookup, measured from G-CB1-1a's clock start (subscribe-callback entry); delivery's 4ms p99 is *outside* the clock by the clock's own definition — the v0.1 5ms figure double-counted it (Gate 1 C-1). Assembly copies, it never computes.
+- **≤64ms render remainder (p50)** — 80 − 15 − 1: the seat's render half is *defined as the remainder* so the budget cannot be double-spent; the same arithmetic bounds the mount path to `ready` (§2.5), and the neighbor precompose (≤45ms = 3 × 15) runs post-`ready`, off the gate.
+- **≤16ms keystroke echo (p95)** — one frame at 60Hz; echo is the airlock-exempt input class and **its guarantee is the §8.4 input-priority law (recompose yields to buffered input; echo paints first), not an aspiration** — G-CB1-7's collision buckets convict the law directly.
+- **30-minute typing soak, looped ×20 nightly (the 10-hour soak)** — 30 minutes is long enough for GC/subscription leak slopes to show at 90wpm and short enough to run per-commit; ten hours is the session length the product claims, so the nightly loop asserts the claim itself; the 4-hour long day is inherited from SH3, not duplicated.
+- **24-entry `(folioKey, inputHash)` LRU cap** — the sealed live ceiling (≤7 folios) × 3 retained input generations, rounded up; larger and G-CB1-7's flat-heap assertion lets a leak hide inside lawful cache growth, smaller and Turn's precompose guarantee starts missing.
 - **1,000 unrelated deltas (G-CB1-6)** — an order of magnitude above the stress fixture's event count; a memo law that survives 10× the design load is a law, not a coincidence.
+- **N≥5 same-tick burst ⇒ 1 paint (rubric 16)** — five is the smallest burst the stress fixture's combat rounds actually produce (multi-target damage + condition stack); the assertion is the coalescing law's floor, not its ceiling.
 - **12-char replay burst (G-CB1-5)** — a word and a half of real typing; longer proves nothing new, shorter can hide an off-by-one at the buffer seam.
-- **12-type `BenchEventType` allowlist** — exactly the six-verb event surface at α+β minus DM stagecraft; counted, closed, amended only by spec.
-- **20 landings / 20 departures** — inherited from SH3 rubric 15 / G-SH3-7, so the bench's evidence is comparable to the fixture's it replaces.
-- Inherited without re-minting: 80/120ms paint (SPEC-002 §11.6) · ≤15ms compose p95 (sealed) · 2s cold resume, p99 read budgets (SPEC-001 §15) · 2,000ms `ready` deadline, ≤120ms snap (frozen seat contract) · N=3 (ADR-002-A) · ≤2 margin slots, ≤7 live, ≤4 clocks (sealed budgets) · 120/280/520/880ms + easings + ~800ms candle (GENESIS 03-VI) · 44px targets, 24px margins, 8/16/32 (GENESIS 03-V) · S/L fixture scales (SPEC-001 §15 harness).
-
+- **12-type `BenchEventType` allowlist** — exactly the six-verb event surface at α+β minus DM stagecraft; recounted at Gate 1 (`inscription.struck` out — Strike has one door, `bench.ash.strike`; `pencil.dismissed` in — §5.3's dismissal record): 12 − 1 + 1 = **12**; counted once, in §2.4, and stated nowhere else.
+- **20 landings / 20 departures** — inherited from G-SH3-7, so the bench's evidence is comparable to the fixture's it replaces.
+- **×50 keystroke mashes (rubric 4)** — inherited from SH3's reroute-mash count (SH3 rubric 5) so bench and shell evidence share a scale; two orders of magnitude above any plausible accidental mash.
+- **40px OS edge zone (Turn, §4.1)** — no SH3 source exists (checked); named fresh: the outer band ceded to the OS's own edge gestures, wide enough that a system back-swipe never misfires into a Turn, narrow enough that the folio interior — where every Turn begins — stays sovereign.
+- **1Hz heap-and-handle sampling (G-CB1-7)** — inherited from SH3's dormancy rig, where its sufficiency is named (leak slopes are sustained phenomena; SH3 pairs it with event hooks for sub-second sins, and the bench's swallowed-keystroke counter plays that per-event role here).
+- **Once per world, first seating only (the Bind-absence margin line, §4.5)** — an absence is news exactly once; a nag is the builder's anxiety billed to the reader's attention.
+- **520ms combat-end exhale (Transition, demoted from Ceremony at Gate 1 T-1)** — GENESIS 03-VI's ceremony list is strict and combat's end is not on it; the naming sentence lives in the §3.4 register table.
+- Inherited without re-minting: 80/120ms paint (SPEC-002 §11.6) · ≤15ms compose p95 (sealed) · ≤4ms fold-delta delivery p99 (SPEC-001 §15; outside G-CB1-1a's clock) · 2s cold resume, p99 read budgets (SPEC-001 §15) · 2,000ms `ready` deadline, ≤120ms snap (frozen seat contract) · N=3 (ADR-002-A) · ≤2 margin slots, ≤7 live, ≤4 clocks (sealed budgets) · 120/280/520/880ms + easings + ~800ms candle (GENESIS 03-VI) · 44px targets, 24px margins, 8/16/32 (GENESIS 03-V) · S/L fixture scales (SPEC-001 §15 harness).
 ---
 
 ## BUILDER FRICTION INDEX & GAP REGISTER (self-scored)
@@ -444,7 +483,7 @@ G-CB1-7 (30-minute typing-under-subscriptions; echo ≤16ms p95) plus the bench 
 
 | Gap | Why below 100 | Disposition | Confidence |
 |---|---|---|---|
-| GAP-1 · Veil-flag read surface | Interim O(session) veil-interval scan is specified but inelegant; the clean shape needs core | **P-CB1-CORE-1** filed (§0.5); α unaffected (owner perspective) | High |
+| GAP-1 · Veil-flag read surface | Interim veil-interval index (mount build + O(1) delta maintenance, §2.6) is budgeted and lawful but still bench-side bookkeeping core should own | **P-CB1-CORE-1** filed (§0.5); α unaffected (owner perspective) | High |
 | GAP-2 · Wrong-turn counter feed | Core names the metric but exposes no write | **P-CB1-CORE-2** filed; bench-local counter specified in the interim | High |
 | GAP-3 · Element payload depth (inherited G-1) | Renderers consume §16 summary-depth fields; a needed-but-unnamed field halts by law | Halt-and-propose discipline (§0.1); by design, not omission | High |
 | GAP-4 · Editorial-void & absence copy | Provisional strings marked, not authored to taste | Design-production supersedes; `copy.provisional.ts` quarantines it | High |
@@ -456,4 +495,4 @@ G-CB1-7 (30-minute typing-under-subscriptions; echo ≤16ms p95) plus the bench 
 
 ---
 
-*Draft complete against the skeleton §0–§10 with the three riskiest questions answered in place (ADR-CB1-A §2.2 · ADR-CB1-B §3.1 · ADR-CB1-C §4.5) plus ADR-CB1-D (§0.4). Canon-affecting flags: ADR-CB1-C is canon-adjacent (argued no-amendment); CB1-AM-1/2 amend the frozen seat contract by its own diff protocol; nothing sealed is touched by this draft. Next per precedent: Gate 1 — three fresh-context hostiles (fatigue advocate · canon prosecutor · taste auditor) — then Marcus's seal, then CB1-α.*
+*Draft complete against the skeleton §0–§10 with the three riskiest questions answered in place (ADR-CB1-A §2.2 · ADR-CB1-B §3.1 · ADR-CB1-C §4.5) plus ADR-CB1-D and ADR-CB1-E (§0.4). Canon-affecting flags: ADR-CB1-C is canon-adjacent (argued no-amendment); CB1-AM-1/2 amend the frozen seat contract by its own diff protocol, with behavior-when-declined named for both (§0.4); nothing sealed is touched by this draft. Gate 1 complete: three fresh-context hostiles (fatigue advocate · canon prosecutor · taste auditor) returned 28 findings, all 28 accepted and applied in this v0.2 (transcript: CB1-GATE1-TRANSCRIPT.md). Next per precedent: Marcus's seal, then CB1-α.*

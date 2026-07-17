@@ -185,10 +185,13 @@ export class Charter {
       `SELECT id, kind, name, aliases, canonStatus, provenance, headVersion, createdAt, archivedAt
        FROM entries WHERE archivedAt IS NULL ORDER BY id ASC`);
 
-    // (2) naming-sprawl guard (§7.3 — legal, surfaced as a docket-level warning)
+    // (2) naming-sprawl guard (§7.3 — legal, surfaced as a docket-level warning).
+    // Compares CURRENT display names only: aliases are history (renames never replace),
+    // so alias↔name matching would re-flag every resolve-by-rename forever. The full
+    // name/alias matching of detector 1 still runs on new material at plan/lock.
     const byKind = new Map<string, { id: string; name: string; names: string[]; headVersion: string }[]>();
     for (const h of heads) {
-      const names = [h.name, ...(JSON.parse(h.aliases) as string[])].map(normalizeName);
+      const names = [normalizeName(h.name)];
       const list = byKind.get(h.kind) ?? [];
       list.push({ id: h.id, name: h.name, names, headVersion: h.headVersion });
       byKind.set(h.kind, list);
