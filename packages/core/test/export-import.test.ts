@@ -58,7 +58,10 @@ function appendOk(vault: Vault, type: string, payload: unknown, ctx: { actor: st
 /** A world exercising every exported surface: kinds, versions, aliases, links
  *  (active + ended), a locked truth, disclosures, a bound session with chronicle
  *  entry, struck + inverse events, snapshots. */
-async function seedRichWorld(studio: Studio): Promise<{ vault: Vault; worldId: string; ids: Record<string, string> }> {
+async function seedRichWorld(studio: Studio): Promise<{
+  vault: Vault; worldId: string;
+  ids: { duke: string; bridge: string; truth: string; clock: string };
+}> {
   const w = await studio.shelf.create("The Amber Marches");
   if (!w.ok) throw new Error("world create failed");
   const vault = await openVault(studio, w.value.id);
