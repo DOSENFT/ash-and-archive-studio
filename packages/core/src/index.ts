@@ -10,9 +10,20 @@
 //                 lock per v1.2/ADR-003-D, docket over contradicts links + live
 //                 scans, resolve with the three §7.4 patches, §7.5 readiness with
 //                 the v1.2 ReadinessReport shape, rulings surface)
-//   [ ] step 6 — §9 export/import
+//   [x] step 6 — §9 export/import (the ownership covenant: deterministic human-
+//                 readable export tree, MANIFEST integrity, staged ImportPlan →
+//                 transactional apply with §9.2 edit-tolerance, §9.4 backup policy)
 //   [ ] step 7 — §15/§16 harnesses green in CI
-export { Studio, Vault, type WorldMeta, type VaultCapability } from "./vault/studio.js";
+export {
+  Studio, Vault,
+  type WorldMeta, type VaultCapability, type BackupPolicy, type ImportReceipt,
+} from "./vault/studio.js";
+export { exportWorld, type ExportResult, type WorldExportMeta } from "./vault/exporter.js";
+export {
+  planArchiveImport,
+  type ImportSource, type ImportPlan, type ImportItem, type ImportIssue,
+} from "./vault/importer.js";
+export { slug, parseMarkdownDoc, splitBody, joinBody } from "./vault/format.js";
 export { nodeSqliteBinding, type PlatformBinding, type DbHandle } from "./vault/platform.js";
 export { ulid, isUlid } from "./ids.js";
 export { ok, fail, type Result, type AAError, type ErrorCode } from "./result.js";

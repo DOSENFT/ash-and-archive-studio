@@ -29,6 +29,10 @@ interface EventRow {
 
 export class Ash {
   private nextSeq: number;
+  /** §3.1 — lamport = max(local lamport, any observed) + 1. Tracked over ALL events
+   *  (an imported world carries other devices' events, §9.3); for a purely local log
+   *  it equals deviceSeq, which is what v1 single-device behavior always was. */
+  private maxLamport: number;
   private readOnly = false;
   private readonly folds = new Map<FoldKey, FoldDef<unknown>>();
   private subscribers: Subscriber[] = [];
@@ -53,6 +57,7 @@ export class Ash {
       this.nextSeq = counted + 1;
       if (!metaRow) this.db.run(`INSERT INTO meta (k,v) VALUES (?,?)`, `deviceSeq:${deviceId}`, String(counted));
     }
+    this.maxLamport = this.db.get<{ m: number | null }>(`SELECT MAX(lamport) m FROM events`)?.m ?? 0;
     this.rebuildLive();
   }
 
@@ -94,6 +99,7 @@ export class Ash {
     const e = this.buildEvent(type, validated.value, ctx, null);
     this.insertEventRow(e);
     this.nextSeq += 1;
+    this.maxLamport = e.lamport;
     this.pendingTx.push(e);
     return ok(e as AshEvent<PayloadOf<T>>);
   }
@@ -118,6 +124,7 @@ export class Ash {
     this.pendingTx = [];
     const maxRow = this.db.get<{ m: number | null }>(`SELECT MAX(deviceSeq) m FROM events WHERE deviceId=?`, this.deviceId);
     this.nextSeq = (maxRow?.m ?? 0) + 1;
+    this.maxLamport = this.db.get<{ m: number | null }>(`SELECT MAX(lamport) m FROM events`)?.m ?? 0;
   }
 
   /** §3.4 — Strike: mark target struck; folds skip it centrally. Struck stays visible. */
@@ -190,7 +197,7 @@ export class Ash {
     return {
       eventId: ulid(), sessionId: ctx.sessionId ?? null, sceneId: ctx.sceneId ?? null,
       type, schemaVersion: 1, payload, actor: ctx.actor, deviceId: this.deviceId,
-      deviceSeq: this.nextSeq, lamport: this.nextSeq, // single-device v1: lamport tracks seq (§13 shape held)
+      deviceSeq: this.nextSeq, lamport: this.maxLamport + 1, // §3.1: max(local, any observed) + 1
       wallTime: new Date().toISOString(), inverseOf, struck: false,
     };
   }
@@ -234,6 +241,7 @@ export class Ash {
       throw err; // storage failure is a defect surface, not a domain outcome
     }
     this.nextSeq += 1;
+    this.maxLamport = e.lamport;
     if (type !== "state.snapshot") this.advanceLive(e);
     if (type !== "state.snapshot" && (e.deviceSeq % SNAPSHOT_EVERY === 0 || type === "session.closed")) {
       this.writeSnapshots(ctx.actor);

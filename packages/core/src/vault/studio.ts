@@ -10,12 +10,29 @@ import { Archive } from "../archive/archive.js";
 import { Binding } from "../binding/binding.js";
 import { Charter } from "../charter/charter.js";
 import { Rites } from "../rites/rites.js";
+import { exportWorld, type ExportResult, type WorldExportMeta } from "./exporter.js";
+import { applyImport, planArchiveImport, type ImportPlan, type ImportSource } from "./importer.js";
+import { createHash } from "node:crypto";
 
 export interface WorldMeta {
   id: string;
   name: string;
   createdAt: string;
   lastOpenedAt: string | null;
+}
+
+/** §9.4 — the scheduled-export policy is data; shells surface and run it.
+ *  Default: weekly, to a user-chosen folder, keep last 8. */
+export interface BackupPolicy {
+  intervalDays: number;
+  keep: number;
+  dest: string | null; // null until the user chooses a folder
+}
+
+export interface ImportReceipt {
+  worldId: string;
+  counts: Record<string, number>;
+  importCompletedEvent: string;
 }
 
 export interface VaultCapability {
@@ -37,6 +54,7 @@ export class Vault {
     private readonly db: DbHandle,
     private readonly platform: PlatformBinding,
     deviceId: string,
+    private readonly worldMeta: WorldExportMeta,
   ) {
     this.ash = new Ash(db, deviceId);
     this.archive = new Archive(db, worldId, platform.ftsAvailable);
@@ -79,6 +97,19 @@ export class Vault {
     const row = this.db.get<{ quick_check: string }>(`PRAGMA quick_check`);
     if (row?.quick_check === "ok") return ok(undefined);
     return fail("E-1402", "Vault integrity check failed; restore flow required (explicit consent).", row);
+  }
+
+  /** §9.1/§9.4 — write the full human-readable export tree under `dest` and record
+   *  `vault.exported` in the ash. The export itself is a pure function of world
+   *  state (no timestamps), so `export → import → export` reproduces it (§9.2);
+   *  the marker event is appended AFTER writing, so no export contains its own. */
+  export(dest: string): Result<ExportResult> {
+    const result = exportWorld(this.db, this.worldMeta, this.platform.fileRoot, dest);
+    if (!this.ash.isReadOnly()) {
+      const destinationHash = createHash("sha256").update(result.root).digest("hex");
+      this.ash.append("vault.exported", { destinationHash }, { actor: "owner" });
+    }
+    return ok(result);
   }
 
   /** Internal: single accessor for the write layers built in §19 steps 2+. */
@@ -129,10 +160,12 @@ export class Studio {
 
   async openWorld(worldId: string): Promise<Result<Vault>> {
     if (!isUlid(worldId)) return fail("E-1101", `Not a world id: ${worldId}`);
-    const row = this.db.get<{ id: string }>(`SELECT id FROM worlds WHERE id=?`, worldId);
+    const row = this.db.get<{ id: string; name: string; createdAt: string; spineMeta: string | null }>(
+      `SELECT id, name, createdAt, spineMeta FROM worlds WHERE id=?`, worldId);
     if (!row) return fail("E-1101", `World not on the shelf: ${worldId}`);
     const wdb = this.binding.open(`${worldId}.aa.sqlite`);
-    const vault = new Vault(worldId, wdb, this.binding, this.deviceId);
+    const vault = new Vault(worldId, wdb, this.binding, this.deviceId,
+      { id: row.id, name: row.name, createdAt: row.createdAt, spineMeta: row.spineMeta });
     const integrity = vault.integrityCheck();
     if (!integrity.ok) { vault.close(); return fail(integrity.error.code, integrity.error.message, integrity.error.data); }
     const storedId = wdb.get<{ v: string }>(`SELECT v FROM meta WHERE k='worldId'`);
@@ -143,6 +176,104 @@ export class Studio {
     this.db.run(`UPDATE worlds SET lastOpenedAt=? WHERE id=?`, new Date().toISOString(), worldId);
     return ok(vault);
   }
+
+  // ---- §9.3 import: staged plan → user confirms → transactional apply ----
+
+  /** Stage an ImportPlan (counts, per-item validation results). No writes. */
+  async import(source: ImportSource): Promise<Result<ImportPlan>> {
+    if (source.kind === "v0") {
+      // §9.3 fixes the V0 mapping in Codex GENESIS 08-IV, which names the mapping at
+      // collection level only (characters→Beings+Masks+Rites, spells→Rites, training
+      // profiles→Reps, identities→Masks) — the field-level table this code would need
+      // is not in the sealed corpus. Deferred rather than invented (see build report).
+      return fail("E-1001", "V0 import is not available in this build: the GENESIS 08-IV mapping is collection-level; the V0 payload schema fixture is pending.");
+    }
+    const plan = planArchiveImport(source.path);
+    if (!plan.ok) return plan;
+    const existing = this.db.get<{ id: string }>(`SELECT id FROM worlds WHERE id=?`, plan.value.world.id);
+    if (existing) {
+      return fail("E-1001", `World ${plan.value.world.id} is already on the shelf; import preserves world identity (§9.2) and cannot overwrite a live world.`);
+    }
+    if (plan.value.ddlVersion !== DDL_VERSION || plan.value.vocabVersion !== VOCAB_VERSION) {
+      return fail("E-1502", `Archive is at ddl ${plan.value.ddlVersion}/vocab ${plan.value.vocabVersion}; this build reads ddl ${DDL_VERSION}/vocab ${VOCAB_VERSION} (migrations are §16.7, not yet shipped).`);
+    }
+    return plan;
+  }
+
+  /** User confirmed: transactional apply, then `import.completed`. Valid items land;
+   *  invalid items are listed (E-1501 PartialImport carries the per-item report). */
+  async importCommit(plan: ImportPlan): Promise<Result<ImportReceipt>> {
+    const existing = this.db.get<{ id: string }>(`SELECT id FROM worlds WHERE id=?`, plan.world.id);
+    if (existing) return fail("E-1001", `World ${plan.world.id} is already on the shelf.`);
+
+    const wdb = this.binding.open(`${plan.world.id}.aa.sqlite`);
+    wdb.exec("BEGIN");
+    wdb.exec(WORLD_DDL);
+    wdb.run(`INSERT INTO meta (k,v) VALUES ('worldId',?),('ddlVersion',?),('vocabVersion',?)`,
+      plan.world.id, String(DDL_VERSION), String(VOCAB_VERSION));
+    wdb.exec("COMMIT");
+
+    const outcome = applyImport(plan, wdb, this.binding.fileRoot);
+
+    // Final manifest check (§9.3): what the db now holds must equal what the apply
+    // says it wrote — the plan's own accounting, so partial imports check too.
+    const recount: Record<string, number> = {
+      attachments: wdb.get<{ c: number }>(`SELECT COUNT(*) c FROM attachments`)?.c ?? 0,
+      disclosures: wdb.get<{ c: number }>(`SELECT COUNT(*) c FROM disclosures`)?.c ?? 0,
+      entries: wdb.get<{ c: number }>(`SELECT COUNT(*) c FROM entries`)?.c ?? 0,
+      events: wdb.get<{ c: number }>(`SELECT COUNT(*) c FROM events`)?.c ?? 0,
+      links: wdb.get<{ c: number }>(`SELECT COUNT(*) c FROM links`)?.c ?? 0,
+      snapshots: wdb.get<{ c: number }>(`SELECT COUNT(*) c FROM snapshots`)?.c ?? 0,
+      versions: wdb.get<{ c: number }>(`SELECT COUNT(*) c FROM entry_versions`)?.c ?? 0,
+    };
+    wdb.close();
+    for (const [k, v] of Object.entries(recount)) {
+      if (v !== outcome.applied[k]) {
+        return fail("E-1502", `Final manifest check failed: ${k} written=${v} expected=${outcome.applied[k]}.`);
+      }
+    }
+
+    this.db.run(`INSERT INTO worlds (id,name,createdAt,lastOpenedAt,spineMeta) VALUES (?,?,?,NULL,?)`,
+      plan.world.id, plan.world.name, plan.world.createdAt, plan.world.spineMeta);
+
+    const opened = await this.openWorld(plan.world.id);
+    if (!opened.ok) return fail(opened.error.code, opened.error.message, opened.error.data);
+    const completed = opened.value.ash.append("import.completed",
+      { source: plan.source, counts: outcome.applied }, { actor: "owner" });
+    opened.value.close();
+    if (!completed.ok) return fail(completed.error.code, completed.error.message, completed.error.data);
+
+    if (outcome.failedItems.length > 0) {
+      return fail("E-1501",
+        `Partial import: ${outcome.failedItems.length} item(s) failed; valid items were imported.`,
+        {
+          worldId: plan.world.id, counts: outcome.applied,
+          items: outcome.failedItems.map((i) => i.issues).flat(),
+        });
+    }
+    return ok({ worldId: plan.world.id, counts: outcome.applied, importCompletedEvent: completed.value.eventId });
+  }
+
+  /** §9.4 — scheduled export: core exposes the policy surface; shells run it. */
+  readonly backup = {
+    schedule: (policy: BackupPolicy): Result<BackupPolicy> => {
+      if (!Number.isInteger(policy.intervalDays) || policy.intervalDays < 1) {
+        return fail("E-1001", "Backup intervalDays must be a positive integer.");
+      }
+      if (!Number.isInteger(policy.keep) || policy.keep < 1) {
+        return fail("E-1001", "Backup keep must be a positive integer.");
+      }
+      this.db.run(
+        `INSERT INTO settings (k,v) VALUES ('backupPolicy',?)
+         ON CONFLICT(k) DO UPDATE SET v=excluded.v`, JSON.stringify(policy));
+      return ok(policy);
+    },
+    policy: (): BackupPolicy => {
+      const row = this.db.get<{ v: string }>(`SELECT v FROM settings WHERE k='backupPolicy'`);
+      // §9.4 default: weekly, to a user-chosen folder, keep last 8.
+      return row ? (JSON.parse(row.v) as BackupPolicy) : { intervalDays: 7, keep: 8, dest: null };
+    },
+  };
 
   close(): void { this.db.close(); }
 }

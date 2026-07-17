@@ -8,7 +8,10 @@ CREATE TABLE IF NOT EXISTS worlds (id TEXT PRIMARY KEY, name TEXT NOT NULL, crea
   lastOpenedAt TEXT, spineMeta TEXT);
 CREATE TABLE IF NOT EXISTS principals (id TEXT PRIMARY KEY, displayName TEXT NOT NULL, kind TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS device (id TEXT PRIMARY KEY);
+CREATE TABLE IF NOT EXISTS settings (k TEXT PRIMARY KEY, v TEXT NOT NULL);
 `;
+// settings: §4.1 names studio.sqlite as holding "settings"; the §9.4 backup policy
+// is the first (and so far only) row. Additive to the §4.2 studio DDL.
 
 export const WORLD_DDL = `
 CREATE TABLE entries (

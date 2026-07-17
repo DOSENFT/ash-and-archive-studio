@@ -17,6 +17,9 @@ export interface DbHandle {
 export interface PlatformBinding {
   kind: "native" | "opfs" | "node";
   ftsAvailable: boolean;
+  /** Directory that vault-relative paths (§2.5 `attachments/<id>.<ext>`) resolve
+   *  against — the §9 export/import surfaces read and write content files here. */
+  fileRoot: string;
   open(fileName: string): DbHandle;
 }
 
@@ -38,6 +41,7 @@ export function nodeSqliteBinding(dataDir: string): PlatformBinding {
   return {
     kind: "node",
     ftsAvailable: true,
+    fileRoot: dataDir,
     open(fileName: string): DbHandle {
       const db = new DatabaseSync(join(dataDir, fileName));
       db.exec("PRAGMA journal_mode=WAL;");
