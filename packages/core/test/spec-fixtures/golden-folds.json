@@ -1,0 +1,8 @@
+{
+  "sessionMeta": "{\"countsByType\":{\"autoturn.granted\":1,\"clock.ticked\":2,\"combat.ended\":1,\"combat.started\":1,\"condition.applied\":1,\"condition.removed\":1,\"damage.taken\":1,\"death.save\":1,\"entry.kindled\":1,\"healing.applied\":1,\"initiative.set\":1,\"inscription.added\":1,\"inscription.struck\":1,\"margin.allocated\":1,\"mask.donned\":1,\"rest.taken\":1,\"roll.made\":1,\"scene.ended\":1,\"scene.framed\":1,\"session.closed\":1,\"session.opened\":1,\"slot.spent\":1,\"turn.ended\":2,\"turn.started\":2,\"veil.lifted\":1,\"veil.raised\":1},\"lastDeviceSeq\":30,\"openSession\":null,\"scenesEnded\":1,\"scenesFramed\":1}",
+  "clocks": "{\"steps\":{\"01KDY02102NYKXT15BD02RBDEY\":2}}",
+  "steering": "{\"autoturn\":{\"turn.started\":true},\"margins\":{\"1\":\"01KDY02104MX3GMWYTKYYHT0GA\",\"2\":null}}",
+  "resources": "{\"hpDelta\":{\"01KDY021019H9Z7W6449HR2XHK\":-5},\"resources\":{},\"slotsSpent\":{}}",
+  "combat": "{\"activeTurn\":null,\"conditions\":{},\"deathSaves\":{\"01KDY021019H9Z7W6449HR2XHK\":{\"failure\":1,\"success\":0}},\"inCombat\":false,\"order\":[{\"beingId\":\"01KDY0210001ZPGCE7HQ84RG6B\",\"value\":18},{\"beingId\":\"01KDY021019H9Z7W6449HR2XHK\",\"value\":11}]}",
+  "stage": "{\"kindled\":[\"01KDY02102NYKXT15BD02RBDEY\"],\"masks\":{\"01KDY0210001ZPGCE7HQ84RG6B\":\"01KDY02103PPAB44XA6MA1NXHT\"},\"revealed\":[],\"veiled\":false}"
+}

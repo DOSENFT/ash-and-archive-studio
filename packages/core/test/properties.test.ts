@@ -97,9 +97,9 @@ describe("§16.3 — undo-inverse cancellation", () => {
         const sid = open.value.sessionId!;
         play(x.v, script(seed * 100, 60, beings, clock), sid);
 
-        for (const type of invertibles) {
-          // a coherent extra event e (removals remove something present)
-          const b = beings[0]!;
+        for (const type of invertibles) for (const b of [beings[0]!, ulid()]) {
+          // both a scripted being (state present) and a virgin being (no prior keys —
+          // the adversarial case for canonical-state residue)
           let payload: unknown;
           if (type === "condition.removed") {
             const applied = x.v.ash.append("condition.applied", { beingId: b, conditionId: "marked" }, { actor: "owner", sessionId: sid });
@@ -116,7 +116,7 @@ describe("§16.3 — undo-inverse cancellation", () => {
           expect(undone.ok).toBe(true);
           if (undone.ok) expect(undone.value.inverseOf).toBe(e.value.eventId);
           const after = foldStates(x.v, DOMAIN_FOLDS);
-          expect(after, `${type} (seed ${seed})`).toEqual(before);
+          expect(after, `${type} (seed ${seed}, being ${b})`).toEqual(before);
         }
       } finally { drop(x); }
     }

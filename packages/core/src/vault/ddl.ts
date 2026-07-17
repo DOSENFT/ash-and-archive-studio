@@ -22,6 +22,14 @@ CREATE TABLE entries (
   headVersion TEXT NOT NULL, createdAt TEXT NOT NULL, boundAt TEXT, archivedAt TEXT);
 CREATE INDEX ix_entries_kind ON entries(kind) WHERE archivedAt IS NULL;
 CREATE INDEX ix_entries_status ON entries(canonStatus) WHERE archivedAt IS NULL;
+-- §15 v1.1 paint-path law ("archive.query — indexed — p99 ≤ 3ms"): order-path indexes
+-- for the three §5.5 orderBy fields, anchored on kind (EntryQuery.kind() is the
+-- builder's mandatory entry point), so ordered+limited queries are one index range
+-- scan with early exit. Physical tuning, additive to the §4.2 shapes; flagged in the
+-- step-7 build report for sign-off (the v1.1 budget postdates the DDL).
+CREATE INDEX ix_entries_kind_created ON entries(kind, createdAt, id) WHERE archivedAt IS NULL;
+CREATE INDEX ix_entries_kind_name ON entries(kind, name, id) WHERE archivedAt IS NULL;
+CREATE INDEX ix_entries_kind_bound ON entries(kind, boundAt, id) WHERE archivedAt IS NULL;
 
 CREATE TABLE entry_versions (
   versionId TEXT PRIMARY KEY, entryId TEXT NOT NULL REFERENCES entries(id),

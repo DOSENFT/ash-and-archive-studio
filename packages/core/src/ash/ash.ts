@@ -140,6 +140,15 @@ export class Ash {
     const r = this.append("inscription.struck", { target, ...(reason !== undefined ? { reason } : {}) }, { actor });
     if (!r.ok) return r;
     this.db.run(`UPDATE events SET struck=1 WHERE eventId=?`, target); // flag, not mutation of content (I-2)
+    // Snapshots taken after the struck event baked its effect into their state; the
+    // fast-path must never resume from them (§3.4: folds MUST skip struck events).
+    // The snapshots table is a derived index — dropping rows deletes no event (I-2);
+    // the stale snapshot EVENTS stay in the log, provenance-honest, and fresh
+    // snapshots re-land on the normal §3.3 cadence.
+    this.db.run(
+      `DELETE FROM snapshots WHERE eventId IN (
+         SELECT sn.eventId FROM snapshots sn JOIN events e ON e.eventId = sn.eventId
+         WHERE e.lamport > ?)`, row.lamport);
     this.rebuildLive(); // a strike retroactively removes a reduced event; incremental state cannot un-reduce
     return r;
   }
@@ -159,7 +168,7 @@ export class Ash {
   }
 
   window(scope: FoldScope, opts: { afterSeq?: number; types?: EventType[]; includeStruck?: boolean } = {}): Result<AshEvent[]> {
-    const rows = this.rows(scope, opts.afterSeq ?? 0, opts.includeStruck ?? false);
+    const rows = this.rows(scope, opts.afterSeq ?? 0, opts.includeStruck ?? false, "deviceSeq");
     const filtered = opts.types ? rows.filter((r) => (opts.types as string[]).includes(r.type)) : rows;
     return ok(filtered.map(toEvent));
   }
@@ -181,7 +190,11 @@ export class Ash {
     let after = 0;
     if ("world" in scope) {
       const snap = this.latestSnapshot(key, def.schemaVersion);
-      if (snap) { state = snap.state; after = snap.upToDeviceSeq; }
+      // Tail replay is bounded by the snapshot event's LAMPORT, not upToDeviceSeq:
+      // the §3.1 ordering law makes (lamport, deviceId) the only cross-device order,
+      // and an imported world carries other devices' events (§9.3) whose deviceSeq
+      // numbering is incommensurable with this device's.
+      if (snap) { state = snap.state; after = snap.lamport; }
     }
     for (const row of this.rows(scope, after, false)) {
       if (row.type === "state.snapshot") continue; // snapshots are provenance, not domain state
@@ -277,26 +290,28 @@ export class Ash {
     }
   }
 
-  private latestSnapshot(key: FoldKey, schemaVersion: number): { state: unknown; upToDeviceSeq: number } | null {
-    const row = this.db.get<{ payload: string }>(
-      `SELECT e.payload FROM snapshots s JOIN events e ON e.eventId=s.eventId
-       WHERE s.foldKey=? ORDER BY s.upToDeviceSeq DESC LIMIT 1`, key);
+  private latestSnapshot(key: FoldKey, schemaVersion: number): { state: unknown; lamport: number } | null {
+    const row = this.db.get<{ payload: string; lamport: number }>(
+      `SELECT e.payload, e.lamport FROM snapshots s JOIN events e ON e.eventId=s.eventId
+       WHERE s.foldKey=? ORDER BY e.lamport DESC LIMIT 1`, key);
     if (!row) return null;
     const payload = JSON.parse(row.payload) as { gzippedState: string; upToDeviceSeq: number };
     const decoded = JSON.parse(gunzipSync(Buffer.from(payload.gzippedState, "base64")).toString()) as { v: number; state: unknown };
     if (decoded.v !== schemaVersion) return null; // stale schema: replay instead (§5.6)
-    return { state: decoded.state, upToDeviceSeq: payload.upToDeviceSeq };
+    return { state: decoded.state, lamport: row.lamport };
   }
 
-  private rows(scope: FoldScope, afterSeq: number, includeStruck: boolean): EventRow[] {
+  /** Fold tails filter by lamport (the §3.1 cross-device order); §5.4 window() keeps
+   *  its spec-named `afterSeq` (deviceSeq) semantics via the column switch. */
+  private rows(scope: FoldScope, after: number, includeStruck: boolean, byColumn: "lamport" | "deviceSeq" = "lamport"): EventRow[] {
     const struckClause = includeStruck ? "" : "AND struck=0";
     if ("sessionId" in scope) {
       return this.db.all<EventRow>(
-        `SELECT * FROM events WHERE sessionId=? AND deviceSeq>? ${struckClause} ORDER BY lamport, deviceId`,
-        scope.sessionId, afterSeq);
+        `SELECT * FROM events WHERE sessionId=? AND ${byColumn}>? ${struckClause} ORDER BY lamport, deviceId`,
+        scope.sessionId, after);
     }
     return this.db.all<EventRow>(
-      `SELECT * FROM events WHERE deviceSeq>? ${struckClause} ORDER BY lamport, deviceId`, afterSeq);
+      `SELECT * FROM events WHERE ${byColumn}>? ${struckClause} ORDER BY lamport, deviceId`, after);
   }
 }
 

@@ -83,22 +83,35 @@ const steering: FoldDef<SteeringState> = {
 };
 
 interface ResourcesState { hpDelta: Record<string, number>; slotsSpent: Record<string, Record<string, number>>; resources: Record<string, Record<string, number>> }
+// Canonical-state discipline (§16.3 undo-inverse cancellation is BYTE equality):
+// a value returned to its init()-equivalent must leave no residue key. schemaVersion
+// bumped 1→2 when this canonicalization landed (old snapshots replay, §5.6).
+const withoutKey = <V>(o: Record<string, V>, k: string): Record<string, V> => {
+  const { [k]: _drop, ...rest } = o;
+  return rest;
+};
 const resources: FoldDef<ResourcesState> = {
-  key: "resources", schemaVersion: 1,
+  key: "resources", schemaVersion: 2,
   init: () => ({ hpDelta: {}, slotsSpent: {}, resources: {} }),
   reduce(s, e) {
     const x = p(e) as Record<string, unknown>;
     const being = String(x.beingId ?? "");
+    const setHp = (delta: number): ResourcesState => {
+      const v = (s.hpDelta[being] ?? 0) + delta;
+      return { ...s, hpDelta: v === 0 ? withoutKey(s.hpDelta, being) : { ...s.hpDelta, [being]: v } };
+    };
     switch (e.type) {
-      case "damage.taken": return { ...s, hpDelta: { ...s.hpDelta, [being]: (s.hpDelta[being] ?? 0) - Number(x.amount) } };
-      case "healing.applied": return { ...s, hpDelta: { ...s.hpDelta, [being]: (s.hpDelta[being] ?? 0) + Number(x.amount) } };
+      case "damage.taken": return setHp(-Number(x.amount));
+      case "healing.applied": return setHp(Number(x.amount));
       case "slot.spent": {
         const lv = String(x.level), b = s.slotsSpent[being] ?? {};
         return { ...s, slotsSpent: { ...s.slotsSpent, [being]: { ...b, [lv]: (b[lv] ?? 0) + 1 } } };
       }
       case "slot.restored": {
         const lv = String(x.level), b = s.slotsSpent[being] ?? {};
-        return { ...s, slotsSpent: { ...s.slotsSpent, [being]: { ...b, [lv]: Math.max(0, (b[lv] ?? 0) - Number(x.count)) } } };
+        const v = Math.max(0, (b[lv] ?? 0) - Number(x.count));
+        const nb = v === 0 ? withoutKey(b, lv) : { ...b, [lv]: v };
+        return { ...s, slotsSpent: Object.keys(nb).length === 0 ? withoutKey(s.slotsSpent, being) : { ...s.slotsSpent, [being]: nb } };
       }
       case "resource.spent": {
         const k = String(x.resourceKey), b = s.resources[being] ?? {};
@@ -119,7 +132,7 @@ interface CombatState {
   conditions: Record<string, string[]>; deathSaves: Record<string, { success: number; failure: number }>;
 }
 const combat: FoldDef<CombatState> = {
-  key: "combat", schemaVersion: 1,
+  key: "combat", schemaVersion: 2, // v2: canonical-state discipline (empty keys drop)
   init: () => ({ inCombat: false, order: [], activeTurn: null, conditions: {}, deathSaves: {} }),
   reduce(s, e) {
     const x = p(e) as Record<string, unknown>;
@@ -136,7 +149,7 @@ const combat: FoldDef<CombatState> = {
       }
       case "condition.removed": {
         const c = (s.conditions[being] ?? []).filter((id) => id !== String(x.conditionId));
-        return { ...s, conditions: { ...s.conditions, [being]: c } };
+        return { ...s, conditions: c.length === 0 ? withoutKey(s.conditions, being) : { ...s.conditions, [being]: c } };
       }
       case "death.save": {
         const d = s.deathSaves[being] ?? { success: 0, failure: 0 };

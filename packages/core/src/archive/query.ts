@@ -55,12 +55,15 @@ export function compileEntryQuery(q: EntryQuery): { sql: string; params: unknown
   if (s.kind !== undefined) { where.push("e.kind = ?"); params.push(s.kind); }
   if (s.status !== undefined) { where.push("e.canonStatus = ?"); params.push(s.status); }
   if (s.linkedFrom !== undefined) {
+    // IN drives from the links side (ux_links_active prefix on fromEntry): the small
+    // active-link set is built once, then entries are probed by primary key —
+    // O(links), not O(kind rows) (§15 indexed paint-path).
     if (s.linkedFrom.type !== undefined) {
-      where.push(`EXISTS (SELECT 1 FROM links l WHERE l.fromEntry = ? AND l.toEntry = e.id
+      where.push(`e.id IN (SELECT l.toEntry FROM links l WHERE l.fromEntry = ?
         AND l.type = ? AND l.endedByVersion IS NULL)`);
       params.push(s.linkedFrom.from, s.linkedFrom.type);
     } else {
-      where.push(`EXISTS (SELECT 1 FROM links l WHERE l.fromEntry = ? AND l.toEntry = e.id
+      where.push(`e.id IN (SELECT l.toEntry FROM links l WHERE l.fromEntry = ?
         AND l.endedByVersion IS NULL)`);
       params.push(s.linkedFrom.from);
     }
@@ -72,15 +75,24 @@ export function compileEntryQuery(q: EntryQuery): { sql: string; params: unknown
   if (s.undisclosed === true) {
     where.push("NOT EXISTS (SELECT 1 FROM disclosures d WHERE d.entryId = e.id)");
   }
-  // Deterministic always: e.id (ULID = creation order) is the final tiebreaker.
-  const order = s.order !== undefined
-    ? `e.${s.order.field} ${s.order.dir === "desc" ? "DESC" : "ASC"}, e.id ASC`
-    : "e.id ASC";
-  let sql = `SELECT e.rowid AS rowid, e.id, e.kind, e.name, e.aliases, e.canonStatus, e.provenance,
+  // Deterministic always: e.id (ULID = creation order) is the final tiebreaker. The
+  // tiebreak follows the primary direction so the (field, id) order-path indexes can
+  // serve the whole ORDER BY in one scan direction (§15 "indexed, paint-path").
+  const dir = s.order?.dir === "desc" ? "DESC" : "ASC";
+  const order = s.order !== undefined ? `e.${s.order.field} ${dir}, e.id ${dir}` : "e.id ASC";
+  // §15 paint-path (p99 ≤ 3ms): filter/order/limit run over the narrowest possible
+  // rows (id + order key), and only the survivors are joined back to the wide entry
+  // and body-carrying version rows — the §5.5 "optimizable" promise, kept below the
+  // API line.
+  let inner = `SELECT e.rowid AS rowid, e.id, e.headVersion${s.order !== undefined ? `, e.${s.order.field}` : ""}
+    FROM entries e WHERE ${where.join(" AND ")} ORDER BY ${order}`;
+  if (s.limitN !== undefined) { inner += " LIMIT ?"; params.push(s.limitN); }
+  const sql = `SELECT k.rowid AS rowid, e.id, e.kind, e.name, e.aliases, e.canonStatus, e.provenance,
       e.headVersion, e.createdAt, e.boundAt, e.archivedAt,
       v.versionId, v.ordinal, v.body, v.bodySchemaVersion
-    FROM entries e JOIN entry_versions v ON v.versionId = e.headVersion
-    WHERE ${where.join(" AND ")} ORDER BY ${order}`;
-  if (s.limitN !== undefined) { sql += " LIMIT ?"; params.push(s.limitN); }
+    FROM (${inner}) k
+    JOIN entries e ON e.id = k.id
+    JOIN entry_versions v ON v.versionId = k.headVersion
+    ORDER BY ${order}`;
   return { sql, params };
 }

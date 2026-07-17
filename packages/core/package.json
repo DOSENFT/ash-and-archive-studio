@@ -10,6 +10,8 @@
   },
   "scripts": {
     "test": "vitest run",
+    "test:harness": "node test/harness/run-harness.mjs",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
   "engines": {

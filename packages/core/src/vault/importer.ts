@@ -493,6 +493,20 @@ export function applyImport(plan: ImportPlan, db: DbHandle, fileRoot: string): A
 
     if (plan.data.events.length > 0) {
       const item = itemByFile.get("ash/events.jsonl")!;
+      // §3.4 — a snapshot whose state baked in a later-struck event must never serve
+      // the fold fast-path: stale iff some struck target precedes the snapshot while
+      // its inscription.struck follows it (lamport order, §3.1). Stale snapshot EVENTS
+      // still import (the log is the log, I-2); only the derived index row is skipped.
+      const lamportById = new Map(plan.data.events.map((e) => [e.eventId, e.lamport]));
+      const strikeSpans: Array<[number, number]> = [];
+      for (const e of plan.data.events) {
+        if (e.type !== "inscription.struck") continue;
+        const target = (e.payload as { target: string }).target;
+        const t = lamportById.get(target);
+        if (t !== undefined) strikeSpans.push([t, e.lamport]);
+      }
+      const snapshotStale = (snapLamport: number): boolean =>
+        strikeSpans.some(([t, s]) => t < snapLamport && snapLamport < s);
       db.exec("SAVEPOINT item");
       try {
         for (const ev of plan.data.events) {
@@ -501,7 +515,7 @@ export function applyImport(plan: ImportPlan, db: DbHandle, fileRoot: string): A
             ev.eventId, ev.sessionId, ev.sceneId, ev.type, ev.schemaVersion,
             JSON.stringify(ev.payload), ev.actor, ev.deviceId, ev.deviceSeq, ev.lamport,
             ev.wallTime, ev.inverseOf, ev.struck ? 1 : 0);
-          if (ev.type === "state.snapshot") {
+          if (ev.type === "state.snapshot" && !snapshotStale(ev.lamport)) {
             const p = ev.payload as { foldKey: string; upToDeviceSeq: number };
             db.run(`INSERT INTO snapshots VALUES (?,?,?)`, ev.eventId, p.foldKey, p.upToDeviceSeq);
             applied.snapshots += 1;

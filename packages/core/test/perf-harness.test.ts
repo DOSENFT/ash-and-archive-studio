@@ -106,11 +106,18 @@ describe.each(RUN_SCALES)("§15 budgets @ %s scale", (scale) => {
       EntryQuery.kind("truth").linkedFrom(hider, "hides").limit(20),
       EntryQuery.kind("thing").whereStatus("locked").orderBy("name").limit(20),
     ];
-    const times = timeN(400, (i) => {
-      const r = vault.archive.query(queries[i % queries.length]!);
-      if (!r.ok) throw new Error("query failed");
-    });
-    const row = law(scale, "archive.query (paint-path)", "p99", percentile(times, 0.99), 3);
+    // paint-path = steady-state repaint latency: warm each shape (page cache + query
+    // plan), then measure per shape and hold the worst shape to the law.
+    for (const q of queries) for (let i = 0; i < 10; i++) vault.archive.query(q);
+    let worst = 0;
+    for (const q of queries) {
+      const times = timeN(150, () => {
+        const r = vault.archive.query(q);
+        if (!r.ok) throw new Error("query failed");
+      });
+      worst = Math.max(worst, percentile(times, 0.99));
+    }
+    const row = law(scale, "archive.query (paint-path, worst shape)", "p99", worst, 3);
     expect(row.pass).toBe(true);
   });
 

@@ -1,0 +1,29 @@
+{"ix":0,"type":"session.opened","payload":{},"actor":"owner","strike":false}
+{"ix":1,"type":"scene.framed","payload":{"frame":"the salt vault door stands open"},"actor":"owner","strike":false}
+{"ix":2,"type":"combat.started","payload":{"stage":["01KDY0210001ZPGCE7HQ84RG6B","01KDY021019H9Z7W6449HR2XHK"]},"actor":"owner","strike":false}
+{"ix":3,"type":"initiative.set","payload":{"order":[{"beingId":"01KDY0210001ZPGCE7HQ84RG6B","value":18},{"beingId":"01KDY021019H9Z7W6449HR2XHK","value":11}]},"actor":"player-a","strike":false}
+{"ix":4,"type":"turn.started","payload":{"beingId":"01KDY0210001ZPGCE7HQ84RG6B"},"actor":"owner","strike":false}
+{"ix":5,"type":"damage.taken","payload":{"beingId":"01KDY021019H9Z7W6449HR2XHK","amount":9,"source":"blade"},"actor":"owner","strike":false}
+{"ix":6,"type":"condition.applied","payload":{"beingId":"01KDY021019H9Z7W6449HR2XHK","conditionId":"poisoned"},"actor":"owner","strike":false}
+{"ix":7,"type":"slot.spent","payload":{"beingId":"01KDY0210001ZPGCE7HQ84RG6B","level":2},"actor":"player-a","strike":false}
+{"ix":8,"type":"clock.ticked","payload":{"entryId":"01KDY02102NYKXT15BD02RBDEY","step":1},"actor":"owner","strike":false}
+{"ix":9,"type":"turn.ended","payload":{"beingId":"01KDY0210001ZPGCE7HQ84RG6B"},"actor":"owner","strike":false}
+{"ix":10,"type":"turn.started","payload":{"beingId":"01KDY021019H9Z7W6449HR2XHK"},"actor":"owner","strike":false}
+{"ix":11,"type":"death.save","payload":{"beingId":"01KDY021019H9Z7W6449HR2XHK","result":"failure"},"actor":"player-a","strike":false}
+{"ix":12,"type":"healing.applied","payload":{"beingId":"01KDY021019H9Z7W6449HR2XHK","amount":4},"actor":"owner","strike":false}
+{"ix":13,"type":"condition.removed","payload":{"beingId":"01KDY021019H9Z7W6449HR2XHK","conditionId":"poisoned"},"actor":"owner","strike":false}
+{"ix":14,"type":"inscription.added","payload":{"text":"the warden blinks first","tags":["beat"]},"actor":"owner","strike":false}
+{"ix":15,"type":"inscription.added","payload":{"text":"this one never happened"},"actor":"player-a","strike":true}
+{"ix":16,"type":"roll.made","payload":{"notation":"1d20","results":[17],"total":17},"actor":"owner","strike":false}
+{"ix":17,"type":"clock.ticked","payload":{"entryId":"01KDY02102NYKXT15BD02RBDEY","step":2},"actor":"owner","strike":false}
+{"ix":18,"type":"autoturn.granted","payload":{"eventType":"turn.started"},"actor":"owner","strike":false}
+{"ix":19,"type":"margin.allocated","payload":{"slot":1,"proposalId":"01KDY02104MX3GMWYTKYYHT0GA"},"actor":"player-a","strike":false}
+{"ix":20,"type":"entry.kindled","payload":{"entryId":"01KDY02102NYKXT15BD02RBDEY"},"actor":"owner","strike":false}
+{"ix":21,"type":"mask.donned","payload":{"beingId":"01KDY0210001ZPGCE7HQ84RG6B","maskId":"01KDY02103PPAB44XA6MA1NXHT"},"actor":"owner","strike":false}
+{"ix":22,"type":"veil.raised","payload":{"byActor":"owner"},"actor":"owner","strike":false}
+{"ix":23,"type":"veil.lifted","payload":{},"actor":"player-a","strike":false}
+{"ix":24,"type":"turn.ended","payload":{"beingId":"01KDY021019H9Z7W6449HR2XHK"},"actor":"owner","strike":false}
+{"ix":25,"type":"combat.ended","payload":{},"actor":"owner","strike":false}
+{"ix":26,"type":"rest.taken","payload":{"beingId":"party","kind":"long"},"actor":"owner","strike":false}
+{"ix":27,"type":"scene.ended","payload":{},"actor":"player-a","strike":false}
+{"ix":28,"type":"session.closed","payload":{},"actor":"owner","strike":false}

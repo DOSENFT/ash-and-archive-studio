@@ -185,10 +185,18 @@ export class Archive {
       staged.push(entry);
       stagedIds.add(id);
       tokens += cost;
-      const neighbors = this.db.all<{ fromEntry: string; toEntry: string }>(
-        `SELECT fromEntry, toEntry FROM links WHERE (fromEntry=? OR toEntry=?) AND endedByVersion IS NULL
-         ORDER BY createdAt ASC, id ASC`, id, id);
-      for (const n of neighbors) queue.push(n.fromEntry === id ? n.toEntry : n.fromEntry);
+      // §15 (subgraph p95 ≤ 50ms): the OR-shape defeats both link indexes and scans
+      // the table per staged entry — two indexed probes merged in memory instead
+      // (ux_links_active serves fromEntry, ix_links_to serves toEntry).
+      const out = this.db.all<{ toEntry: string; createdAt: string; id: string }>(
+        `SELECT toEntry, createdAt, id FROM links WHERE fromEntry=? AND endedByVersion IS NULL`, id);
+      const inc = this.db.all<{ fromEntry: string; createdAt: string; id: string }>(
+        `SELECT fromEntry, createdAt, id FROM links WHERE toEntry=? AND endedByVersion IS NULL`, id);
+      const neighbors = [
+        ...out.map((l) => ({ other: l.toEntry, createdAt: l.createdAt, id: l.id })),
+        ...inc.map((l) => ({ other: l.fromEntry, createdAt: l.createdAt, id: l.id })),
+      ].sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : a.id < b.id ? -1 : 1));
+      for (const n of neighbors) if (!seen.has(n.other)) queue.push(n.other);
     }
     let links: LinkView[] = [];
     if (stagedIds.size > 0) {
