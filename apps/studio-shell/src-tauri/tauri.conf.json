@@ -24,7 +24,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' atelier: 'unsafe-inline'; img-src 'self' atelier: data:; media-src 'self' atelier:"
+      "csp": "default-src 'self' atelier: 'unsafe-inline'; img-src 'self' atelier: data:; media-src 'self' atelier: blob:; connect-src 'self' atelier:"
     }
   },
   "bundle": {
