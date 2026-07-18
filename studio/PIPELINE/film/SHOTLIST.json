@@ -23,7 +23,8 @@
       "physics": "Wind is the single mover of vegetation and smoke; the mist obeys the same wind; dusk light falls naturally; nothing accelerates.",
       "locks": "NO people, animals, or birds. No camera rise, no speed changes, no footstep bob. Exactly one building.",
       "styleRef": "stills/approach.png",
-      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends",
+      "exterior": true
     },
     {
       "id": "leg1_gate",
@@ -34,7 +35,8 @@
       "physics": "Flame answers still air and the west wind's edge; iron and oak utterly rigid; inverse-square falloff into the dark.",
       "locks": "The doors do NOT move. No hands, no figures. No footstep rhythm; the dolly never rises.",
       "styleRef": "stills/shelf.png",
-      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends",
+      "exterior": false
     },
     {
       "id": "leg2_threshold",
@@ -45,7 +47,8 @@
       "physics": "The door draft is the wind squeezed through the gap - cloth and flame both answer it; brief natural darkening then warm interior light.",
       "locks": "No door movement; one continuous move; no cut; no people, no text.",
       "styleRef": "stills/shelf.png",
-      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends",
+      "exterior": false
     },
     {
       "id": "leg3_corridor",
@@ -56,7 +59,8 @@
       "physics": "One draft through the colonnade moves flames, mist, and the leaf alike; stone rigid; pools of amber alternating with deep warm shadow.",
       "locks": "All lanterns identical to frame one. No birds indoors, no people, no text; no footstep rhythm.",
       "styleRef": "stills/travel.ambulatoryA.png",
-      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends",
+      "exterior": false
     },
     {
       "id": "leg4_garth",
@@ -67,7 +71,8 @@
       "physics": "Moonlight modulates with real cloud cover; water answers gravity and wind; every flame in the far colonnade breathes.",
       "locks": "One gentle turn under thirty degrees, eye height throughout, ends at rest drifting toward the far doorway; no people, no text.",
       "styleRef": "stills/garth.center.png",
-      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends",
+      "exterior": true
     },
     {
       "id": "leg5_codex",
@@ -78,7 +83,8 @@
       "physics": "The settle is a true dolly deceleration easing to zero; the room's single draft dies as the door's influence fades; flame steadies.",
       "locks": "Ends at ABSOLUTE rest. No hands, no text legible on any page, no flourish, no fade.",
       "styleRef": "stills/bench.codex.png",
-      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends",
+      "exterior": false
     }
   ],
   "engineConfig": {

@@ -175,6 +175,9 @@ function finish() {
     const probe = p.graded + '.probe.png';
     ffmpeg(['-ss', '2', '-i', p.graded, '-frames:v', '1', probe]);
     const w = warmLaw(probe);
+    // Exterior legs (open sky) are lawfully cool — test only the magenta signature
+    // (R AND B above G = the pink disease); interiors keep the full warm order.
+    if (leg.exterior) w.ok = !(w.rgb[0] > w.rgb[1] + 4 && w.rgb[2] > w.rgb[1] + 4);
     if (!w.ok) {
       if (flag('--final')) { console.error(`WARM LAW FAIL ${leg.id}: RGB ${w.rgb} — finals may not ship cool.`); process.exit(6); }
       console.warn(`  warm-law WARN ${leg.id}: RGB ${w.rgb} (previz never ships; finals gate hard)`);
