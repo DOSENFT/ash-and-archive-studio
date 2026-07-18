@@ -53,7 +53,7 @@ function prompt(leg) {
     `SCENE: ${leg.scene}`,
     `ACTION: ${leg.action}`,
     `PHYSICS: ${leg.physics}`,
-    `CAMERA: steady walking-pace forward dolly at eye height, level horizon. ${SHOTS.handoffContract}`,
+    `CAMERA: ${leg.camera ?? 'smooth constant-velocity cinema dolly, gimbal-stabilized, no bob, no handheld'}, eye height, level horizon. ${SHOTS.handoffContract}`,
     `LOCKS: ${leg.locks} No text, letters, or writing anywhere. No people, hands, or figures.`,
   ].join(' ');
 }
@@ -170,7 +170,7 @@ function finish() {
     const p = legPaths(leg, tier);
     if (!existsSync(p.raw)) { report.push(`${leg.id}: no take yet — skipped`); prevLastEnc = null; continue; }
     // GRADE v2 (RGB halation; finishing only) straight to the scrub encode.
-    sh(`bash "${join(HERE, 'lanternlight-v2.sh')}" "${p.raw}" "${p.graded}"`);
+    sh(`bash "${join(HERE, 'lanternlight-v3.sh')}" "${p.raw}" "${p.graded}"`);
     // WARM-LAW GATE
     const probe = p.graded + '.probe.png';
     ffmpeg(['-ss', '2', '-i', p.graded, '-frames:v', '1', probe]);

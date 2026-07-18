@@ -40,3 +40,31 @@ The founder's HARVEST-INTAKE remains the only PASS hand. The pipeline emits UNCU
 
 ## Postmortem 3 — the SSIM gate recalibrated (2026-07-18, from the finals)
 On this register (dark, grainy, repeated stone textures) SSIM collapses on frames the eye reads as twins (measured: visually identical gate frames scored 0.23; matched colonnade frames 0.41–0.45). **Law: SSIM is a catastrophe tripwire only (<0.2 = wrong world); the seam verdict is the montage — boundary-frame pairs eyeballed side by side — plus the engine's crossfade.** Model behavior, measured and now law: this model holds END-image anchors firmly and START-image anchors loosely — repairs anchor the exit, never re-shoot the entry.
+
+---
+# THE BIBLE v2 — the founder's manifesto absorbed as law (2026-07-18)
+*"Most software contains pages. Ash & Archive contains places." The scroll is a flagship software capability, not an animation. Benchmarks: Apple's interaction, Pixar's environmental storytelling, Wētā's craft, Rockstar's density, Naughty Dog's narrative, Epic's rendering. Extract principles, never imitate.*
+
+## Postmortem 4 — the gait (2026-07-18, founder's walk)
+"Walking-pace dolly" taught the model to simulate FOOTSTEPS — the jolt is in the footage. **Law: camera language never references walking, steps, or a person's motion. The camera is a cinema machine: "smooth constant-velocity dolly on rails," "gimbal-stabilized glide," "no bob, no sway, no handheld, no footstep rhythm." Weight and motivation come from easing at the ENDS of moves, never oscillation inside them.**
+
+## Postmortem 5 — the frozen world (2026-07-18, founder's walk)
+"ACTION: none / nothing moves" — the shell's bench-silence law wrongly costumed as film direction; it froze the world into fakeness. **Law: the film breathes at three scales in every leg, choreographed per shot:**
+- **Large (atmosphere):** cloud drift, mist banks moving through the middle distance, moonlight modulation.
+- **Medium (life):** chimney smoke curling unpredictably, foliage and heather answering wind, cloth/banners answering the same wind, water disturbance in the fountain.
+- **Micro (realism):** lantern flames breathing (never guttering), dust motes drifting through light shafts, embers, droplets, settling straw.
+The stillness laws (no people, no text, doors don't move, nothing performs AT the viewer) stand; the world is ALIVE, not frozen. Every motion has a physical cause named in the prompt; wind direction is one continuous state across all legs.
+
+## The fidelity floor (law)
+- **Generate at the ceiling** (4k where the model offers it; `bitrate_mode high`); **deliver by supersampling** — 4k masters downscaled to the delivery resolution are the sharpness strategy; native-res softness is never shipped when a higher source exists.
+- Finishing gains a **sharpening stage** (CAS/unsharp, tuned to restore optical crispness without halos) — the doctrine's own counter to video softness, wrongly disabled in v2 grading.
+- Reject on sight: muddy textures, low-frequency detail, unstable geometry, repetitive assets, AI-tells, temporal shimmer. Every frame must survive pause and zoom by professional eyes.
+
+## Environmental density (law)
+Every meter rewards observation: craftsmanship marks, weathering with believable cause, forgotten pathways, distant landmarks that later legs VISIT (spatial promises kept), vegetation with species logic, props with history. Density is added by ART DIRECTION in prompts and by journey design (reveals, glimpses, payoffs) — never by clutter.
+
+## The scroll as software (standing)
+The film is the shell's spine, not its skin: today it ends at the working desk because the desk is the software that exists; as instruments seat (CB1's composer, the bays), the journey EXTENDS — new legs are commissioned by shotlist, shot by this pipeline, and land as scroll-reachable places. The interaction paradigm: scrolling IS navigation IS discovery.
+
+## The seven challenges (every recommendation passes or is redesigned)
+Category-defining, not impressive · immersion, not complexity · software, not presentation · survives the elite designer's knife · the cinematographer approves · technically elegant · remembered in five years.

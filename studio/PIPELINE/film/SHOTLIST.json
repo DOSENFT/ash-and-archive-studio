@@ -1,5 +1,5 @@
 {
-  "film": "THE APPROACH \u2014 one continuous take, moor to desk",
+  "film": "THE APPROACH v2 - one continuous take, moor to desk, alive",
   "architecture": "A (continuous forward take; sequential; chain-of-frames)",
   "model": {
     "final": "seedance_2_0",
@@ -7,72 +7,78 @@
     "nsfwFallback": "kling3_0"
   },
   "params": {
-    "final": "--mode std --resolution 1080p --aspect_ratio 16:9",
+    "final": "--mode std --resolution 4k --aspect_ratio 16:9 --bitrate-mode high",
     "previz": "--resolution 720p --aspect_ratio 16:9"
   },
-  "texturePreamble": "Photorealistic live-action 35mm cinematography of a real physical place \u2014 never stylized, never game art, never illustration, never miniature. The world does not re-render; only the viewpoint moves. Physically real handcrafted place, continuous with the starting frame in every material, light source, and object.",
-  "handoffContract": "The shot ends by settling into a slow, steady forward drift toward the destination in the final second. No flourish, no push past the mark, no fade.",
+  "texturePreamble": "Photorealistic live-action 35mm cinematography of a real physical place at the fidelity of a flagship feature film - razor-sharp fine detail, never stylized, never game art, never soft or dreamy. The world does not re-render; only the viewpoint moves; every material, light, and object continuous with the starting frame.",
+  "handoffContract": "The shot ends easing gently into a slow constant forward drift toward the destination in the final second - dolly easing, never a stop-start. No flourish, no push past the mark, no fade.",
   "startAnchor": "stills/approach.png",
   "legs": [
     {
       "id": "leg0_moor",
       "duration": 8,
       "startFrom": "anchor",
-      "scene": "The moor at dusk. Begin on the starting frame exactly: the distant stone croft with one lit window across dark heather. A single continuous walking-pace dolly forward across the moor toward the building, ground-level, eye height, level horizon. The building grows from small to near.",
-      "action": "Nothing happens. No one appears. Smoke drifts from the chimney exactly as in frame one.",
-      "physics": "Heather utterly still; the lit window flickers faintly as living flame; light falloff natural dusk.",
-      "locks": "NO people, animals, birds. No camera rise. No speed changes. Exactly one building.",
-      "styleRef": "stills/approach.png"
+      "scene": "The moor at dusk. Begin on the starting frame exactly: the distant stone croft, one lit window, across dark heather. A smooth constant-velocity dolly glides forward across the moor toward the building, low over the heather, eye height, level horizon. The building grows from small to near. Fine detail everywhere: individual heather sprigs, lichen on stones, peat cuts, a worn footpath threading toward the door.",
+      "action": "LARGE: low cloud banks drift slowly; a thin mist layer slides across the far hills. MEDIUM: chimney smoke curls unpredictably and leans with the wind; the heather ripples in waves as gusts cross it (a single continuous light wind from the west persists through the whole film). MICRO: the lit window's flame breathes; a few seed-heads tremble in the foreground.",
+      "physics": "Wind is the single mover of vegetation and smoke; the mist obeys the same wind; dusk light falls naturally; nothing accelerates.",
+      "locks": "NO people, animals, or birds. No camera rise, no speed changes, no footstep bob. Exactly one building.",
+      "styleRef": "stills/approach.png",
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
     },
     {
       "id": "leg1_gate",
       "duration": 8,
       "startFrom": "leg0_moor.lastFrame",
-      "scene": "Continue gliding smoothly FORWARD from the exact starting frame toward and up to the great arched wooden gate of the cloister, its lantern burning on the step, the doors standing slightly open with warm light in the gap. Arrive close before the threshold.",
-      "action": "None. The lantern flame sways only from still air.",
-      "physics": "Iron, oak, and stone static; flame the sole motion; inverse-square falloff into the dark.",
-      "locks": "The doors do NOT move. No hands, no figures. The camera never rises above eye height.",
-      "styleRef": "stills/shelf.png"
+      "scene": "Continue the same smooth rail glide from the exact starting frame toward and up to the great arched wooden gate of the cloister: iron strap hinges, centuries of tool marks in the oak, moss in the stone joints, ivy at the arch, the brass-and-horn lantern burning on the step, the doors standing slightly open with warm light in the gap. Arrive close before the threshold.",
+      "action": "LARGE: night mist drifts low along the wall base. MEDIUM: the ivy leaves stir with the wind (a single continuous light wind from the west persists through the whole film); the lantern's glow pulses softly on the stone. MICRO: the lantern flame breathes and leans; dust motes drift through its light cone; a moth circles the lantern once and leaves.",
+      "physics": "Flame answers still air and the west wind's edge; iron and oak utterly rigid; inverse-square falloff into the dark.",
+      "locks": "The doors do NOT move. No hands, no figures. No footstep rhythm; the dolly never rises.",
+      "styleRef": "stills/shelf.png",
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
     },
     {
       "id": "leg2_threshold",
       "duration": 5,
       "startFrom": "leg1_gate.lastFrame",
-      "scene": "Continue the same forward drift THROUGH the narrow gap of the open gate \u2014 a threshold crossing from night into the lamplit interior passage beyond, arriving inside the entrance passage facing the cloister corridor ahead.",
-      "action": "None.",
-      "physics": "Brief natural darkening in the doorway, then warm interior lamplight; flames steady.",
-      "locks": "No door movement; no light changes state; one continuous move; no cut.",
-      "styleRef": "stills/shelf.png"
+      "scene": "Continue the same rail glide THROUGH the narrow gap of the open gate - crossing the threshold from night into the lamplit interior passage, oak beams close overhead, then emerging into the long cloister colonnade beyond. End exactly on the provided end frame.",
+      "action": "LARGE: the light temperature crosses from cold night to warm lamplight as the doorway passes. MEDIUM: a wall-hung banner of rough cloth sways gently in the draft of the doorway. MICRO: dust motes drift in the lamplight shafts; the passing lantern's flame bows in the door's draft and recovers.",
+      "physics": "The door draft is the wind squeezed through the gap - cloth and flame both answer it; brief natural darkening then warm interior light.",
+      "locks": "No door movement; one continuous move; no cut; no people, no text.",
+      "styleRef": "stills/shelf.png",
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
     },
     {
       "id": "leg3_corridor",
       "duration": 8,
       "startFrom": "leg2_threshold.lastFrame",
-      "scene": "Continue gliding FORWARD down the long stone cloister corridor: arched colonnade open to the dark garth on the left, brass-and-horn lanterns burning on stone shelves along the right wall, worn flagstones below, timber beams above.",
-      "action": "None. Flame-light flickers faintly and indifferently; shadows slide along stone.",
-      "physics": "Candle flames sway only from still air, never gutter; stone and timber utterly static; pools of amber alternating with deep warm shadow.",
-      "locks": "Exactly the lanterns already present in frame one \u2014 all identical to it. No wind, no dust, no birds.",
-      "styleRef": "stills/travel.ambulatoryA.png"
+      "scene": "Continue the glide down the long stone cloister colonnade: arched openings to the dark garth on the left with moonlit mist beyond them, brass-and-horn lanterns burning on stone shelves along the right wall, worn flagstones polished by centuries underfoot, timber beams above with carpenter's marks. Far ahead, a moonlit archway promises the court.",
+      "action": "LARGE: moonlit mist drifts slowly across the garth openings, occluding and revealing the far colonnade. MEDIUM: lantern light pools sway almost imperceptibly as flames lean together in the corridor draft (a single continuous light wind from the west persists through the whole film through the arches). MICRO: every flame breathes on its own rhythm; dust drifts through the moon-shafts between arches; a dry leaf skitters a short way along the flagstones and rests.",
+      "physics": "One draft through the colonnade moves flames, mist, and the leaf alike; stone rigid; pools of amber alternating with deep warm shadow.",
+      "locks": "All lanterns identical to frame one. No birds indoors, no people, no text; no footstep rhythm.",
+      "styleRef": "stills/travel.ambulatoryA.png",
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
     },
     {
       "id": "leg4_garth",
       "duration": 8,
       "startFrom": "leg3_corridor.lastFrame",
-      "scene": "Continue forward and turn gently LEFT through a colonnade arch, emerging into the open garth: the cloister court under the night sky, low hedged beds, the old fountain, a young tree, lanterns at the far colonnade. Settle facing across the court toward a lamplit doorway on the far side.",
-      "action": "None.",
-      "physics": "Night air still; moonlight from the open sky above is the only cool light and only on upward faces; every other light is flame.",
-      "locks": "One gentle natural turn only, never exceeding thirty degrees; camera stays at eye height; ends at rest drifting toward the far doorway.",
-      "styleRef": "stills/garth.center.png"
+      "scene": "Continue and turn gently LEFT through a colonnade arch, emerging into the open garth: the cloister court under the night sky, low hedged herb beds, the old stone fountain at center with dark water, a young rowan tree, lanterns along the far colonnade, the moon riding cloud. Settle facing across the court toward a lamplit doorway on the far side.",
+      "action": "LARGE: clouds cross the moon, sending a slow tide of light across the court. MEDIUM: the rowan's leaves shiver with the wind (a single continuous light wind from the west persists through the whole film); the fountain's surface trembles, breaking and reassembling the moon's reflection; the herb beds ripple faintly. MICRO: droplets tick from the fountain lip; a night moth spirals over the water.",
+      "physics": "Moonlight modulates with real cloud cover; water answers gravity and wind; every flame in the far colonnade breathes.",
+      "locks": "One gentle turn under thirty degrees, eye height throughout, ends at rest drifting toward the far doorway; no people, no text.",
+      "styleRef": "stills/garth.center.png",
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
     },
     {
       "id": "leg5_codex",
       "duration": 8,
       "startFrom": "leg4_garth.lastFrame",
-      "scene": "Continue the drift across the garth and through the far lamplit doorway into the Codex: a scriptorium bay \u2014 a heavy oak writing desk under a burning brass lantern, paper and bound volumes, a chair pulled back. PUSH IN slowly toward the desk and SETTLE to complete rest framing the desktop and the waiting page.",
-      "action": "None. The chair is already pulled back; the page is blank.",
-      "physics": "The settle is a true deceleration to zero \u2014 the only stop in the film; flame steady; no rack focus.",
-      "locks": "Ends at ABSOLUTE rest. No flourish, no fade, no push past the mark. No hands, no text on any page.",
-      "styleRef": "stills/bench.codex.png"
+      "scene": "Continue the drift across the garth and through the far lamplit doorway into the Codex scriptorium: a heavy oak writing desk beneath a burning brass lantern, an inkwell and cut quills, paper stacked and one sheet waiting, bound volumes with worn spines on shelves, a chair pulled back. PUSH IN slowly and SETTLE to complete rest framing the desktop and the waiting page - the only full stop in the film.",
+      "action": "LARGE: warm light breathes very slightly with the lantern. MEDIUM: the candle-lantern's smoke thread curls and wanders above it; the pages of an open volume lift at one corner in the door's draft and settle. MICRO: the flame breathes; dust drifts in the lantern's cone; the inkwell's surface gleams and trembles once as the draft passes.",
+      "physics": "The settle is a true dolly deceleration easing to zero; the room's single draft dies as the door's influence fades; flame steadies.",
+      "locks": "Ends at ABSOLUTE rest. No hands, no text legible on any page, no flourish, no fade.",
+      "styleRef": "stills/bench.codex.png",
+      "camera": "smooth constant-velocity cinema dolly on rails, gimbal-stabilized - NO bob, NO sway, NO handheld shake, NO footstep rhythm; weight lives in gentle easing at the move's ends"
     }
   ],
   "engineConfig": {
