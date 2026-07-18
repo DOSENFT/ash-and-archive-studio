@@ -1,0 +1,24 @@
+{
+  "shotId": "SR-0033",
+  "routeOrScene": "moor\u2192gate",
+  "intent": "Connector clip moor\u2192gate \u2014 the no-cut flight.",
+  "generationSeconds": 5,
+  "shippedDurationMs": null,
+  "elements": [
+    "PROP-ONE"
+  ],
+  "prompt": "(external-mcp-sprint \u2014 physics-only per LOCK-V3; style in the grade)",
+  "continuityNotes": "graded lanternlight-v1; seam gate pending ffmpeg endpoint extraction (dev-proof mounting only)",
+  "status": "intake-queued",
+  "intake": null,
+  "takes": [
+    {
+      "takeId": 1,
+      "tool": "higgsfield-mcp (external sprint)",
+      "date": "2026-07-17",
+      "generationId": "74731d65",
+      "result": "clips/conn_approach-gate_74731d65_GRADED.mp4",
+      "grade": "lanternlight-v1"
+    }
+  ]
+}

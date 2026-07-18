@@ -5,6 +5,7 @@
 // OS GPU/decoder counter sampler that G-SH3-1's dormancy rig reads.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod codex_page;
 mod route_log;
 mod sampler;
 
@@ -82,6 +83,8 @@ fn main() {
     tauri::Builder::default()
         .register_uri_scheme_protocol("atelier", |ctx, request| serve_asset(ctx.app_handle(), request))
         .invoke_handler(tauri::generate_handler![
+            codex_page::codex_save,
+            codex_page::codex_load,
             route_log::log_transit,
             route_log::route_familiarity,
             route_log::travel_table,

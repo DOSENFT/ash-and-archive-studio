@@ -131,6 +131,11 @@
       "shotId": "SR-0025",
       "route": "chronicle\u2192academy",
       "note": "DEV ONLY \u2014 not a lawful clips[] entry until the seam gate runs (needs ffmpeg endpoint extraction); UNCURATED law applies"
+    },
+    "connectors": {
+      "moorGate": "clips/conn_approach-gate_74731d65_GRADED.mp4",
+      "gateCorridor": "clips/conn_gate-ambA_5ef7b236_GRADED.mp4",
+      "note": "DEV ONLY \u2014 seam gate pending ffmpeg; UNCURATED law applies"
     }
   },
   "travelFrames": {

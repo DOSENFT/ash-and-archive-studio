@@ -1,0 +1,7 @@
+{"provenance":"external-mcp-sprint","gradeVersion":"lanternlight-v1",
+"chain":[
+ {"route":"approach-to-gate","jobId":"74731d65","raw":"motion/conn_approach-gate_74731d65.mp4","graded":"motion/conn_approach-gate_74731d65_GRADED.mp4","duration":8,"note":"the sanctioned scale-transit; mount as the Approach ceremony"},
+ {"route":"gate-to-ambulatory-a","jobId":"5ef7b236","raw":"motion/conn_gate-ambA_5ef7b236.mp4","graded":"motion/conn_gate-ambA_5ef7b236_GRADED.mp4","duration":5,"note":"threshold crossing"},
+ {"route":"ambulatory-a-push","jobId":"8c0061aa","note":"already in prior drop","duration":5}],
+"pending":["ambulatory-to-garth","ambulatory-to-codex","bay dive-ins"],
+"locks":["V1","V2","V3","V4"]}

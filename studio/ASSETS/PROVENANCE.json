@@ -153,13 +153,36 @@
     },
     {
       "file": "clips/flight_amb-a-push_8c0061aa_GRADED.mp4",
-      "hash": "sha256:f499a6ae283d7ad9ee150cb3de12e002f13c61536e8f75b0b941cb5f411466c9",
+      "hash": "sha256:f9a62a6a7939c539e2c692b915878f32857c90cf1225dc050c77546e59eb75ef",
       "shotId": "SR-0025",
       "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
       "date": "2026-07-17",
       "operator": "marcus",
       "generationId": "8c0061aa",
-      "inputs": "texture-preamble physics prompt per LOCK-V3; lanternlight-v1 grade"
+      "inputs": "texture-preamble physics prompt per LOCK-V3; lanternlight-v1 grade",
+      "encode": "scrub-law re-encode (crf20, g8, faststart) 2026-07-17"
+    },
+    {
+      "file": "clips/conn_approach-gate_74731d65_GRADED.mp4",
+      "hash": "sha256:fd84fcc1fbaa357216fff7a4982ab9c05c7b2c8eaa506e459ff703ee86dc407f",
+      "shotId": "SR-0033",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "74731d65",
+      "inputs": "texture-preamble physics prompt per LOCK-V3; lanternlight-v1 grade",
+      "encode": "scrub-law re-encode (crf20, g8, faststart) 2026-07-17"
+    },
+    {
+      "file": "clips/conn_gate-ambA_5ef7b236_GRADED.mp4",
+      "hash": "sha256:8c5d04ca54b5c95a8b2194ce37651214ef1b70921c00aae7c6ef29fe0239edf3",
+      "shotId": "SR-0034",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "5ef7b236",
+      "inputs": "texture-preamble physics prompt per LOCK-V3; lanternlight-v1 grade",
+      "encode": "scrub-law re-encode (crf20, g8, faststart) 2026-07-17"
     }
   ]
 }
