@@ -7,7 +7,7 @@
     "nsfwFallback": "kling3_0"
   },
   "params": {
-    "final": "--mode std --resolution 4k --aspect_ratio 16:9 --bitrate-mode high",
+    "final": "--mode std --resolution 1080p --aspect_ratio 16:9 --bitrate-mode high",
     "previz": "--resolution 720p --aspect_ratio 16:9"
   },
   "texturePreamble": "Photorealistic live-action 35mm cinematography of a real physical place at the fidelity of a flagship feature film - razor-sharp fine detail, never stylized, never game art, never soft or dreamy. The world does not re-render; only the viewpoint moves; every material, light, and object continuous with the starting frame.",
