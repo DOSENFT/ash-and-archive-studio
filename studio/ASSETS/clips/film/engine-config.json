@@ -1,0 +1,73 @@
+{
+  "sections": [
+    {
+      "id": "moor",
+      "label": "The Approach",
+      "scroll": 2,
+      "linger": 0.3,
+      "eyebrow": "ASH & ARCHIVE",
+      "title": "The Studio",
+      "body": "Out on the moor, one window is lit.",
+      "clip": "clips/film/leg0_moor.mp4",
+      "poster": "clips/film/leg0_moor.poster.png"
+    },
+    {
+      "id": "gate",
+      "label": "The Gate",
+      "scroll": 1.6,
+      "linger": 0.25,
+      "title": "The Gate",
+      "body": "The door is never locked to its keeper.",
+      "clip": "clips/film/leg1_gate.mp4",
+      "poster": "clips/film/leg1_gate.poster.png"
+    },
+    {
+      "id": "threshold",
+      "label": "The Threshold",
+      "scroll": 1.2,
+      "title": null,
+      "body": null,
+      "clip": "clips/film/leg2_threshold.mp4",
+      "poster": "clips/film/leg2_threshold.poster.png"
+    },
+    {
+      "id": "corridor",
+      "label": "The Ambulatory",
+      "scroll": 2.6,
+      "linger": 0.4,
+      "title": "The Ambulatory",
+      "body": "The ring the hand learns.",
+      "clip": "clips/film/leg3_corridor.mp4",
+      "poster": "clips/film/leg3_corridor.poster.png"
+    },
+    {
+      "id": "garth",
+      "label": "The Garth",
+      "scroll": 1.8,
+      "linger": 0.3,
+      "title": "The Garth",
+      "body": "Every doorway faces the light.",
+      "clip": "clips/film/leg4_garth.mp4",
+      "poster": "clips/film/leg4_garth.poster.png"
+    },
+    {
+      "id": "codex",
+      "label": "The Codex",
+      "scroll": 2,
+      "linger": 0.45,
+      "title": "The Codex",
+      "body": "Your chair is pulled back.",
+      "cta": {
+        "primary": {
+          "label": "Sit down and write",
+          "href": "#desk"
+        }
+      },
+      "clip": "clips/film/leg5_codex.mp4",
+      "poster": "clips/film/leg5_codex.poster.png"
+    }
+  ],
+  "crossfade": 0.08,
+  "note": "architecture A: connectors: [] — the legs ARE the journey",
+  "connectors": []
+}

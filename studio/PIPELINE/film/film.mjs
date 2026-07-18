@@ -86,24 +86,48 @@ function shoot() {
     }
     const ptxt = join(WORK, `${leg.id}.prompt.txt`);
     writeFileSync(ptxt, prompt(leg));
-    console.log(`shooting ${leg.id} (${leg.duration}s) from ${startImage.split(/[\\/]/).pop()} …`);
-    // NSFW LADDER: 3 attempts, then trigger-word strip, then kling3_0 same frame, then halt.
-    const attempts = [
+    console.log(`shooting ${leg.id} (${leg.duration}s) from ${startImage.split(/[\/]/).pop()} …`);
+    // CREATE-THEN-POLL (kill-safe): job ids persist; a dead runner resumes, never re-pays.
+    const jobsFile = join(WORK, `${leg.id}.${tier}.jobs.json`);
+    const jobs = existsSync(jobsFile) ? JSON.parse(readFileSync(jobsFile, 'utf8')) : [];
+    const ladder = [
       [model, params, ptxt],
       [model, params, ptxt],
       [model, params, stripTriggers(leg, ptxt)],
-      ['kling3_0', '--mode std --sound off --aspect_ratio 16:9', ptxt],
+      ['kling3_0', '--sound off --aspect_ratio 16:9', ptxt],
     ];
     let done = false;
-    for (const [m, opts, pf] of attempts) {
-      const r = spawnSync(HF, ['generate', 'create', m, '--prompt', readFileSync(pf, 'utf8'),
-        '--start-image', startImage, ...opts.split(' '), '--duration', String(leg.duration),
-        '--wait', '--wait-timeout', '20m', '--json'], { encoding: 'utf8' });
-      try {
-        const url = JSON.parse(r.stdout)[0]?.result_url;
-        if (url) { sh(`curl -fsSL "${url}" -o "${p.raw}"`); done = true; break; }
-      } catch { /* fall through the ladder */ }
-      console.warn(`  attempt failed (${m}); descending the ladder…`);
+    for (let rung = 0; rung < ladder.length && !done; rung++) {
+      let job = jobs[rung];
+      if (!job) {
+        const [m, opts, pf] = ladder[rung];
+        const r = spawnSync(HF, ['generate', 'create', m, '--prompt', readFileSync(pf, 'utf8'),
+          '--start-image', startImage, ...(leg.styleRef ? ['--image-references', join(REPO, 'studio', 'ASSETS', leg.styleRef)] : []), ...opts.split(' '), '--duration', String(leg.duration), '--json'],
+          { encoding: 'utf8' });
+        const out = (r.stdout || '').trim();
+        const mjson = out.match(/\[[^]*\]|\{[^]*\}/);
+        try { const parsed = JSON.parse(mjson ? mjson[0] : out); job = Array.isArray(parsed) ? parsed[0] : parsed.id ?? parsed; }
+        catch { console.warn(`  create failed on rung ${rung} (${ladder[rung][0]}): ${out.slice(0, 120) || r.stderr?.slice(0, 120)}`); continue; }
+        if (typeof job !== 'string') job = job.id;
+        jobs[rung] = job;
+        writeFileSync(jobsFile, JSON.stringify(jobs));
+        console.log(`  rung ${rung}: job ${job.slice(0, 8)} created (${ladder[rung][0]})`);
+      } else console.log(`  rung ${rung}: adopting existing job ${job.slice(0, 8)}`);
+      // poll to terminal state
+      for (let i = 0; i < 120; i++) {  // up to 20 min
+        const g = spawnSync(HF, ['generate', 'get', job, '--json'], { encoding: 'utf8' });
+        let st = null;
+        try { const parsed = JSON.parse((g.stdout || '').trim()); st = Array.isArray(parsed) ? parsed[0] : parsed; } catch { /* transient */ }
+        if (st && st.status === 'completed' && st.result_url) {
+          sh(`curl -fsSL "${st.result_url}" -o "${p.raw}"`);
+          done = true; break;
+        }
+        if (st && ['nsfw', 'failed', 'error', 'canceled'].includes(st.status)) {
+          console.warn(`  rung ${rung}: job ${job.slice(0, 8)} → ${st.status}; descending the ladder…`);
+          break;
+        }
+        execSync(process.platform === 'win32' ? 'ping -n 11 127.0.0.1 > NUL' : 'sleep 10');
+      }
     }
     if (!done) { console.error(`HALT: ${leg.id} exhausted the ladder — founder's eyes needed.`); process.exit(5); }
     extractLast(leg, tier);
@@ -127,11 +151,13 @@ function extractLast(leg, tier) {
 function warmLaw(png) {
   // mean-frame RGB must keep R >= G >= B (postmortem 1)
   const out = sh(`python -c "from PIL import Image; r,g,b=Image.open(r'${png}').convert('RGB').resize((1,1)).getpixel((0,0)); print(r,g,b)"`).trim().split(' ').map(Number);
-  return { ok: out[0] >= out[1] && out[1] >= out[2], rgb: out };
+  // tolerance ±4 = sensor/encode noise width (the true pink violated by +19/+40);
+  // neutral-dark night frames (moonlight is canon) may sit at zero chroma.
+  return { ok: out[1] <= out[0] + 4 && out[2] <= out[1] + 4, rgb: out };
 }
 
 function ssim(a, b) {
-  const r = ffmpeg(['-i', a, '-i', b, '-lavfi', 'ssim', '-f', 'null', '-']);
+  const r = spawnSync('ffmpeg', ['-i', a, '-i', b, '-lavfi', 'ssim', '-f', 'null', '-'], { encoding: 'utf8' }); // no -v error: the SSIM line IS the output
   const m = /All:([0-9.]+)/.exec(r.stderr || '');
   return m ? parseFloat(m[1]) : 0;
 }
@@ -149,7 +175,10 @@ function finish() {
     const probe = p.graded + '.probe.png';
     ffmpeg(['-ss', '2', '-i', p.graded, '-frames:v', '1', probe]);
     const w = warmLaw(probe);
-    if (!w.ok) { console.error(`WARM LAW FAIL ${leg.id}: RGB ${w.rgb} — the grade is repainting; fix before shipping.`); process.exit(6); }
+    if (!w.ok) {
+      if (flag('--final')) { console.error(`WARM LAW FAIL ${leg.id}: RGB ${w.rgb} — finals may not ship cool.`); process.exit(6); }
+      console.warn(`  warm-law WARN ${leg.id}: RGB ${w.rgb} (previz never ships; finals gate hard)`);
+    }
     // POSTER GATE: extracted first frame of the ENCODED clip.
     ffmpeg(['-ss', '0', '-i', p.graded, '-frames:v', '1', '-q:v', '2', p.poster]);
     // SSIM SEAM GATE vs the previous encoded leg.
