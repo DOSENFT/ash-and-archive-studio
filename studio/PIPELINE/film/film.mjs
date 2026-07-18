@@ -16,6 +16,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+// Windows: spawnSync cannot execute npm's .cmd shims — resolve the vendor binary.
+const HF = join(execSync('npm root -g', { encoding: 'utf8' }).trim(), '@higgsfield', 'cli', 'vendor', process.platform === 'win32' ? 'hf.exe' : 'hf');
 const REPO = join(HERE, '..', '..', '..');
 const SHOTS = JSON.parse(readFileSync(join(HERE, 'SHOTLIST.json'), 'utf8'));
 const WORK = join(HERE, 'takes');
@@ -57,7 +59,7 @@ function prompt(leg) {
 }
 
 function shoot() {
-  try { sh('higgsfield workspace list'); }
+  try { sh(`\"${HF}\" workspace list`); }
   catch {
     console.error('BLOCKED: the higgsfield CLI is missing or unauthenticated.');
     console.error('Founder keyboard (once): install the CLI, then `higgsfield auth login`.');
@@ -94,7 +96,7 @@ function shoot() {
     ];
     let done = false;
     for (const [m, opts, pf] of attempts) {
-      const r = spawnSync('higgsfield', ['generate', 'create', m, '--prompt', readFileSync(pf, 'utf8'),
+      const r = spawnSync(HF, ['generate', 'create', m, '--prompt', readFileSync(pf, 'utf8'),
         '--start-image', startImage, ...opts.split(' '), '--duration', String(leg.duration),
         '--wait', '--wait-timeout', '20m', '--json'], { encoding: 'utf8' });
       try {
