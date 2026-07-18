@@ -49,32 +49,26 @@ try:
         page.mouse.move(700, 450)
         for _ in range(4): page.mouse.wheel(0, 420); time.sleep(0.12)
         time.sleep(0.5); shot("g2_gate")
-        # THE CONNECTOR: moor->gate flight band (~2.0-2.9vh) — the no-cut transit scrubs
-        page.evaluate("scrollTo({top: innerHeight * 2.35, behavior: 'instant'})")
-        time.sleep(2.2)
-        cc1 = page.evaluate("(() => { const ss=[...document.querySelectorAll('.sw-scene')]; const s=ss.find(x=>parseFloat(x.style.opacity||0)>0.6&&x.querySelector('video')); const v=s&&s.querySelector('video'); return v?v.currentTime:-1; })()")
-        page.evaluate("scrollTo({top: innerHeight * 2.75, behavior: 'instant'})")
-        time.sleep(1.0)
-        cc2 = page.evaluate("(() => { const ss=[...document.querySelectorAll('.sw-scene')]; const s=ss.find(x=>parseFloat(x.style.opacity||0)>0.6&&x.querySelector('video')); const v=s&&s.querySelector('video'); return v?v.currentTime:-1; })()")
-        checks.append(("the moor->gate CONNECTOR scrubs (the flight is real)", cc1 >= 0 and cc2 > cc1 + 0.1))
-        shot("g2b_connector_flight")
-        # the corridor dive band (starts ~5.5vh after two connectors): bidirectional scrub
-        page.evaluate("scrollTo({top: innerHeight * 6.3, behavior: 'instant'})")
-        for _ in range(40):  # the 69MB corridor blob loads when its band nears; wait for real frames
-            if page.evaluate("(() => { const ss=[...document.querySelectorAll('.sw-scene')]; const s=ss.find(x=>parseFloat(x.style.opacity||0)>0.6&&x.querySelector('video')); const v=s&&s.querySelector('video'); return !!v && v.duration > 0 && v.currentTime > 0.05; })()"):
-                break
-            time.sleep(0.4)
+        # THE FILM: leg0 (moor) — the clip scrubs forward and back under the hand
+        page.evaluate("scrollTo({top: innerHeight * 0.5, behavior: 'instant'})")
+        for _ in range(50):
+            if page.evaluate("(() => { const ss=[...document.querySelectorAll('.sw-scene')]; const s=ss.find(x=>parseFloat(x.style.opacity||0)>0.6&&x.querySelector('video')); const v=s&&s.querySelector('video'); return v?v.currentTime:-1; })()") > 0.05: break
+            time.sleep(0.3)
         time.sleep(0.6)
-        ct1 = page.evaluate("(() => { const ss=[...document.querySelectorAll('.sw-scene')]; const s=ss.find(x=>parseFloat(x.style.opacity||0)>0.6&&x.querySelector('video')); const v=s&&s.querySelector('video'); return v?v.currentTime:-1; })()")
-        page.evaluate("scrollTo({top: innerHeight * 7.4, behavior: 'instant'})")
+        c1 = page.evaluate("(() => { const ss=[...document.querySelectorAll('.sw-scene')]; const s=ss.find(x=>parseFloat(x.style.opacity||0)>0.6&&x.querySelector('video')); const v=s&&s.querySelector('video'); return v?v.currentTime:-1; })()")
+        page.evaluate("scrollTo({top: innerHeight * 1.1, behavior: 'instant'})")
         time.sleep(1.2)
-        ct2 = page.evaluate("(() => { const ss=[...document.querySelectorAll('.sw-scene')]; const s=ss.find(x=>parseFloat(x.style.opacity||0)>0.6&&x.querySelector('video')); const v=s&&s.querySelector('video'); return v?v.currentTime:-1; })()")
-        page.evaluate("scrollTo({top: innerHeight * 6.6, behavior: 'instant'})")
+        c2 = page.evaluate("(() => { const ss=[...document.querySelectorAll('.sw-scene')]; const s=ss.find(x=>parseFloat(x.style.opacity||0)>0.6&&x.querySelector('video')); const v=s&&s.querySelector('video'); return v?v.currentTime:-1; })()")
+        page.evaluate("scrollTo({top: innerHeight * 0.6, behavior: 'instant'})")
         time.sleep(1.0)
-        ct3 = page.evaluate("(() => { const ss=[...document.querySelectorAll('.sw-scene')]; const s=ss.find(x=>parseFloat(x.style.opacity||0)>0.6&&x.querySelector('video')); const v=s&&s.querySelector('video'); return v?v.currentTime:-1; })()")
-        print(f"corridor cts: {ct1} -> {ct2} -> {ct3}"); checks.append(("the corridor clip scrubs forward and back", ct1 >= 0 and ct2 > ct1 + 0.2 and ct3 < ct2 - 0.1))
+        c3 = page.evaluate("(() => { const ss=[...document.querySelectorAll('.sw-scene')]; const s=ss.find(x=>parseFloat(x.style.opacity||0)>0.6&&x.querySelector('video')); const v=s&&s.querySelector('video'); return v?v.currentTime:-1; })()")
+        print(f"leg0 cts: {c1} -> {c2} -> {c3}")
+        checks.append(("the film scrubs forward and back (leg0)", c1 >= 0 and c2 > c1 + 0.15 and c3 < c2 - 0.05))
+        shot("g2b_film_scrub")
+        # mid-journey frame (the corridor leg, ~2/3 in)
+        page.evaluate("scrollTo({top: innerHeight * 6.0, behavior: 'instant'})")
+        time.sleep(2.5)
         shot("g3_corridor_scrub")
-        page.evaluate("scrollTo({top: innerHeight * 9.0, behavior: 'instant'})"); time.sleep(0.8); shot("g4_garth")
         page.evaluate("scrollTo({top: document.querySelector('.sw-track').offsetHeight, behavior: 'instant'})")
         time.sleep(0.9); shot("g5_codex_cta")
         page.evaluate("[...document.querySelectorAll('.sw-btn--primary')].pop().click()")

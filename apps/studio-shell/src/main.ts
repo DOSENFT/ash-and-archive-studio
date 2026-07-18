@@ -121,73 +121,49 @@ function skipToDesk(e: KeyboardEvent): void {
 }
 
 function enterTour(): void {
-  const ext = mf?.manifest as unknown as {
-    approach?: { still: { file: string } };
-    travelFrames?: { ambulatoryA?: string };
-    devProof?: { flight?: { file: string }; connectors?: { moorGate?: string; gateCorridor?: string } };
-  };
-  const moor = ext?.approach ? `/${ext.approach.still.file}` : undefined;
-  const gate = mf?.stillUrl('shelf');
-  const ambA = ext?.travelFrames?.ambulatoryA ? `/${ext.travelFrames.ambulatoryA}` : undefined;
-  const garth = mf?.stillUrl('garth.center');
-  const codex = mf?.stillUrl('bench.codex');
-  const flight = ext?.devProof?.flight ? `/${ext.devProof.flight.file}` : undefined;
-  if (!moor || !gate || !garth || !codex) { void seatAtDesk(); return; }
+  void (async () => {
+    // THE FILM (2026-07-18): the six-leg continuous 1080p take, chained frame to
+    // frame by the film pipeline. Its emitted engine config is the journey.
+    let film: { sections?: Array<Record<string, unknown>>; crossfade?: number } | null = null;
+    try { film = await (await fetch('/clips/film/engine-config.json')).json(); } catch { film = null; }
+    const filmSections = (film?.sections ?? []).filter((x) => x.clip).map((x) => ({
+      ...x,
+      still: `/${x.poster as string}`,           // poster doubles as reduced-fidelity artwork
+      poster: `/${x.poster as string}`,          // extracted first frame of the encoded clip
+      clip: `/${x.clip as string}`,
+      accent: '#c9a227',
+    }));
+    if (!filmSections.length) { void seatAtDesk(); return; }
+    // the last section carries the seat CTA
+    const last = filmSections[filmSections.length - 1] as Record<string, unknown>;
+    last.cta = { primary: { label: 'Sit down and write', href: '#desk' } };
 
-  tourActive = true;
-  shell.style.display = 'none';
-  document.documentElement.style.overflow = '';
-  document.body.style.overflow = '';
-  document.body.style.height = 'auto';
-  tourContainer = document.createElement('div');
-  tourContainer.id = 'tour';
-  document.body.appendChild(tourContainer);
-  setChip(true);
-  announce('The Studio. Scroll to approach; any key sits you at the desk.');
-  addEventListener('keydown', skipToDesk, { capture: true });
+    tourActive = true;
+    shell.style.display = 'none';
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    document.body.style.height = 'auto';
+    tourContainer = document.createElement('div');
+    tourContainer.id = 'tour';
+    document.body.appendChild(tourContainer);
+    setChip(true);
+    announce('The Studio. Scroll to approach; any key sits you at the desk.');
+    addEventListener('keydown', skipToDesk, { capture: true });
 
-  // Copy is provisional in wording, fixed in content. Dwell numbers are the
-  // product: long approach (the held, precious quality), longest corridor
-  // (the one real flight breathes), settling shorter toward the seat.
-  window.mountScrollWorld(tourContainer, {
-    hint: 'scroll',
-    nav: false,
-    atmosphere: false,
-    diveScroll: 1.6,
-    crossfade: 0.22,
-    sections: [
-      { id: 'moor', label: 'The Approach', still: moor, accent: '#c9a227',
-        scroll: 2.0, linger: 0.3,
-        eyebrow: 'ASH & ARCHIVE', title: 'The Studio', body: 'Out on the moor, one window is lit.' },
-      { id: 'gate', label: 'The Gate', still: gate, accent: '#c9a227',
-        scroll: 1.7, linger: 0.3,
-        title: 'The Gate', body: 'The door is never locked to its keeper.' },
-      { id: 'corridor', label: 'The Ambulatory', still: ambA ?? gate,
-        poster: ambA, clip: flight, accent: '#c9a227',
-        scroll: flight ? 2.8 : 1.7, linger: flight ? 0.35 : 0.3,
-        title: 'The Ambulatory', body: 'The ring the hand learns.' },
-      { id: 'garth', label: 'The Garth', still: garth, accent: '#c9a227',
-        scroll: 1.8, linger: 0.3,
-        title: 'The Garth', body: 'Every doorway faces the light.' },
-      { id: 'codex', label: 'The Codex', still: codex, accent: '#c9a227',
-        scroll: 1.6,
-        title: 'The Codex', body: 'Your chair is pulled back. The page is blank.',
-        cta: { primary: { label: 'Sit down and write', href: '#desk' } } },
-    ],
-    // THE FLIGHT DROP LANDED: moor→gate and the threshold crossing are real
-    // clips now — the crossfades stop apologizing exactly where it matters.
-    connectors: [
-      ext?.devProof?.connectors?.moorGate ? `/${ext.devProof.connectors.moorGate}` : null,
-      ext?.devProof?.connectors?.gateCorridor ? `/${ext.devProof.connectors.gateCorridor}` : null,
-      null, // ambulatory→garth: pending in the sprint
-      null, // garth→codex: pending in the sprint
-    ],
-  });
+    window.mountScrollWorld(tourContainer, {
+      hint: 'scroll',
+      nav: false,
+      atmosphere: false,
+      diveScroll: 1.6,
+      crossfade: film?.crossfade ?? 0.08,
+      sections: filmSections,
+      connectors: [], // architecture A: the legs ARE the journey
+    });
 
-  // The CTA seats; so does scrolling firmly past the end (the settle IS the sit).
-  addEventListener('hashchange', () => {
-    if (location.hash === '#desk' && tourActive) { teardownTour(); void seatAtDesk(); }
-  });
+    addEventListener('hashchange', () => {
+      if (location.hash === '#desk' && tourActive) { teardownTour(); void seatAtDesk(); }
+    });
+  })();
 }
 
 // ---------- boot ----------

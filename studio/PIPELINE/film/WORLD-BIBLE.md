@@ -37,3 +37,6 @@
 
 ## Intake
 The founder's HARVEST-INTAKE remains the only PASS hand. The pipeline emits UNCURATED manifests + shot records; nothing it makes can grade its own homework.
+
+## Postmortem 3 — the SSIM gate recalibrated (2026-07-18, from the finals)
+On this register (dark, grainy, repeated stone textures) SSIM collapses on frames the eye reads as twins (measured: visually identical gate frames scored 0.23; matched colonnade frames 0.41–0.45). **Law: SSIM is a catastrophe tripwire only (<0.2 = wrong world); the seam verdict is the montage — boundary-frame pairs eyeballed side by side — plus the engine's crossfade.** Model behavior, measured and now law: this model holds END-image anchors firmly and START-image anchors loosely — repairs anchor the exit, never re-shoot the entry.
