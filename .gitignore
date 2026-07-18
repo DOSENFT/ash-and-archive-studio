@@ -45,3 +45,7 @@ coverage/
 # Misc
 *.tsbuildinfo
 .eslintcache
+
+# Build artifacts (never tracked again after 2026-07-17)
+apps/studio-shell/src-tauri/target/
+apps/studio-shell/dist/
