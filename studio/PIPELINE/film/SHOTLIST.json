@@ -7,7 +7,7 @@
     "nsfwFallback": "kling3_0"
   },
   "params": {
-    "final": "--resolution 1080p --aspect_ratio 16:9",
+    "final": "--mode std --resolution 1080p --aspect_ratio 16:9",
     "previz": "--resolution 720p --aspect_ratio 16:9"
   },
   "texturePreamble": "Photorealistic live-action 35mm cinematography of a real physical place \u2014 never stylized, never game art, never illustration, never miniature. The world does not re-render; only the viewpoint moves. Physically real handcrafted place, continuous with the starting frame in every material, light source, and object.",
