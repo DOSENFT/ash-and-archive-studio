@@ -1,0 +1,95 @@
+# THE SHIP-MODE PIPELINE — SHIP-LEDGER row 13. Lint + rigs as the release gate.
+# Every law with CI teeth runs here: token byte-identity, ledger-lint (token-only
+# rendering), strict tsc per package, the full test suites (core 141, composer 37,
+# ledger-ui 7, the shell's wasm-vault smoke 3), the shell's production build, and
+# the manifest gate (dev mode on push; SHIPPING mode — UNCURATED fails — on tags).
+name: studio-ci
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+
+jobs:
+  page-law:
+    name: page law (tokens · lint · types · tests · build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: ledger-tokens — install · emit byte-identity · 60-test contract
+        working-directory: packages/ledger-tokens
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          git diff --exit-code -- tokens.css tokens.json
+          npx tsc --noEmit
+          npx vitest run
+
+      - name: core — install · strict types · the §15/§16 suites
+        working-directory: packages/core
+        run: |
+          npm ci --no-audit --no-fund
+          npx tsc --noEmit
+          npx vitest run
+
+      - name: composer — install · strict types · SPEC-002 suites (vs live vault)
+        working-directory: packages/composer
+        run: |
+          npm ci --no-audit --no-fund
+          npx tsc --noEmit
+          npx vitest run
+
+      - name: ledger-ui — install · ledger-lint · strict types · render contract
+        working-directory: packages/ledger-ui
+        run: |
+          npm ci --no-audit --no-fund
+          node ../ledger-tokens/scripts/ledger-lint.mjs src
+          npx tsc --noEmit
+          npx vitest run
+
+      - name: shell — install · ledger-lint · strict types · wasm-vault smoke · build
+        working-directory: apps/studio-shell
+        run: |
+          npm ci --no-audit --no-fund
+          node ../../packages/ledger-tokens/scripts/ledger-lint.mjs src
+          npx tsc --noEmit
+          npx vitest run
+          npx vite build
+
+      - name: atelier — manifest gate (dev law on branches)
+        working-directory: packages/atelier
+        run: |
+          npm ci --no-audit --no-fund
+          npx tsc --noEmit
+          npx vitest run
+          node ../../studio/PIPELINE/manifest-lint.mjs ../../studio/ASSETS/MANIFEST.json --dev
+
+  ship-gate:
+    name: ship gate (UNCURATED zero-count — G-SH3-5)
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      # SHIPPING mode: an UNCURATED asset FAILS the release. This is the law's
+      # whole point (SHIP-LEDGER row 11); only intake-PASS (the canon holder's
+      # hand) closes it — never CI, never a flag.
+      - name: manifest — shipping law
+        run: node studio/PIPELINE/manifest-lint.mjs studio/ASSETS/MANIFEST.json
+
+  host:
+    name: rust host (cargo check)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo check
+        working-directory: apps/studio-shell/src-tauri
+        run: cargo check --locked
