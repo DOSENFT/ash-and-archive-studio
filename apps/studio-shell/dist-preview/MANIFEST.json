@@ -1,0 +1,146 @@
+{
+  "manifestVersion": 1,
+  "register": "lanternlight-v1",
+  "poses": [
+    {
+      "poseId": "shelf",
+      "still": {
+        "hash": "sha256:00267242577aa000b5d4f3793a4b2a1bd7d83344902fbc669d91b0888b8cde09",
+        "file": "stills/shelf.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0026"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "garth.center",
+      "still": {
+        "hash": "sha256:6b045254b725c260f9a6fc51384793a4ebdc62d8292531d516f23fa15787e8dd",
+        "file": "stills/garth.center.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0028"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "lintel.chronicle",
+      "still": {
+        "hash": "sha256:185b13916fc82325094729a30389691869dd0a49cadba9725e9664ed827cc1c9",
+        "file": "stills/lintel.chronicle.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0005"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "bench.chronicle",
+      "still": {
+        "hash": "sha256:f24bfc9776bdbde0baf660f05296ff8fb9b2647dbf8e78cd2e9af05df25e6e28",
+        "file": "stills/bench.chronicle.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0019"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "bench.forge",
+      "still": {
+        "hash": "sha256:b0bd7a4eb72abdba1332fb37fd840f26b52ef198b2222816198d0f75bb5d7c49",
+        "file": "stills/bench.forge.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0020"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "bench.codex",
+      "still": {
+        "hash": "sha256:daed89cd61f21453d02d9998c291b8cc50d64aa5a5afe30e8502631044931920",
+        "file": "stills/bench.codex.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0017"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "bench.charter",
+      "still": {
+        "hash": "sha256:a504a3a4d6f8d9c77fe84469dafd7e91cd1177db2fa7d1614ee640959ec5c77f",
+        "file": "stills/bench.charter.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0021"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "bench.stage",
+      "still": {
+        "hash": "sha256:cc5cd0bc3aed327ef47dc5ebc2bb92c58ee24b67050d5c3e0e2e8aec8373dc5d",
+        "file": "stills/bench.stage.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0022"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "bench.academy",
+      "still": {
+        "hash": "sha256:8fb45e3e4f7df7b8c1438143d708cd93479ae19f0b6b445b311699035692f44f",
+        "file": "stills/bench.academy.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0023"
+      },
+      "anchorSlots": []
+    },
+    {
+      "poseId": "bench.press",
+      "still": {
+        "hash": "sha256:052eae53de292001b92d6c65d0ee76b2960016fb20917912c41b57a9c5c0d30c",
+        "file": "stills/bench.press.png",
+        "curation": "UNCURATED",
+        "shotId": "SR-0024"
+      },
+      "anchorSlots": []
+    }
+  ],
+  "clips": [],
+  "rites": [],
+  "accretion": [],
+  "grades": {
+    "kind": "lut",
+    "count": 6,
+    "files": [],
+    "status": "pending-gamma"
+  },
+  "approach": {
+    "still": {
+      "hash": "sha256:c8ba0c53de140b1ff9e99d64de31e769fc4d4e2355ced7f03e3e40f8070aa276",
+      "file": "stills/approach.png",
+      "curation": "UNCURATED",
+      "shotId": "SR-0027"
+    },
+    "durationMs": 4000,
+    "reclaimable": true
+  },
+  "provenance": "PROVENANCE.json",
+  "grade": "lanternlight-grade-v1",
+  "devProof": {
+    "flight": {
+      "file": "clips/flight_amb-a-push_8c0061aa_GRADED.mp4",
+      "hash": "sha256:f499a6ae283d7ad9ee150cb3de12e002f13c61536e8f75b0b941cb5f411466c9",
+      "shotId": "SR-0025",
+      "route": "chronicle\u2192academy",
+      "note": "DEV ONLY \u2014 not a lawful clips[] entry until the seam gate runs (needs ffmpeg endpoint extraction); UNCURATED law applies"
+    },
+    "connectors": {
+      "moorGate": "clips/conn_approach-gate_74731d65_GRADED.mp4",
+      "gateCorridor": "clips/conn_gate-ambA_5ef7b236_GRADED.mp4",
+      "note": "DEV ONLY \u2014 seam gate pending ffmpeg; UNCURATED law applies"
+    }
+  },
+  "travelFrames": {
+    "ambulatoryA": "stills/travel.ambulatoryA.png",
+    "ambulatoryB": "stills/travel.ambulatoryB.png",
+    "note": "presentation metadata (ring-travel departure frames) \u2014 not poses; UNCURATED law applies via SR-0029/30"
+  }
+}

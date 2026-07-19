@@ -1,0 +1,188 @@
+{
+  "provenanceVersion": 1,
+  "note": "Honest-determinism form (SH2 \u00a75.1 P-8 / ADR-SH2-E): consumer tools expose no seeds/schedulers; each row records {tool, date, operator, shotId}; the full chain lives in the shot record (studio/PIPELINE/shots/<shotId>.json). Regeneration re-passes A-checks against locked poses; bit-identity is claimed only for the accretion compositor.",
+  "assets": [
+    {
+      "file": "stills/lintel.chronicle.png",
+      "hash": "sha256:185b13916fc82325094729a30389691869dd0a49cadba9725e9664ed827cc1c9",
+      "shotId": "SR-0005",
+      "tool": "higgsfield-gui (founder-operated)",
+      "date": "2026-07-15",
+      "operator": "marcus",
+      "inputs": "authored prompt + Canon Style Block lineage; zero user content"
+    },
+    {
+      "file": "stills/element.prop-one.png",
+      "hash": "sha256:23648c86d2f761dd7a0f17ad58e0325589ee94d7fe32085aeb431b3aa70d9411",
+      "shotId": "SR-0032",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "2f8e874f",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/approach.png",
+      "hash": "sha256:c8ba0c53de140b1ff9e99d64de31e769fc4d4e2355ced7f03e3e40f8070aa276",
+      "shotId": "SR-0027",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "27142742",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/shelf.png",
+      "hash": "sha256:00267242577aa000b5d4f3793a4b2a1bd7d83344902fbc669d91b0888b8cde09",
+      "shotId": "SR-0026",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "df21455e",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/travel.ambulatoryA.png",
+      "hash": "sha256:3cba0cb1bbd76381c44c0b0225725001e342045e1814cde5d96e308e560f0c83",
+      "shotId": "SR-0029",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "dc9597b0",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/travel.ambulatoryB.png",
+      "hash": "sha256:7c020701b433d3fc1db2412b40e563efca29051522a19dc7152d31b4ea9139b5",
+      "shotId": "SR-0030",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "d9c26d16",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/garth.center.png",
+      "hash": "sha256:6b045254b725c260f9a6fc51384793a4ebdc62d8292531d516f23fa15787e8dd",
+      "shotId": "SR-0028",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "be8a7181",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/bench.codex.png",
+      "hash": "sha256:daed89cd61f21453d02d9998c291b8cc50d64aa5a5afe30e8502631044931920",
+      "shotId": "SR-0017",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "f2fab889",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/toybox.alcove.png",
+      "hash": "sha256:f6d719438377a4109c3ac767b605560be917da87b6f032465803f7480719dc52",
+      "shotId": "SR-0031",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "d48ad7e8",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/bench.chronicle.png",
+      "hash": "sha256:f24bfc9776bdbde0baf660f05296ff8fb9b2647dbf8e78cd2e9af05df25e6e28",
+      "shotId": "SR-0019",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "e0ea5cc9",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/bench.forge.png",
+      "hash": "sha256:b0bd7a4eb72abdba1332fb37fd840f26b52ef198b2222816198d0f75bb5d7c49",
+      "shotId": "SR-0020",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "34652505",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/bench.charter.png",
+      "hash": "sha256:a504a3a4d6f8d9c77fe84469dafd7e91cd1177db2fa7d1614ee640959ec5c77f",
+      "shotId": "SR-0021",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "ae4baf13",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/bench.stage.png",
+      "hash": "sha256:cc5cd0bc3aed327ef47dc5ebc2bb92c58ee24b67050d5c3e0e2e8aec8373dc5d",
+      "shotId": "SR-0022",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "fd9a6ff3",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/bench.academy.png",
+      "hash": "sha256:8fb45e3e4f7df7b8c1438143d708cd93479ae19f0b6b445b311699035692f44f",
+      "shotId": "SR-0023",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "7a97107c",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "stills/bench.press.png",
+      "hash": "sha256:052eae53de292001b92d6c65d0ee76b2960016fb20917912c41b57a9c5c0d30c",
+      "shotId": "SR-0024",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "db5c7eca",
+      "inputs": "sealed SH2 Style Block v2 + Prop One references; zero user content"
+    },
+    {
+      "file": "clips/flight_amb-a-push_8c0061aa_GRADED.mp4",
+      "hash": "sha256:07abebe06f6a9474914801e6e7961b1c9d83b5281b17d1b452eafa35658a698a",
+      "shotId": "SR-0025",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "8c0061aa",
+      "inputs": "texture-preamble physics prompt per LOCK-V3; lanternlight-v1 grade",
+      "encode": "lanternlight-v2 from RAW (RGB halation; warm-law verified) 2026-07-17"
+    },
+    {
+      "file": "clips/conn_approach-gate_74731d65_GRADED.mp4",
+      "hash": "sha256:987bf91551414f36d3f19fdd021ed8f3bc53f668cc7ac952a50bda32caeb7749",
+      "shotId": "SR-0033",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "74731d65",
+      "inputs": "texture-preamble physics prompt per LOCK-V3; lanternlight-v1 grade",
+      "encode": "lanternlight-v2 from RAW (RGB halation; warm-law verified) 2026-07-17"
+    },
+    {
+      "file": "clips/conn_gate-ambA_5ef7b236_GRADED.mp4",
+      "hash": "sha256:ba9fad85f8c443185ba22f7b4f57bf2560657967545eb0a681c870d335a42fa0",
+      "shotId": "SR-0034",
+      "tool": "external-mcp-sprint (Higgsfield MCP, founder-operated)",
+      "date": "2026-07-17",
+      "operator": "marcus",
+      "generationId": "5ef7b236",
+      "inputs": "texture-preamble physics prompt per LOCK-V3; lanternlight-v1 grade",
+      "encode": "lanternlight-v2 from RAW (RGB halation; warm-law verified) 2026-07-17"
+    }
+  ]
+}
