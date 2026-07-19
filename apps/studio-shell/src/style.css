@@ -1,16 +1,15 @@
-/* THE ONE BUILD — Ledger ground. One journey, one desk. */
-:root {
-  --obsidian: #141310;
-  --page: #1d1b17;
-  --ink: #c9c2b4;
-  --ink-dim: #8a8375;
-  --gold: #c9a227;
-  --serif: 'Crimson Pro', Georgia, serif;
-  --sans: 'IBM Plex Sans', system-ui, sans-serif;
-  --mono: 'IBM Plex Mono', Consolas, monospace;
-}
+/* THE ONE BUILD — Ledger ground. One journey, one desk.
+ *
+ * EMB-2: the shell is the first consumer of @ash-archive/ledger-tokens.
+ * Every color, face, size, and duration below is a token or derives from one
+ * via color-mix — no raw values (GENESIS 03 §XI: Wings consume tokens, never
+ * raw values). Jurisdiction: page law (ADR-SH2-A); the world stills behind
+ * the desk are world law and pass through untouched. */
+@import '../../../packages/ledger-tokens/fonts/fonts.css';
+@import '../../../packages/ledger-tokens/tokens.css';
+
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: var(--obsidian); color: var(--ink); font-family: var(--sans); }
+html, body { margin: 0; height: 100%; background: var(--obsidian-0); color: var(--ink-body); font-family: var(--font-mechanics); }
 #shell { height: 100%; }
 #seat { position: relative; height: 100%; overflow: hidden; }
 
@@ -20,50 +19,59 @@ html, body { margin: 0; height: 100%; background: var(--obsidian); color: var(--
 #page-host { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: flex-start; padding: 4vh 6vw; }
 
 /* THE DESK: one sheet of paper in the room. The page is brighter than the world
-   by its own luminance; the shadow grounds it in the lantern light. */
+   by its own luminance (SH2 §1.2 keeps every world pixel below the page's
+   register); the shadow is the lantern grounding the sheet in the scene —
+   scene light, not SaaS elevation. */
 .desk { width: min(46rem, 52vw); }
-.desk-sheet { background: var(--page); border-radius: 2px; padding: 3rem 3.2rem 1.4rem;
+.desk-sheet { background: var(--canvas); border-radius: 2px; padding: var(--space-section) calc(var(--space-section) + var(--space-element)) var(--space-element);
   box-shadow: 0 2px 18px rgba(10, 9, 7, 0.6), 0 0 110px 50px rgba(10, 9, 7, 0.38); }
+/* The manuscript reads at 18 — the desk sits closer to the eye than the table
+   (named choice, BR-002); leading is the sealed 1.55; the words are the
+   default reading register: ink-body, never white (GENESIS 03 §IV.6). */
 #page { display: block; width: 100%; min-height: 52vh; background: transparent; border: none; resize: none;
-  color: var(--ink); font-family: var(--serif); font-size: 1.08rem; line-height: 1.75; outline: none; }
-#page::placeholder { color: var(--ink-dim); opacity: 0.5; }
-.desk-foot { display: flex; justify-content: space-between; align-items: baseline; margin-top: 1.2rem;
-  border-top: 1px solid #2a2721; padding-top: 0.6rem; }
-#inked { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; color: var(--ink-dim); }
-#walk-again { background: none; border: none; color: var(--ink-dim); font-family: var(--mono);
-  font-size: 0.62rem; letter-spacing: 0.08em; cursor: pointer; padding: 0; }
+  color: var(--ink-body); font-family: var(--font-display); font-size: var(--type-section); line-height: var(--leading-body); outline: none; }
+#page::placeholder { color: var(--ink-muted); opacity: 0.5; }
+.desk-foot { display: flex; justify-content: space-between; align-items: baseline; margin-top: var(--space-element);
+  border-top: 1px solid var(--ink-ghost); padding-top: var(--space-compact); }
+#inked { font-family: var(--font-data); font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps); color: var(--ink-muted); }
+#walk-again { background: none; border: none; color: var(--ink-muted); font-family: var(--font-data);
+  font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps); cursor: pointer; padding: 0;
+  transition: color var(--dur-micro) var(--ease-considered); }
 #walk-again:hover { color: var(--gold); }
 
-/* the law at 12px — present, never loud */
-#uncurated-chip { position: fixed; left: 8px; bottom: 8px; z-index: 200; display: none;
-  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--ink-dim);
-  background: rgba(29, 27, 23, 0.75); padding: 2px 6px; border-radius: 2px; opacity: 0.6; }
+/* the law at the footnote register — present, never loud */
+#uncurated-chip { position: fixed; left: var(--space-compact); bottom: var(--space-compact); z-index: 200; display: none;
+  font-family: var(--font-data); font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps); color: var(--ink-muted);
+  background: color-mix(in srgb, var(--canvas) 75%, transparent); padding: 2px 6px; border-radius: 2px; opacity: 0.6; }
 #uncurated-chip.on { display: block; }
 
 #announcer { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 
 /* ---------- THE JOURNEY: Lanternlight over the vendored engine ---------- */
 #tour.sw-root {
-  --sw-bg: #141310;
-  --sw-ink: #e8e2d4;
-  --sw-ink-soft: #a89f8d;
-  --sw-accent: #c9a227;
-  --sw-font-display: 'Crimson Pro', Georgia, serif;
-  --sw-font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --sw-bg: var(--obsidian-0);
+  --sw-ink: var(--ink-primary);
+  --sw-ink-soft: var(--ink-secondary);
+  --sw-accent: var(--gold);
+  --sw-font-display: var(--font-display);
+  --sw-font-body: var(--font-mechanics);
 }
 /* no template chrome: engine defaults die or dress */
 #tour .sw-nav, #tour .sw-brand, #tour .sw-topcta { display: none; }
 #tour .sw-copy__title { font-weight: 500; letter-spacing: 0; }
-#tour .sw-copy__eyebrow { font-family: var(--mono); font-weight: 400; letter-spacing: 0.22em; }
-#tour .sw-copy__num { color: rgba(200, 194, 180, 0.4); }
-#tour .sw-btn--primary { background: var(--gold); color: #141310; border-radius: 2px; font-family: var(--sans); }
+#tour .sw-copy__eyebrow { font-family: var(--font-data); font-weight: 400; letter-spacing: 0.22em; }
+#tour .sw-copy__num { color: color-mix(in srgb, var(--ink-primary) 40%, transparent); }
+#tour .sw-btn--primary { background: var(--gold); color: var(--obsidian-0); border-radius: 2px; font-family: var(--font-mechanics); }
 #tour .sw-btn--ghost { border-radius: 2px; }
-#tour .sw-route::before { background: rgba(201, 162, 39, 0.35); }
-#tour .sw-route__label { background: rgba(29, 27, 23, 0.9); color: var(--ink);
-  border: 1px solid rgba(201, 162, 39, 0.25); backdrop-filter: none; font-family: var(--sans); font-weight: 400; }
-#tour .sw-scrollbar { background: rgba(201, 162, 39, 0.12); }
-#tour .sw-hint { color: var(--ink-dim); }
+#tour .sw-route::before { background: color-mix(in srgb, var(--gold) 35%, transparent); }
+#tour .sw-route__label { background: color-mix(in srgb, var(--canvas) 90%, transparent); color: var(--ink-body);
+  border: 1px solid color-mix(in srgb, var(--gold) 25%, transparent); backdrop-filter: none; font-family: var(--font-mechanics); font-weight: 400; }
+#tour .sw-scrollbar { background: color-mix(in srgb, var(--gold) 12%, transparent); }
+#tour .sw-hint { color: var(--ink-muted); }
 /* the copy sits on the image itself; keep the left gradient soft and warm-dark */
 #tour .sw-copylayer::before {
-  background: linear-gradient(90deg, rgba(20, 19, 16, 0.72) 0%, rgba(20, 19, 16, 0.38) 40%, transparent 72%);
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--obsidian-0) 72%, transparent) 0%,
+    color-mix(in srgb, var(--obsidian-0) 38%, transparent) 40%,
+    transparent 72%);
 }

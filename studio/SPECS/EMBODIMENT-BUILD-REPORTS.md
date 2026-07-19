@@ -57,3 +57,47 @@ which predate canon and violate §I/§II) · EMB-3 `ledger-lint` (token-only ren
 CI teeth) · EMB-4 the folio chrome primitives (vertical runner, roman pagination,
 margin architecture) against sealed SPEC-002 shapes — the seated composer instrument
 itself still gates on the CB1 seal (SHIP-LEDGER row 7).
+
+---
+
+## BR-002 · Fonts made real + the shell becomes the first token consumer (2026-07-19)
+
+**What shipped.** (a) GENESIS 03 §IV's faces now physically exist in the product:
+self-hosted woff2 under `packages/ledger-tokens/fonts/` (Crimson Pro variable
+200–900 + italic · IBM Plex Sans variable + italic · IBM Plex Mono 400/500), OFL
+licenses alongside, exported as `@ash-archive/ledger-tokens/fonts.css`. Until this
+slice the shell *declared* the faces but loaded nothing — the desk was actually
+rendering Georgia. (b) `apps/studio-shell` is the first consumer: every color, face,
+size, tracking, and duration in `style.css` is now a token or a `color-mix()`
+derivation of one — zero raw values. Off-canon values purged and grep-verified gone
+from the built bundle: the desk's gold was `#c9a227` (sealed gold is `#c9a862`),
+its page `#1d1b17`, its inks `#c9c2b4`/`#8a8375`, the journey's `#e8e2d4`/`#a89f8d`.
+
+**Verified.** Shell strict tsc clean · vite build green, all 12 woff2 bundled ·
+built-CSS grep: six off-canon hexes absent, canon values present. The founder's
+walk-through (Wonder/Purist pattern) remains the experiential gate.
+
+**Non-dictated decisions, recorded (none silent):**
+1. **The manuscript reads at `--type-section` (18px)** — the desk sits closer to the
+   eye than the table; the scale is sizes, not roles. Leading corrected to the sealed
+   1.55 (was an off-law 1.75). The words are `--ink-body` — running text, never white.
+2. **The desk-foot rule is `--ink-ghost`** — §II v2 assigns rules to ghost by law;
+   the old value was a ground hex moonlighting as a border.
+3. **Footer/chip labels sit at the footnote register (11px)** with the lawful 0.12em
+   tracking (were 9–10px at 0.08/0.1em — off-scale, off-law).
+4. **`font-display: block`** — a local instrument loads instantly; words arrive
+   inked, never swapping over a fallback ghost.
+5. **Subsets latin + latin-ext** — worldbuilding is full of diacritics.
+6. **IBM Plex Mono ships static 400/500** — no official variable release exists;
+   §IV's "variable" hosting ideal is met where upstream publishes one.
+7. **The desk-sheet shadow stays** — it is the lantern grounding the sheet in the
+   scene (the desk composes INTO a world still), not SaaS elevation. The 2px radii
+   stay pending the CB1 seal (its no-radii lint is unsealed law).
+8. **The journey engine's `--sw-*` seams now feed from tokens** (obsidian, gold,
+   primary/secondary ink) — the vendored engine stays verbatim (sealed working
+   state); only its declared theming surface is fed canon.
+9. **Root-app retirement deferred to its own slice** — the pre-canon React
+   landing/dashboard violates §I/§II wholesale (glassmorphism, cyan/purple, CDN
+   fonts); it deserves a deliberate embodiment, not a palette swap.
+
+**⚑ For the canon holder:** none new. (E-1/E-2 stand from BR-001.)
