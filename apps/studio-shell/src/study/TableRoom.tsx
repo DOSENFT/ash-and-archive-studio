@@ -3,7 +3,7 @@
 // healing are inscriptions, the quill writes ash, rests are held ceremonies, dice
 // land in the log, the earned wheel turns only where the disposition said so.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Vault, EntryView } from "@ash-archive/core";
+import type { Vault } from "@ash-archive/core";
 import { EntryQuery } from "@ash-archive/core";
 import {
   CODEX_TABLE_DM, CODEX_TABLE_PLAYER, ComposerRuntime,
@@ -36,6 +36,7 @@ export function TableRoom({ vault, sessionId, announce, reducedMotion }: {
   const [tick, setTick] = useState(0); // re-render pulse from the runtime
   const [directive, setDirective] = useState<TurnDirective | undefined>(undefined);
   const [active, setActive] = useState<string>(side === "dm" ? "scene" : "vitals");
+  const [overflow, setOverflow] = useState<string[] | null>(null); // MoreAffordance unfold
   const runtimeRef = useRef<ComposerRuntime | null>(null);
 
   const profile = side === "dm" ? CODEX_TABLE_DM : CODEX_TABLE_PLAYER;
@@ -79,11 +80,24 @@ export function TableRoom({ vault, sessionId, announce, reducedMotion }: {
   }, [tick, profile]);
 
   const append = useCallback((type: string, payload: Record<string, unknown>) => {
+    if (sessionId === "") {
+      announce("No session is open; the ash cannot receive this. Walk again to reopen.");
+      return false;
+    }
     const r = vault.ash.append(type as never, payload as never, { actor: "owner", sessionId });
     if (!r.ok) announce(`The page refused: ${r.error.message}`);
-    runtimeRef.current?.noteGraphChanged; // graph unchanged; folds recompose via subscription
     return r.ok;
   }, [vault, sessionId, announce]);
+
+  /** The being an action belongs to: the active turn's being when it is at the
+   *  table, else the perspective's first being — never a guess at world order. */
+  const actingBeing = useCallback((): string | null => {
+    const fold = vault.ash.fold<{ activeTurn: string | null }>("combat", { sessionId });
+    if (fold.ok && fold.value.activeTurn !== null) return fold.value.activeTurn;
+    const map = beingActorMap(vault);
+    const mine = Object.keys(map).filter((b) => map[b] === perspective).sort();
+    return mine[0] ?? null;
+  }, [vault, sessionId]);
 
   const onVerb = useCallback((el: Element, affordance: VerbAffordance) => {
     // Element ids carry the gesture payload after '#': `${id}#${detail}`.
@@ -122,24 +136,35 @@ export function TableRoom({ vault, sessionId, announce, reducedMotion }: {
     }
     if (affordance.verb === "kindle") {
       if (el.kind === "hand-card") {
-        append("action.spent", { beingId: firstBeing(vault) ?? "", slot: "action", ref: affordance.entryId });
+        const being = actingBeing();
+        if (being === null) {
+          announce("No being holds this hand yet — author one at the Forge first.");
+          return;
+        }
+        append("action.spent", { beingId: being, slot: "action", ref: affordance.entryId });
         return;
       }
       append("entry.kindled", { entryId: affordance.entryId });
       return;
     }
+    if (affordance.verb === "unfold" && el.kind === "more") {
+      // §5.2 — nothing folded is ever unreachable: the overflow unfolds to a
+      // named list (the ids carry their source entries).
+      setOverflow((o) => (o === null ? el.ids : null));
+      return;
+    }
     void id;
-  }, [append, announce, vault]);
+  }, [append, announce, vault, actingBeing]);
 
   const onRibbon = useCallback((ribbon: Ribbon) => {
     if (ribbon.kind === "reaction") {
-      const being = firstBeing(vault);
+      const being = actingBeing();
       if (being !== null) {
         append("reaction.taken", { beingId: being, kind: ribbon.interruptKind, triggerEvent: ribbon.triggerEvent });
         announce(`Reaction: ${ribbon.interruptKind}.`);
       }
     }
-  }, [append, announce, vault]);
+  }, [append, announce, actingBeing]);
 
   const onConsent = useCallback((eventType: string) => {
     append("autoturn.granted", { eventType });
@@ -183,11 +208,19 @@ export function TableRoom({ vault, sessionId, announce, reducedMotion }: {
         onConsent={onConsent}
         reducedMotion={reducedMotion}
       />
+      {overflow !== null ? (
+        <div className="st-overflow" role="region" aria-label="Folded">
+          <span className="st-overflow-title">folded, within reach</span>
+          <ul>
+            {overflow.map((id) => {
+              const entryId = id.slice(id.indexOf(":") + 1);
+              const entry = vault.archive.get(entryId);
+              return <li key={id}>{entry.ok ? entry.value.name : id}</li>;
+            })}
+          </ul>
+          <button type="button" className="st-door" onClick={() => setOverflow(null)}>fold</button>
+        </div>
+      ) : null}
     </div>
   );
-}
-
-function firstBeing(vault: Vault): string | null {
-  const r = vault.archive.query(EntryQuery.kind("being").orderBy("createdAt", "asc").limit(1));
-  return r.ok && r.value.length > 0 ? (r.value[0] as EntryView).id : null;
 }

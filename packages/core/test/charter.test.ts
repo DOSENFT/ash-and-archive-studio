@@ -402,6 +402,19 @@ describe("charter.readiness (§7.5, v1.2 ReadinessReport shape)", () => {
     expect(byDomain["unknowns"]).toMatchObject({ count: 3, min: 3, met: true });
   });
 
+  it("a complete PLACE-toy counts toward the toys domain (SPEC-003 §2: being|place|thing)", () => {
+    buildPassWorld();
+    draftOk("place", {
+      name: "The Debtor's Bridge",
+      goal: "collect the toll", method: "the only crossing", activeProblem: "the river rises",
+      hooks: ["a body under the arch", "the toll-keeper owes the Duke"],
+      lever: "the ledger of crossings", escalation: "the bridge closes",
+    });
+    const rep = readinessOk(worldId);
+    const toys = rep.domains.find((d) => d.domain === "toys")!;
+    expect(toys.count).toBe(13); // 12 from the pass world + the place-toy
+  });
+
   it("counts only truths with an ACTIVE unlocks link — the ended-link case (ADR-003-D)", () => {
     const { truths } = buildPassWorld();
     const links = vault.archive.links(truths[9]!.id, { type: "unlocks", direction: "from" });

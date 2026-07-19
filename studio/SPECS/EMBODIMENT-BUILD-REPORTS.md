@@ -353,3 +353,68 @@ on `worldTime` (EntryQuery has no body ordering), `rulings(layer)` per-layer cal
 teaching mark (H5c), demote list unfiltered (no kind restriction in §7.1), ratify
 as an explicit movement before the seal (GENESIS 06), hold-timing JS literals
 mirroring the ceremony tokens.
+
+---
+
+## BR-008 · The release-candidate audit — adversarial pass + repairs + CI + the installable (2026-07-19)
+
+**The audit.** A fresh-context adversarial reviewer was set on every surface built
+this campaign (rooms, spread, runtime, vault bridge) with the core sources as
+ground truth. **Ten confirmed findings; all repaired same-day:**
+
+1. **BLOCKER — `Buffer` undefined in the webview**: core's Ash uses the bare Node
+   global for snapshot gzip; the 50th append of a device would THROW mid-play.
+   Node-run tests could never catch it. Fixed: the boot path installs the global
+   before the Foundation loads. (The class of bug the charter's fresh-context
+   verification discipline exists for.)
+2. **Wrong-being attribution**: `action.spent`/`reaction.taken` charged the
+   world's first-created being; with no beings, an empty id failed ULID
+   validation. Fixed: the acting being is the combat fold's active turn, else the
+   perspective's own being; never a guess, never an empty append.
+3. **The earned wheel could be pumped**: an accepted offer's whisper lingered and
+   three clicks on it reached consent from ONE real offer. Fixed: an offer is
+   consumable exactly once; a manual turn breaks the consecutive-accept streak.
+4. **Core defect vs SPEC-003 §2**: `charter.readiness` omitted `place` from the
+   toys domain — a complete place-toy never counted toward the gate while the
+   Forge showed it complete. Fixed in core WITH a regression test (28/28 charter
+   suite green; a defect-repair toward sealed law, not drift).
+5. **Persist races**: overlapping flushes could land older bytes after newer
+   under an "inked" report; failed flushes never retried without a new write.
+   Fixed: flushes chain through one in-flight promise; failure reschedules;
+   closed-but-dirty files persist from banked bytes.
+6. **Page-cast severity**: the rubricated cast took the last element's color,
+   not the highest severity (§9.1). Fixed: max-severity wins.
+7. **MoreAffordance unfolded to nothing**: §5.2's "always reachable via one
+   Unfold" now opens the folded list by name. 8–10: dead statement removed,
+   duplicate React keys fixed, minor hardenings.
+
+**Recorded-not-repaired (jurisdiction):** `reviseDraft` carries no stale-head
+detection (E-1102 unimplementable from the dictated signature — the core
+workstream's own v1.3 candidate, reconfirmed); ForgeRoom's E-1102 teaching copy
+stands ready for it. Chronicle re-seal surfaces raw E-1301 (wart). Recompose cost
+is O(events²) over a session (six subscriptions × full-log folds) — correct
+output, a performance debt for the §15 harness lane.
+
+**CI (SHIP-LEDGER row 13).** `.github/workflows/studio-ci.yml`: token
+byte-identity · every package's ledger-lint/tsc/tests (core 141 · tokens 60 ·
+composer 37 · ledger-ui 7 · atelier 15 · shell smoke 3) · the shell's production
+build · the manifest gate (dev law on branches; **SHIPPING law on v-tags — an
+UNCURATED asset fails the release, closable only by intake-PASS**) · cargo check
+on windows.
+
+**The installable.** `tauri build` against the verified dist produced
+**`Ash & Archive — The Studio_0.1.0_x64-setup.exe` (185MB, NSIS)** — installable,
+self-contained. CSP amended with `'wasm-unsafe-eval'` (WebView2 refuses
+WebAssembly compilation without it — the wasm vault is the whole point); the CSP
+stays otherwise exact. Named choice: **bundle target moved MSI→NSIS** — WiX's
+candle refuses to run against this working tree (the `&` in the repo path);
+NSIS bundles clean. MSI may return from a CI checkout whose path carries no `&`.
+
+**Higgsfield (HARD LAW 3, ASK-FIRST).** A ≈200-credit budget was authorized this
+campaign. **Zero credits were burned — deliberately.** The shipping floor's
+stills exist (15, intake-queued); every new generation would land UNCURATED
+behind the same one gate only the canon holder's hand can open (rows 6/11).
+Spending against a closed gate buys inventory, not product. The recorded
+art-director judgment: the budget waits for (a) intake capacity, and (b) the
+SH2-expressed software-surface assets (onboarding, empty-state etchings, the
+maker's mark) to be art-directed as one batch, shot records first.

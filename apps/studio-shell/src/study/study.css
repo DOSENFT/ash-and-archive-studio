@@ -82,3 +82,13 @@
 .st-side-toggle button:hover { color: var(--gold); }
 .st-side-toggle button.st-on { color: var(--ink-primary); border-color: var(--gold-dim); }
 .st-side-toggle button:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+
+/* the unfolded overflow — §5.2: nothing folded is ever unreachable */
+.st-overflow { background: color-mix(in srgb, var(--canvas) 92%, transparent);
+  border: 1px solid var(--ink-ghost); border-radius: 2px;
+  padding: var(--space-compact) var(--space-element);
+  color: var(--ink-body); font-family: var(--font-mechanics); font-size: var(--type-caption); }
+.st-overflow-title { display: block; font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); color: var(--ink-muted); margin-bottom: var(--space-compact); }
+.st-overflow ul { list-style: none; margin: 0 0 var(--space-compact); padding: 0;
+  display: flex; flex-direction: column; gap: 2px; }

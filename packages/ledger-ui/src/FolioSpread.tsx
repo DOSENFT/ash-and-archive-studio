@@ -35,12 +35,17 @@ export function FolioSpread({
   const accepts = useRef<Record<string, number>>({});
   const [consentAsk, setConsentAsk] = useState<string | null>(null);
   const handled = useRef<TurnDirective | undefined>(undefined);
+  // An offer is consumable exactly once: accepting it retires the directive
+  // object, so the whisper cannot linger and the consent counter cannot be
+  // pumped from a single offer (adversarial-review finding 3).
+  const [consumed, setConsumed] = useState<TurnDirective | null>(null);
 
   const keys = folios.map((f) => f.key);
   const idx = Math.max(0, keys.indexOf(activeKey));
   const active = folios[idx];
 
   const go = useCallback((to: string, manual: boolean) => {
+    if (manual) accepts.current = {}; // a manual turn breaks the consecutive-accept streak (§8.3)
     if (to === activeKey) return;
     const dir = keys.indexOf(to) > idx ? "fwd" : "back";
     setTurning(dir);
@@ -77,9 +82,10 @@ export function FolioSpread({
 
   if (active === undefined) return null;
 
-  const offer = directive?.kind === "offer" ? directive : null;
+  const offer = directive?.kind === "offer" && directive !== consumed ? directive : null;
   const acceptOffer = () => {
     if (offer === null) return;
+    setConsumed(offer);
     const n = (accepts.current[offer.eventType] ?? 0) + 1;
     accepts.current[offer.eventType] = n;
     go(resolveRole(offer.toRole), false);

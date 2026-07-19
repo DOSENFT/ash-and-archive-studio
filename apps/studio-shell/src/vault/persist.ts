@@ -1,7 +1,7 @@
 // Durability for the WASM vault: the Tauri host (app-data/vault, atomic writes)
 // in the shipped shell; IndexedDB in browser dev. Debounced after writes; flushed
 // on blur and pagehide (§4.3's checkpoint moments applied to the serialize seam).
-import { openedVaultFiles } from "./wasm-binding.js";
+import { serializeVaultFile } from "./wasm-binding.js";
 
 const DEBOUNCE_MS = 1500;
 
@@ -101,22 +101,32 @@ export function markDirty(name: string): void {
   timer = setTimeout(() => void flush(), DEBOUNCE_MS);
 }
 
-export async function flush(): Promise<void> {
+// Flushes are strictly serialized: overlapping saves could land out of order
+// (two independent IPC invokes carry no ordering guarantee) and leave older
+// bytes on disk under an "inked" report. One in-flight chain, always.
+let inFlight: Promise<void> = Promise.resolve();
+
+export function flush(): Promise<void> {
+  inFlight = inFlight.then(() => flushNow());
+  return inFlight;
+}
+
+async function flushNow(): Promise<void> {
   const names = [...dirty];
   dirty.clear();
-  const handles = openedVaultFiles();
   const t = tauri();
   try {
     for (const name of names) {
-      const handle = handles.get(name);
-      if (handle === undefined) continue;
-      const bytes = handle.serialize();
+      const bytes = serializeVaultFile(name); // live handle or banked-at-close bytes
+      if (bytes === null) continue;
       if (t) await t.core.invoke("vault_save", { name, bytesB64: toB64(bytes) });
       else await idbSave(name, bytes);
     }
     if (names.length > 0) onStatus?.("inked");
   } catch (e) {
-    for (const name of names) dirty.add(name); // retry on the next write or flush moment
+    for (const name of names) dirty.add(name);
+    clearTimeout(timer);
+    timer = setTimeout(() => void flush(), DEBOUNCE_MS * 4); // retry even without a new write
     onStatus?.("unsaved");
     console.warn("[vault] persist failed:", e);
   }

@@ -79,9 +79,12 @@ function RunnerLabel({ runner, id }: { runner: string; id: string }) {
 
 export function FolioView({ folio, onVerb, onRibbon, onPencil, footer }: FolioViewProps) {
   const runnerId = useId();
+  // §9.1 — the highest severity wins the page-cast, never the last-rendered.
   const cast = folio.rubricated
-    ? folio.pinned.concat(folio.body).reduce<string | null>((top, el) =>
-        el.rubric !== undefined ? `var(${el.rubric.cssVar})` : top, null)
+    ? folio.pinned.concat(folio.body).reduce<{ sev: number; v: string } | null>((top, el) =>
+        el.rubric !== undefined && (top === null || el.rubric.severity > top.sev)
+          ? { sev: el.rubric.severity, v: `var(${el.rubric.cssVar})` }
+          : top, null)?.v ?? null
     : null;
   return (
     <section

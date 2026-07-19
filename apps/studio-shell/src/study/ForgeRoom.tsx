@@ -139,7 +139,7 @@ function GateStrip({ vault, refresh, onRoute }: {
       {report.missing.length > 0 ? (
         <ul className="fg-missing">
           {report.missing.map((m) => (
-            <li key={m.domain}>
+            <li key={`${m.domain}:${m.need}`}>
               {DOMAIN_NAMES[m.domain]} — {m.have} of {m.need}: {DOMAIN_TEACHING[m.domain]}.
             </li>
           ))}

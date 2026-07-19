@@ -397,7 +397,10 @@ export class Charter {
     const scarcity = entries.filter((e) => e.kind === "ruling" && nonempty(e.parsed.scarcityVector)).length;
     const faithMagic = entries.filter((e) => e.kind === "ruling"
       && Array.isArray(e.parsed.discernmentTells) && e.parsed.discernmentTells.filter(nonempty).length >= 3).length;
-    const toys = entries.filter((e) => (e.kind === "being" || e.kind === "thing") && toyComplete(e.parsed)).length;
+    // SPEC-003 §2 seals the Toy facet over being | place | thing — a carved-token
+    // location is as much a Toy as a person (defect fix 2026-07-19: place was
+    // omitted, so complete place-toys never counted toward the gate).
+    const toys = entries.filter((e) => (e.kind === "being" || e.kind === "place" || e.kind === "thing") && toyComplete(e.parsed)).length;
     // v1.2/ADR-003-D — readiness counts ONLY truths with an ACTIVE unlocks link.
     const truths = entries.filter((e) => e.kind === "truth" && activeUnlocksFrom.has(e.id)).length;
     const unknowns = entries.filter((e) => e.canonStatus === "unknown"

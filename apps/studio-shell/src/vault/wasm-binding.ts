@@ -99,9 +99,18 @@ class WasmDb implements DbHandle {
 
 /** Opened handles, so the persist layer can serialize on demand. */
 const openHandles = new Map<string, WasmDb>();
+/** Bytes banked at close — a closed-but-dirty file must still reach disk. */
+const bankedBytes = new Map<string, Uint8Array>();
 
 export function openedVaultFiles(): ReadonlyMap<string, WasmDb> {
   return openHandles;
+}
+
+/** The persist layer's single read path: live handle first, banked bytes second. */
+export function serializeVaultFile(name: string): Uint8Array | null {
+  const handle = openHandles.get(name);
+  if (handle !== undefined) return handle.serialize();
+  return bankedBytes.get(name) ?? null;
 }
 
 /**
@@ -135,6 +144,7 @@ export function wasmBinding(
       db.exec("PRAGMA foreign_keys=ON;");
       const handle = new WasmDb(db, () => onDirty(fileName), (banked) => {
         preloaded.set(fileName, banked); // the next open of this name restores it
+        bankedBytes.set(fileName, banked); // and a pending flush can still persist it
         if (openHandles.get(fileName) === handle) openHandles.delete(fileName);
       });
       openHandles.set(fileName, handle);
