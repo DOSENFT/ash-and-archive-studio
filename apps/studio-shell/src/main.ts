@@ -6,6 +6,7 @@
 import './style.css';
 import { loadManifest } from '../../../packages/atelier/src/index.ts';
 import type { LoadedManifest } from '../../../packages/atelier/src/index.ts';
+import { gold } from '../../../packages/ledger-tokens/src/index.ts';
 import './vendor/scrub-engine.js'; // the ingested engine, vendored verbatim
 
 declare global {
@@ -131,7 +132,8 @@ function enterTour(): void {
       still: `/${x.poster as string}`,           // poster doubles as reduced-fidelity artwork
       poster: `/${x.poster as string}`,          // extracted first frame of the encoded clip
       clip: `/${x.clip as string}`,
-      accent: '#c9a227',
+      accent: gold.base, // the actionable metal — sealed value, never a local hex
+
     }));
     if (!filmSections.length) { void seatAtDesk(); return; }
     // the last section carries the seat CTA

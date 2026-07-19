@@ -101,3 +101,41 @@ walk-through (Wonder/Purist pattern) remains the experiential gate.
    fonts); it deserves a deliberate embodiment, not a palette swap.
 
 **⚑ For the canon holder:** none new. (E-1/E-2 stand from BR-001.)
+
+---
+
+## BR-003 · `ledger-lint` — token-only rendering with CI teeth (2026-07-19)
+
+**What shipped.** `packages/ledger-tokens/scripts/ledger-lint.mjs` — GENESIS 03 §XI's
+"Wings consume tokens, never raw values" enforced structurally on consumer surfaces.
+Six rules, all derived from sealed law only: L1 raw hex · L2 raw color functions and
+color-mix() with any non-token color argument · L3 raw cubic-bezier · L4 font-family
+not via `var(--font-…)` · L5 numeric durations on transition/animation · L6 hex color
+strings in TS/JS. Allowances exist but are loud: `ledger-lint: allow(<rule>) <reason>`
+with a mandatory reason, visible in every diff. Exempt: `vendor/` (sealed working
+state, themed only through its declared `--sw-*` seams), `.d.ts`, and the token
+package itself. Wired into the shell's `build` script — a violating build cannot ship.
+
+**The lint's first catch, immediately:** `main.ts` was still feeding the vendored
+engine the off-canon gold `#c9a227` from TypeScript — EMB-2's CSS purge had missed
+the code path. Now a typed import: `gold.base` from the token package. The desk
+shadow's raw `rgba(10,9,7,…)` literals became var-only `color-mix()` over obsidian.
+
+**Verified.** Positive: shell `src` lints clean. Negative: a bait file carrying a raw
+hex, an off-register 300ms transition, a fourth font, and a literal-color color-mix
+trips all four expected rules and exits 1. Full chain green after the fixes:
+lint clean → strict tsc clean → vite build green → ledger-tokens 60/60.
+
+**Non-dictated decisions, recorded (none silent):**
+1. **Only sealed-derivable rules.** CB1's stricter bench-lint set (no box-shadows,
+   no border-radii, licensed opacities) is UNSEALED — those rules arrive with the
+   CB1 seal, not before. The lint's rule list cites its law per rule.
+2. **Spacing is not linted** (yet): a mechanical px-literal rule cannot distinguish
+   layout dimensions from the 8/16/32 spacing law without CSS-property context;
+   spacing stays a review concern until a property-aware rule is worth its
+   complexity.
+3. **TS rule is colors-only** — millisecond literals in code are behavior timing
+   (save debounce, deadlines), which is core/spec jurisdiction, not presentation.
+4. **The bug found by verification, recorded honestly:** the first color-mix parser
+   broke on `var(--…)`'s own close-paren and flagged ten lawful lines; rewritten to
+   match the lawful form whole. The negative bait check now guards the lint itself.

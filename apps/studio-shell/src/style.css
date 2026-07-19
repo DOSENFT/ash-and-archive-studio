@@ -24,7 +24,8 @@ html, body { margin: 0; height: 100%; background: var(--obsidian-0); color: var(
    scene light, not SaaS elevation. */
 .desk { width: min(46rem, 52vw); }
 .desk-sheet { background: var(--canvas); border-radius: 2px; padding: var(--space-section) calc(var(--space-section) + var(--space-element)) var(--space-element);
-  box-shadow: 0 2px 18px rgba(10, 9, 7, 0.6), 0 0 110px 50px rgba(10, 9, 7, 0.38); }
+  box-shadow: 0 2px 18px color-mix(in srgb, var(--obsidian-0) 60%, transparent),
+    0 0 110px 50px color-mix(in srgb, var(--obsidian-0) 38%, transparent); }
 /* The manuscript reads at 18 — the desk sits closer to the eye than the table
    (named choice, BR-002); leading is the sealed 1.55; the words are the
    default reading register: ink-body, never white (GENESIS 03 §IV.6). */

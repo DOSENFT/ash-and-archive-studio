@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run lint:ledger && tsc --noEmit && vite build",
+    "lint:ledger": "node ../../packages/ledger-tokens/scripts/ledger-lint.mjs src",
     "preview": "vite preview"
   },
   "engines": {
