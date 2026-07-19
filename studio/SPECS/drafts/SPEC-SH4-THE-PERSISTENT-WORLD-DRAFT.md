@@ -1,5 +1,11 @@
 # SPEC-SH4 — THE PERSISTENT WORLD (draft v0.1, 2026-07-18)
 
+> **⏸ PARKED, UNSEALED — ADR-SH4-PARK (Marcus's instrument, 2026-07-19).** Not killed.
+> No adversarial verify, no seal, no spend-tier approval proceeds while parked. This draft,
+> WORLD-BIBLE-V1, STYLE-BLOCK-V3, and PROMPTS-V2 stand as authored. Reopens by Marcus's
+> instrument only, as the spatial extension of a shipped embodied interface — see
+> `studio/SPECS/THE-EMBODIMENT-CHARTER.md` §7.
+
 *Authored under Marcus's redesign order of 2026-07-18 ("Do not improve the existing
 implementation. Redesign the entire system."). Status: DRAFT — awaiting fresh-context
 adversarial verify → patch → the canon holder's seal, per the sealed spec pipeline.
