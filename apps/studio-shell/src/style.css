@@ -23,15 +23,55 @@ html, body { margin: 0; height: 100%; background: var(--obsidian-0); color: var(
    register); the shadow is the lantern grounding the sheet in the scene —
    scene light, not SaaS elevation. */
 .desk { width: min(46rem, 52vw); }
-.desk-sheet { background: var(--canvas); border-radius: 2px; padding: var(--space-section) calc(var(--space-section) + var(--space-element)) var(--space-element);
+.desk-sheet { position: relative; background: var(--canvas); border-radius: 2px;
+  padding: var(--space-section) calc(var(--space-section) + var(--space-element)) var(--space-element) calc(var(--space-section) + var(--space-element));
   box-shadow: 0 2px 18px color-mix(in srgb, var(--obsidian-0) 60%, transparent),
     0 0 110px 50px color-mix(in srgb, var(--obsidian-0) 38%, transparent); }
+
+/* THE VERTICAL RUNNER (GENESIS 03 §IV.4) — the book always tells you what
+   page you're on without a header bar. Pattern §IV.1: italic "the" + roman
+   small-caps. It is also the region's accessible label (§X). */
+.runner { position: absolute; left: var(--space-element); top: var(--space-section);
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  font-family: var(--font-display); font-size: var(--type-caption);
+  font-variant-caps: small-caps; letter-spacing: var(--tracking-smallcaps);
+  color: var(--ink-muted); user-select: none; }
+.runner i { font-style: italic; font-variant-caps: normal; letter-spacing: 0; }
+
+/* THE SCRIBE'S HAND (GENESIS 03 §XI-a) — no spinners, ever. Faint ruled
+   lines sketch the folio's structure; ink settles into them, staggered
+   top-to-bottom; the rules fade once the ink has arrived. */
+.page-wrap { position: relative; }
+.page-lines { position: absolute; inset: 0; pointer-events: none; opacity: 0.45;
+  background: repeating-linear-gradient(to bottom,
+    transparent 0,
+    transparent calc(var(--type-section) * var(--leading-body) - 1px),
+    var(--ink-ghost) calc(var(--type-section) * var(--leading-body) - 1px),
+    var(--ink-ghost) calc(var(--type-section) * var(--leading-body)));
+  transition: opacity var(--dur-state) var(--ease-dismiss);
+  transition-delay: calc(var(--desk-stagger) * 3); }
+.desk-sheet.arrived .page-lines { opacity: 0; }
+.desk-sheet.arriving .ink-item { opacity: 0; transform: translateY(2px); }
+.desk-sheet.arrived .ink-item { opacity: 1; transform: none;
+  transition: opacity var(--dur-state) var(--ease-reveal), transform var(--dur-state) var(--ease-reveal); }
+.desk-sheet.arrived .page-wrap .ink-item { transition-delay: var(--desk-stagger); }
+.desk-sheet.arrived .desk-foot { transition-delay: calc(var(--desk-stagger) * 2); }
+
 /* The manuscript reads at 18 — the desk sits closer to the eye than the table
    (named choice, BR-002); leading is the sealed 1.55; the words are the
-   default reading register: ink-body, never white (GENESIS 03 §IV.6). */
+   default reading register: ink-body, never white (GENESIS 03 §IV.6).
+   The caret is the actionable metal — where you can act, now (the Gold Law);
+   a held selection is gilded the same way. */
 #page { display: block; width: 100%; min-height: 52vh; background: transparent; border: none; resize: none;
-  color: var(--ink-body); font-family: var(--font-display); font-size: var(--type-section); line-height: var(--leading-body); outline: none; }
+  color: var(--ink-body); font-family: var(--font-display); font-size: var(--type-section); line-height: var(--leading-body); outline: none;
+  caret-color: var(--gold); }
+#page::selection { background: color-mix(in srgb, var(--gold) 25%, transparent); }
 #page::placeholder { color: var(--ink-muted); opacity: 0.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .desk-sheet.arriving .ink-item, .desk-sheet.arrived .ink-item { opacity: 1; transform: none; transition: none; }
+  .page-lines { display: none; }
+}
 .desk-foot { display: flex; justify-content: space-between; align-items: baseline; margin-top: var(--space-element);
   border-top: 1px solid var(--ink-ghost); padding-top: var(--space-compact); }
 #inked { font-family: var(--font-data); font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps); color: var(--ink-muted); }
@@ -39,6 +79,7 @@ html, body { margin: 0; height: 100%; background: var(--obsidian-0); color: var(
   font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps); cursor: pointer; padding: 0;
   transition: color var(--dur-micro) var(--ease-considered); }
 #walk-again:hover { color: var(--gold); }
+#walk-again:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
 
 /* the law at the footnote register — present, never loud */
 #uncurated-chip { position: fixed; left: var(--space-compact); bottom: var(--space-compact); z-index: 200; display: none;

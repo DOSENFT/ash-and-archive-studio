@@ -139,3 +139,52 @@ lint clean → strict tsc clean → vite build green → ledger-tokens 60/60.
 4. **The bug found by verification, recorded honestly:** the first color-mix parser
    broke on `var(--…)`'s own close-paren and flagged ten lawful lines; rewritten to
    match the lawful form whole. The negative bait check now guards the lint itself.
+
+---
+
+## BR-004 · The Desk embodied — the first embodied surface (2026-07-19)
+
+**What shipped.** The product's one real seated surface — the Codex desk from the
+founder's /GOAL build — now carries the sealed signature patterns. Behavior is
+byte-equivalent (save, load, 500ms debounce, walk-again, announcements untouched);
+only the physical form changed:
+
+1. **The vertical runner** (GENESIS 03 §IV.4) — *the* Codex, rotated up the sheet's
+   left margin in the §IV.1 pattern (italic "the" + small-caps, Crimson Pro at the
+   caption register). The book tells you what page you're on without a header bar —
+   and per §X it is now literally the region's accessible label
+   (`role="region" aria-labelledby`).
+2. **The scribe's-hand arrival** (§XI-a — "no spinners, ever") — faint ruled lines
+   (ink-ghost, spaced at exactly the manuscript's line rhythm:
+   `--type-section × --leading-body`) sketch the page's structure; the runner, the
+   manuscript, and the footer settle in top-to-bottom at the lawful 40ms Desk
+   stagger, each over the State register with reveal-ease; the rules dismiss as the
+   ink arrives. Under `prefers-reduced-motion`: instant, rules never drawn.
+3. **The caret is the actionable metal** — `caret-color: var(--gold)`; a held
+   selection is gilded the same way (gold at 25% over the page). Named choice: the
+   caret is where you can act, *now* — the Gold Law applied to the writing point.
+4. **Keyboard focus made lawful** — `:focus-visible` on the walk-again affordance
+   is a hairline gold outline, not the UA default.
+
+**Verified.** ledger-lint clean (it caught its author once mid-slice — a stray `0ms`
+literal — and the line was deleted, not allowed) · strict tsc clean · vite build
+green · HTTP verification against the served build: page + CSS live, runner /
+scribe-hand / gold-caret rules present in the shipped bundle, Crimson Pro woff2
+HTTP 200, MANIFEST.json HTTP 200 (the desk's world-still backdrop resolves).
+Chrome-extension screenshotting was unavailable in this remote session; the
+founder's walk-through (Wonder/Purist) remains the experiential gate, as chartered.
+
+**Non-dictated decisions, recorded (none silent):**
+1. **The /GOAL build's minimalism honored in degree** — only sealed §IV/§XI-a
+   patterns were added; no index, no roman pagination (one page is "I OF I" —
+   preciousness), no unrequested chrome. The founder's placeholder copy ("Write.")
+   kept verbatim.
+2. **Runner label ink is `--ink-muted` on canvas** — the licensed text pairing
+   (E-1's borderline pair; if the canon holder rules E-1 toward re-registration,
+   the runner moves to `--ink-secondary` in the same instrument).
+3. **Wet ink (§III v2) deferred by architecture** — a textarea cannot style
+   character ranges; the sheen-that-mattes arrives with the contenteditable folio
+   architecture (EMB-5+), not as a fake overlay.
+4. **The arrival is loading choreography (§XI-a), not page motion under the
+   airlock** — it runs strictly after journey teardown, inside the seated page's
+   own jurisdiction, entirely within the State register.

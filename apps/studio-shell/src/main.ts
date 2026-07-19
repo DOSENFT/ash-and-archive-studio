@@ -68,15 +68,29 @@ async function seatAtDesk(): Promise<void> {
 
   const sheet = document.createElement('div');
   sheet.className = 'desk';
+  // The embodied page (EMB-4): the vertical runner is the region label
+  // (GENESIS 03 §IV.4, §X) — the book tells you what page you're on without a
+  // header bar; the italic-the + small-caps pattern is §IV.1. Arrival is the
+  // scribe's hand (§XI-a): ruled lines sketch the structure, ink settles into
+  // them — no spinners, ever.
   sheet.innerHTML = `
-    <div class="desk-sheet">
-      <textarea id="page" spellcheck="false" aria-label="The first page" placeholder="Write."></textarea>
-      <div class="desk-foot"><span id="inked"></span><button id="walk-again" type="button">the walk</button></div>
+    <div class="desk-sheet arriving" role="region" aria-labelledby="desk-runner">
+      <span id="desk-runner" class="runner ink-item"><i>the</i>&nbsp;Codex</span>
+      <div class="page-wrap">
+        <div class="page-lines" aria-hidden="true"></div>
+        <textarea id="page" class="ink-item" spellcheck="false" aria-label="The first page" placeholder="Write."></textarea>
+      </div>
+      <div class="desk-foot ink-item"><span id="inked"></span><button id="walk-again" type="button">the walk</button></div>
     </div>`;
   pageHost.replaceChildren(sheet);
   const ta = sheet.querySelector<HTMLTextAreaElement>('#page')!;
   const inked = sheet.querySelector<HTMLElement>('#inked')!;
   ta.value = await pageLoad().catch(() => '');
+  // Ink settles after the rules have painted (double RAF commits the sketch
+  // frame first); the CSS owns every duration — the four registers only.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    sheet.querySelector('.desk-sheet')?.classList.replace('arriving', 'arrived');
+  }));
 
   let t: ReturnType<typeof setTimeout> | undefined;
   ta.addEventListener('input', () => {
