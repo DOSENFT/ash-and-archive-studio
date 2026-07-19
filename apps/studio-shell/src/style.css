@@ -85,6 +85,12 @@ html, body { margin: 0; height: 100%; background: var(--obsidian-0); color: var(
 /* the study sits where the desk sat — same room, same light */
 .study-host { width: 100%; display: flex; justify-content: center; }
 
+/* a refused vault is inked on the page, never whispered */
+.vault-refusal { position: absolute; left: 50%; bottom: 10vh; transform: translateX(-50%);
+  background: var(--canvas); border: 1px solid var(--wound); border-radius: 2px;
+  color: var(--ink-primary); font-family: var(--font-mechanics); font-size: var(--type-caption);
+  padding: var(--space-compact) var(--space-element); max-width: 60ch; }
+
 /* the law at the footnote register — present, never loud */
 #uncurated-chip { position: fixed; left: var(--space-compact); bottom: var(--space-compact); z-index: 200; display: none;
   font-family: var(--font-data); font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps); color: var(--ink-muted);

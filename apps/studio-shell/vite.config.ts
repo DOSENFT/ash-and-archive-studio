@@ -41,6 +41,8 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    exclude: ['sql.js'],
+    // esbuild prebundling breaks the wasm-file URL resolution in dev; the module
+    // must load as-authored (its own import.meta.url locates sqlite3.wasm).
+    exclude: ['@sqlite.org/sqlite-wasm'],
   },
 }));

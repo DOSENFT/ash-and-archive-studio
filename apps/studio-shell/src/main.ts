@@ -140,7 +140,16 @@ async function enterStudy(room: 'table' | 'forge' | 'charter' | 'chronicle'): Pr
   try {
     opened = await bootStudio();
   } catch (e) {
-    announce(`The vault would not open: ${e instanceof Error ? e.message : String(e)}`);
+    // A failure to open the vault must be VISIBLE ink on the page, never only
+    // the polite live region (audit: a silent door reads as "nothing happened").
+    const msg = e instanceof Error ? e.message : String(e);
+    announce(`The vault would not open: ${msg}`);
+    const note = document.createElement('div');
+    note.className = 'vault-refusal';
+    note.setAttribute('role', 'alert');
+    note.textContent = `The vault would not open: ${msg}`;
+    pageHost.appendChild(note);
+    console.error('[studio] vault boot failed:', e);
     return;
   }
   setBackdrop(ROOM_POSES[room]);
