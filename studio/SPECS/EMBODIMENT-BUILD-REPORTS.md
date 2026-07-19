@@ -247,3 +247,109 @@ Core substrate re-verified first: 141/141 green.
   display-only by SPEC-001 §3.1, so "wall-clock since last decision" cannot be
   computed purely; the observation uses sessionMeta counts until the fold carries a
   display-time seam.
+
+---
+
+## BR-006 · The Foundation enters the webview + `@ash-archive/ledger-ui` + the Study (2026-07-19)
+
+**What shipped.**
+1. **The wasm vault** — `@ash-archive/core` now RUNS in the shell's webview, whole:
+   `apps/studio-shell/src/vault/` provides the SPEC-001 §5.1 PlatformBinding over
+   the **official SQLite WASM build** (FTS5 — the DDL requires it; sql.js was tried
+   first and rejected: no FTS5), with node-module shims (pako-backed zlib for the
+   Ash's snapshot gzip; WebCrypto randomBytes + js-sha256 createHash for ULIDs and
+   the Binding's planHash; throwing fs stubs — export/import are host-bridge
+   territory, recorded). Durability: debounced serialize → Tauri host
+   (`vault_save`/`vault_load`/`vault_list`, atomic tmp+rename, base64 IPC;
+   `src-tauri/src/world_vault.rs`, cargo check green) or IndexedDB in browser dev;
+   flush on blur/pagehide/hidden (§4.3's checkpoint moments applied to the seam).
+2. **`packages/ledger-ui`** — GENESIS 08-VII made real in React: the complete
+   closed Element roster (28 renderers), FolioView (vertical runner as region
+   label, roman pagination, pinned zone, margins with pencil °/ash ▵/whisper,
+   ribbons, rubricated page-cast at the sealed 15%), FolioSpread (Turn in the
+   Transition register; reduced-motion 200ms crossfade law; the earned wheel's
+   shell half — offers as gold edge whisper, N=3 consent prompt per ADR-002-A).
+   Token-only CSS, ledger-lint clean; A11yContract carried onto the DOM.
+3. **The Study** — the seated React workspace mounted from the desk ("the studio"
+   in the desk foot, or ⌘K anywhere): rooms (Table · Forge · Charter · Chronicle)
+   over one live vault; the palette sovereign/instant/world-free (SH1 §2.6);
+   room movement as the drift-cut asymptote (240ms + 12px directional drift,
+   declared as the world constant it is, cited); backdrop still swap stays in the
+   vanilla shell (world law never enters the React tree); route_log transits
+   fire-and-forget. TableRoom wires both sealed spreads over ComposerRuntime:
+   damage/heal/quill/dice/rest/reactions append their exact vocabulary events;
+   auto-turn executes only composed directives; manual turns revoke scene consent.
+
+**Verified.** ledger-lint clean (shell + ledger-ui) · strict tsc clean everywhere ·
+vite build green (sqlite3.wasm bundled; Study/boot lazy chunks — the journey path
+loads none of it) · ledger-ui 7/7 render-contract tests · **the wasm-vault smoke
+suite 3/3 against the EXACT browser module graph** (vitest aliased identically to
+vite): draft→link→session→fold→compose (40−7=33 on the HP numeral)→runtime
+deltas→binding.plan→charter.lock→readiness→serialize/deserialize round-trip.
+Chrome-extension driving was unavailable again this session; the founder's walk
+(Wonder/Purist) remains the experiential gate, as chartered.
+
+**Non-dictated decisions, recorded (none silent):**
+1. **Official sqlite-wasm over sql.js** — FTS5 is DDL law; the official build is
+   the maintained artifact. First-run defect found by the smoke suite and fixed:
+   `SQLITE_DESERIALIZE_RESIZEABLE` misspelled → SQLITE_FULL; closed handles now
+   bank their bytes so shelf.create → openWorld survives the in-memory engine.
+2. **React mounts only for seated instruments** — the journey and the /GOAL desk
+   remain the vanilla sealed working state; the Study is a destination, not a
+   rewrite of the approach.
+3. **First-run world** auto-created ("The First World") — creation must not gate
+   on a form (GENESIS 03 §XII empty-state law); naming belongs to the Charter Room.
+4. **Base64 IPC for vault bytes** — worlds are small at v1; the raw-body channel
+   is the recorded upgrade path.
+5. **The desk gains one quiet affordance** ("the studio") beside "the walk" —
+   a door, at the footnote register; the founder's page is otherwise untouched.
+6. **rules-blind Table at v1** (`riteSet: null`, §12 row 1) — the Table runs
+   complete without the interpreter; `@ash-archive/rites-5e` remains SPEC-R1's
+   own build lane.
+
+**⚑ For the canon holder:** export/import (§9, the ownership covenant's file
+tree) is not yet reachable from the webview — the fs shims throw loudly. The
+recorded path: a Tauri host bridge (write the export tree via Rust). Until then
+the covenant is honored at the bytes level (the .aa.sqlite files in app-data are
+the user's, inspectable, and survive the app). Docket-adjacent, not drift.
+
+---
+
+## BR-007 · The Forge, the Charter Room, the Chronicle — the Desk and Ledger stances seated (2026-07-19)
+
+**What shipped.** Three seated rooms over the live vault (parallel workstreams,
+each verified ledger-lint clean + strict tsc clean):
+
+1. **ForgeRoom** (SPEC-003 v1.1): the Gate strip persistent above six tabs
+   (Substrate · Toybox · Web · Atlas · Bestiary · Eras), rendering
+   `charter.readiness()` as craft teaching (W-3/W-4) with a one-tap smallest-next-
+   build worklist; all §2 instruments (gravity truths, scarcity, faith/magic
+   three-channel tells, lattice actors, chokepoints, toys, four-step clocks,
+   lever-less-draftable portable truths with the Lever-Test teaching marks);
+   kindle → `entry.kindled` in ≤2 gestures (§8); the Web lists links under the
+   seven types with a from→type→to drafting instrument; bounded-UNKNOWN toggle on
+   every form; **no lock affordance exists in the file (W-2)**; every Result
+   failure surfaces as teaching, never a raw code (§9).
+2. **CharterRoom** (SPEC-001 §7): readiness report (verdict, eight domains,
+   missing minimums, smallest next build); the docket with the three-patch bench
+   (minimal/clean/story, prefilled bodies); lock with an inline ask ("bind this to
+   canon?") — E-1003's message IS the gate teaching; demote-with-note; the rulings
+   shelf by layer.
+3. **ChronicleRoom** (SPEC-001 §6 + GENESIS 06): the Binding ceremony —
+   plan(sessionId) rendered as scenes + items (op descriptions with resolved
+   names, citations, ⚑ conflicts, Lever-Test lines), three-way dispositions,
+   challenged items forced to hold-as-ash, an explicit ratify step, and the seal
+   as a press-and-hold gold instrument on the ceremony register (880ms) with
+   keyboard parity — gravity as stillness, no spectacle; bank-the-fire as the
+   quiet secondary. The shelf: bound session spines + the open session's recent
+   ash (struck events struck through).
+
+**Non-dictated decisions:** recorded in the workstream reports and carried here by
+reference — notably: toy-listing predicate (activeProblem/hooks facets), ruling
+discriminants (discernmentTells presence = faith contract), amber-partial state
+rendered with `--gold-dim` + text (no amber token exists), era ordering client-side
+on `worldTime` (EntryQuery has no body ordering), `rulings(layer)` per-layer calls
+(unrecognized layers not invented into groups), lever "not yet live" as one
+teaching mark (H5c), demote list unfiltered (no kind restriction in §7.1), ratify
+as an explicit movement before the seal (GENESIS 06), hold-timing JS literals
+mirroring the ceremony tokens.

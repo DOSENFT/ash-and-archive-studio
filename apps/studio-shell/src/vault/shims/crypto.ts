@@ -1,9 +1,9 @@
 // node:crypto shim — randomBytes over WebCrypto (ULID randomness, SPEC-001 §2.1)
-// and a subtle-free sync sha256 for the export marker path (js implementation via
-// a small, dependency-free routine is not worth its risk; export runs under the
-// host bridge, so createHash here only needs to exist for the module graph and
-// the non-export paths core actually calls in the webview: none today).
+// and a real synchronous sha256 (js-sha256) for the paths core hashes on the live
+// path: the Binding's planHash (§6) and export markers. Hex digests only — the
+// only encoding core requests; anything else is a loud defect, not a silent wrong.
 import { Buffer } from "buffer";
+import { sha256 } from "js-sha256";
 
 export function randomBytes(n: number): Buffer {
   const b = new Uint8Array(n);
@@ -11,6 +11,19 @@ export function randomBytes(n: number): Buffer {
   return Buffer.from(b);
 }
 
-export function createHash(_alg: string): { update(d: unknown): { digest(enc: string): string } } {
-  throw new Error("createHash is host-bridge territory in the webview (export/import).");
+export function createHash(alg: string): {
+  update(d: string | Uint8Array): { digest(enc: string): string };
+} {
+  if (alg !== "sha256") throw new Error(`createHash: only sha256 is provided in the webview (asked for ${alg})`);
+  const h = sha256.create();
+  const surface = {
+    update(d: string | Uint8Array) {
+      h.update(typeof d === "string" ? d : new Uint8Array(d));
+      return { digest(enc: string): string {
+        if (enc !== "hex") throw new Error(`digest('${enc}') unsupported in the webview shim (hex only)`);
+        return h.hex();
+      } };
+    },
+  };
+  return surface;
 }

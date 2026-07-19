@@ -13,7 +13,10 @@ let sqlite3: Sqlite3Static | null = null;
 
 export async function initSql(): Promise<void> {
   if (sqlite3 === null) {
-    sqlite3 = await sqlite3InitModule({ print: () => {}, printErr: () => {} });
+    // The published type declares no config param; the runtime accepts the
+    // Emscripten module config — print routing only, no behavior.
+    const init = sqlite3InitModule as unknown as (cfg?: object) => Promise<Sqlite3Static>;
+    sqlite3 = await init({ print: () => {}, printErr: () => {} });
   }
 }
 
