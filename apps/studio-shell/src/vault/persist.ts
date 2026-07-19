@@ -1,7 +1,7 @@
 // Durability for the WASM vault: the Tauri host (app-data/vault, atomic writes)
 // in the shipped shell; IndexedDB in browser dev. Debounced after writes; flushed
 // on blur and pagehide (§4.3's checkpoint moments applied to the serialize seam).
-import { openedVaultFiles } from "./sqljs-binding.js";
+import { openedVaultFiles } from "./wasm-binding.js";
 
 const DEBOUNCE_MS = 1500;
 

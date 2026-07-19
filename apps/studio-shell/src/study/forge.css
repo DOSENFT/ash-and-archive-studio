@@ -1,0 +1,173 @@
+/* THE FORGE — SPEC-003 Desk rooms, seated. Token-only (GENESIS 03 §XI).
+ * The sheet language follows study.css/ledger-ui.css: var(--canvas) sheets at
+ * 2px radius, footnote labels in the smallcaps register, 1px --ink-ghost rules,
+ * gold only where a hand can act now (the Gate's worklist, kindle, the inked
+ * draft act). Motion rides the sealed registers via var(--dur-*)/var(--ease-*). */
+
+.fg-forge { display: flex; flex-direction: column; gap: var(--space-element);
+  color: var(--ink-body); font-family: var(--font-mechanics); font-size: var(--type-body); }
+
+/* ————— the Readiness Gate strip (§5) — persistent, computed by core (W-3) ————— */
+.fg-gate { background: var(--canvas); border: 1px solid var(--ink-ghost); border-radius: 2px;
+  padding: var(--space-element); display: flex; flex-direction: column; gap: var(--space-compact); }
+.fg-verdict { margin: 0; font-family: var(--font-display); font-size: var(--type-section);
+  color: var(--ink-primary); }
+.fg-verdict-word { font-variant-caps: small-caps; letter-spacing: var(--tracking-smallcaps); }
+/* §5 strip colors — green met / amber partial / red empty; state is also carried
+ * in text (the count, "· met"), never color alone. The ledger holds no amber
+ * token; --gold-dim is its nearest sealed register (see build report). */
+.fg-verdict-pass .fg-verdict-word { color: var(--heal); }
+.fg-verdict-borderline .fg-verdict-word { color: var(--gold-dim); }
+.fg-verdict-fail .fg-verdict-word { color: var(--wound); }
+
+.fg-domains { list-style: none; margin: 0; padding: 0; display: grid;
+  grid-template-columns: repeat(4, 1fr); gap: var(--space-compact); }
+.fg-domain { width: 100%; min-height: var(--touch-target); background: var(--surface);
+  border: 1px solid var(--ink-ghost); border-radius: 2px; cursor: pointer; text-align: left;
+  display: flex; flex-direction: column; gap: 2px; padding: var(--space-compact);
+  color: var(--ink-muted); font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); text-transform: lowercase;
+  transition: border-color var(--dur-micro) var(--ease-considered); }
+.fg-domain:hover { border-color: var(--gold-dim); }
+.fg-domain:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+.fg-domain-name { color: var(--ink-secondary); }
+.fg-meter { display: block; height: 2px; background: var(--ink-ghost); }
+.fg-meter-fill { display: block; height: 100%; }
+.fg-domain-met .fg-meter-fill { background: var(--heal); }
+.fg-domain-partial .fg-meter-fill { background: var(--gold-dim); }
+.fg-domain-empty .fg-meter-fill { background: var(--wound); }
+
+.fg-missing { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  gap: 2px; color: var(--ink-muted); font-size: var(--type-caption); }
+/* the smallest-next-build worklist — the actionable-now surface; it alone
+ * carries gold at rest in the Gate (§5, one-tap steps) */
+.fg-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap;
+  gap: var(--space-compact); }
+.fg-step { background: none; border: 1px solid var(--gold-dim); border-radius: 2px; cursor: pointer;
+  min-height: var(--touch-target); padding: var(--space-compact) var(--space-element);
+  color: var(--gold); font-family: var(--font-mechanics); font-size: var(--type-caption);
+  transition: color var(--dur-micro) var(--ease-considered), border-color var(--dur-micro) var(--ease-considered); }
+.fg-step:hover { color: var(--gold-bright); border-color: var(--gold); }
+.fg-step:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+.fg-gate-quiet { margin: 0; color: var(--ink-muted); font-style: italic; }
+
+/* ————— the room tabs — quiet, footnote register (matches .st-doors) ————— */
+.fg-tabs { display: flex; align-items: center; gap: var(--space-compact);
+  padding: var(--space-compact) var(--space-element);
+  background: color-mix(in srgb, var(--canvas) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink-ghost) 60%, transparent);
+  border-radius: 2px; align-self: flex-start; }
+.fg-tab { background: none; border: none; cursor: pointer; min-height: var(--touch-target);
+  color: var(--ink-muted); font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); text-transform: lowercase;
+  padding: 0 var(--space-compact);
+  transition: color var(--dur-micro) var(--ease-considered); }
+.fg-tab:hover { color: var(--gold); }
+.fg-tab.fg-here { color: var(--ink-primary); }
+.fg-tab:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+
+/* ————— room sheets & instruments ————— */
+.fg-room-body { display: flex; flex-direction: column; gap: var(--space-element); }
+.fg-room { display: flex; flex-direction: column; gap: var(--space-element); }
+.fg-inst { background: var(--canvas); border-radius: 2px; padding: var(--space-element);
+  box-shadow: 0 2px 18px color-mix(in srgb, var(--obsidian-0) 60%, transparent);
+  display: flex; flex-direction: column; gap: var(--space-element);
+  animation: fg-in var(--dur-state) var(--ease-reveal); }
+.fg-reduced .fg-inst { animation: none; }
+@keyframes fg-in { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } }
+.fg-inst-title { margin: 0; font-family: var(--font-display); font-size: var(--type-section);
+  font-variant-caps: small-caps; letter-spacing: var(--tracking-smallcaps);
+  color: var(--ink-primary); font-weight: normal; }
+/* the editorial void (GENESIS 03 §XII) — a sentence in the room's voice, not a blank */
+.fg-void { margin: 0; color: var(--ink-muted); font-style: italic; }
+
+.fg-groups { display: flex; flex-direction: column; gap: var(--space-element); }
+.fg-group-title { margin: 0 0 var(--space-compact); color: var(--ink-muted); font-family: var(--font-data);
+  font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps);
+  text-transform: lowercase; font-weight: normal; }
+
+/* ————— entry cards ————— */
+.fg-cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  gap: var(--space-compact); }
+.fg-card { background: var(--surface); border: 1px solid var(--ink-ghost); border-radius: 2px;
+  padding: var(--space-compact) var(--space-element);
+  display: flex; flex-direction: column; gap: var(--space-compact); }
+.fg-card-head { display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--space-compact); }
+.fg-card-name { color: var(--ink-primary); font-family: var(--font-display); font-size: var(--type-body); }
+/* the §4 status chip — provisional / locked / unknown, sourced from the entry head */
+.fg-chip { color: var(--ink-muted); font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); text-transform: lowercase;
+  border: 1px solid var(--ink-ghost); border-radius: 2px; padding: 0 var(--space-compact); }
+.fg-card-detail { margin: 0; color: var(--ink-body); font-size: var(--type-caption); }
+/* craft-teaching marks (W-4) render in the pencil register — advisory, never an error */
+.fg-mark { margin: 0; color: var(--pencil); font-size: var(--type-caption); font-style: italic; }
+
+.fg-card-acts { display: flex; gap: var(--space-compact); }
+.fg-card-acts button { background: none; border: 1px solid var(--ink-ghost); border-radius: 2px;
+  cursor: pointer; color: var(--ink-secondary); font-family: var(--font-mechanics);
+  font-size: var(--type-caption); min-height: var(--touch-target);
+  padding: var(--space-compact) var(--space-element);
+  transition: color var(--dur-micro) var(--ease-considered), border-color var(--dur-micro) var(--ease-considered); }
+.fg-card-acts button:hover { color: var(--ink-primary); border-color: var(--ink-muted); }
+.fg-card-acts button:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+/* kindle deploys to the stage now (§8) — the card's one gold affordance */
+button.fg-kindle { color: var(--gold-dim); }
+button.fg-kindle:hover { color: var(--gold); border-color: var(--gold-dim); }
+button.fg-kindle:disabled { color: var(--ink-ghost); border-color: var(--ink-ghost); cursor: default; }
+
+/* ————— draft forms (bound to archive.draft/reviseDraft — the Forge never locks, W-2) ————— */
+.fg-form { display: flex; flex-direction: column; gap: var(--space-compact);
+  border-top: 1px solid var(--ink-ghost); padding-top: var(--space-element); }
+.fg-form-title { margin: 0; color: var(--ink-muted); font-family: var(--font-data);
+  font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps);
+  text-transform: lowercase; font-weight: normal; }
+.fg-field { display: flex; flex-direction: column; gap: 2px; }
+.fg-field > label, .fg-lineset > legend { color: var(--ink-muted); font-family: var(--font-data);
+  font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps);
+  text-transform: lowercase; }
+/* inputs follow .lf-num-input's register (ledger-ui.css) */
+.fg-input { background: var(--surface); border: 1px solid var(--ink-ghost); border-radius: 2px;
+  color: var(--ink-primary); font-family: var(--font-data); font-size: var(--type-body);
+  padding: var(--space-compact); caret-color: var(--gold); }
+.fg-input::selection { background: color-mix(in srgb, var(--gold) 25%, transparent); }
+.fg-input:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+textarea.fg-input { resize: vertical; font-family: var(--font-mechanics); line-height: var(--leading-body); }
+.fg-lineset { border: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  gap: var(--space-compact); }
+.fg-hint { margin: 0; color: var(--ink-muted); font-size: var(--type-footnote); }
+
+.fg-unknown { display: flex; align-items: center; gap: var(--space-compact); cursor: pointer;
+  color: var(--ink-muted); font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); text-transform: lowercase;
+  min-height: var(--touch-target); }
+.fg-unknown input { accent-color: var(--gold); }
+
+.fg-form-acts { display: flex; gap: var(--space-compact); }
+.fg-form-acts button { background: none; border: 1px solid var(--ink-ghost); border-radius: 2px;
+  cursor: pointer; color: var(--ink-secondary); font-family: var(--font-mechanics);
+  font-size: var(--type-caption); min-height: var(--touch-target);
+  padding: var(--space-compact) var(--space-element);
+  transition: color var(--dur-micro) var(--ease-considered), border-color var(--dur-micro) var(--ease-considered); }
+.fg-form-acts button:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+/* drafting in ink is the form's actionable-now act */
+button.fg-submit { color: var(--gold-dim); }
+button.fg-submit:hover { color: var(--gold); border-color: var(--gold-dim); }
+.fg-form-acts button:hover { color: var(--ink-primary); border-color: var(--ink-muted); }
+
+/* ————— the Relationship Web (§6 model, list-rendered; layout is CB-library law) ————— */
+.fg-web-nodes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  gap: var(--space-compact); }
+.fg-web-node { background: var(--surface); border: 1px solid var(--ink-ghost); border-radius: 2px;
+  padding: var(--space-compact) var(--space-element);
+  display: flex; flex-direction: column; gap: 2px; }
+/* link types are small-caps labels, never colors alone (§6) */
+.fg-linktype { color: var(--ink-secondary); font-family: var(--font-data); font-size: var(--type-footnote);
+  font-variant-caps: small-caps; letter-spacing: var(--tracking-smallcaps); }
+.fg-web-group { display: flex; gap: var(--space-compact); align-items: baseline; }
+.fg-web-group ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap;
+  gap: var(--space-compact); }
+.fg-web-group li { color: var(--ink-body); font-size: var(--type-caption); }
+.fg-link-form { display: flex; gap: var(--space-compact); align-items: flex-end; flex-wrap: wrap;
+  border-top: 1px solid var(--ink-ghost); padding-top: var(--space-element); }
+.fg-link-form .fg-field { min-width: 12rem; }

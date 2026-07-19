@@ -1,0 +1,84 @@
+/* THE STUDY — seated chrome. Token-only (GENESIS 03 §XI). The drift-cut is the
+ * tier-3 asymptote: 240ms crossfade + 12px directional drift, page interactive
+ * at frame 0 (SH1 §2.3). Under reduced motion: instant. */
+
+.st-study { position: relative; width: min(64rem, 82vw); max-height: 88vh;
+  display: flex; flex-direction: column; gap: var(--space-element);
+  /* SH1 §2.3 — the drift-cut's 240ms is WORLD-register law (constitutional,
+   * amendment-gated), not one of the page's four registers; it is declared
+   * here as the world constant it is, cited, never inlined below. */
+  --dur-drift: 240ms; }
+
+.st-room { overflow: auto; max-height: 76vh; scrollbar-width: thin;
+  scrollbar-color: var(--ink-ghost) transparent; }
+
+/* drift-cut: strictly two frames of world (out-still, in-still) is the vanilla
+ * shell's concern; the seated page itself arrives with the 12px drift. */
+.st-drift-fwd .st-room { animation: st-drift-fwd var(--dur-drift) var(--ease-reveal); }
+.st-drift-back .st-room { animation: st-drift-back var(--dur-drift) var(--ease-reveal); }
+.st-reduced .st-room { animation: none; }
+@keyframes st-drift-fwd { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: none; } }
+@keyframes st-drift-back { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+
+/* ————— the doors (room nav) — quiet, footnote register ————— */
+.st-doors { display: flex; align-items: center; gap: var(--space-compact);
+  padding: var(--space-compact) var(--space-element);
+  background: color-mix(in srgb, var(--canvas) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink-ghost) 60%, transparent);
+  border-radius: 2px; align-self: center; }
+.st-door { background: none; border: none; cursor: pointer;
+  min-height: var(--touch-target);
+  color: var(--ink-muted); font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); text-transform: lowercase;
+  padding: 0 var(--space-compact);
+  transition: color var(--dur-micro) var(--ease-considered); }
+.st-door:hover { color: var(--gold); }
+.st-door.st-here { color: var(--ink-primary); }
+.st-door:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+.st-doors-rule { width: 1px; height: 14px; background: var(--ink-ghost); }
+.st-doors-hint { color: var(--ink-ghost); font-family: var(--font-data); font-size: var(--type-footnote); }
+
+/* ————— the palette — sovereign, instant, world-free ————— */
+.st-palette-veil { position: fixed; inset: 0; z-index: 300;
+  background: color-mix(in srgb, var(--obsidian-0) 55%, transparent);
+  display: flex; align-items: flex-start; justify-content: center; padding-top: 18vh; }
+.st-palette { width: min(34rem, 86vw); background: var(--canvas); border-radius: 2px;
+  border: 1px solid var(--ink-ghost);
+  box-shadow: 0 8px 40px color-mix(in srgb, var(--obsidian-0) 70%, transparent); }
+.st-palette-input { width: 100%; box-sizing: border-box; background: transparent; border: none;
+  border-bottom: 1px solid var(--ink-ghost); outline: none;
+  color: var(--ink-primary); font-family: var(--font-display); font-size: var(--type-section);
+  padding: var(--space-element); caret-color: var(--gold); }
+.st-palette-input::placeholder { color: var(--ink-muted); opacity: 0.6; }
+.st-palette-input::selection { background: color-mix(in srgb, var(--gold) 25%, transparent); }
+.st-palette-list { list-style: none; margin: 0; padding: var(--space-compact) 0; max-height: 40vh; overflow: auto; }
+.st-palette-item { display: flex; justify-content: space-between; width: 100%;
+  background: none; border: none; cursor: pointer; text-align: left;
+  color: var(--ink-body); font-family: var(--font-mechanics); font-size: var(--type-body);
+  padding: var(--space-compact) var(--space-element); min-height: var(--touch-target); align-items: center; }
+.st-palette-item.st-sel { color: var(--ink-primary);
+  background: color-mix(in srgb, var(--gold) 8%, transparent);
+  box-shadow: inset 2px 0 0 var(--gold); }
+.st-palette-hint { color: var(--ink-muted); font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); }
+.st-palette-empty { color: var(--ink-muted); font-style: italic; padding: var(--space-element); }
+
+/* ————— shared room chrome ————— */
+.st-empty { color: var(--ink-body); font-family: var(--font-mechanics);
+  background: var(--canvas); border-radius: 2px; padding: var(--space-section);
+  box-shadow: 0 2px 18px color-mix(in srgb, var(--obsidian-0) 60%, transparent); }
+.st-empty-title { font-family: var(--font-display); font-size: var(--type-chapter);
+  font-variant-caps: small-caps; letter-spacing: var(--tracking-smallcaps);
+  color: var(--ink-primary); margin: 0 0 var(--space-compact); }
+.st-empty-title i { font-variant-caps: normal; }
+
+.st-table { display: flex; flex-direction: column; gap: var(--space-element); }
+.st-side-toggle { display: flex; gap: var(--space-compact); align-self: flex-end; }
+.st-side-toggle button { background: none; border: 1px solid var(--ink-ghost); border-radius: 2px;
+  cursor: pointer; color: var(--ink-muted); font-family: var(--font-data);
+  font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps);
+  padding: var(--space-compact) var(--space-element); min-height: var(--touch-target);
+  transition: color var(--dur-micro) var(--ease-considered), border-color var(--dur-micro) var(--ease-considered); }
+.st-side-toggle button:hover { color: var(--gold); }
+.st-side-toggle button.st-on { color: var(--ink-primary); border-color: var(--gold-dim); }
+.st-side-toggle button:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }

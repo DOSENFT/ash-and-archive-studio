@@ -4,6 +4,9 @@
 // Nothing else exists on screen. Scroll is the only navigation during the
 // journey; any discrete input skips to the desk; reduced-motion seats directly.
 import './style.css';
+import '../../../packages/ledger-ui/src/ledger-ui.css';
+import './study/study.css';
+import './study/rooms.css';
 import { loadManifest } from '../../../packages/atelier/src/index.ts';
 import type { LoadedManifest } from '../../../packages/atelier/src/index.ts';
 import { gold } from '../../../packages/ledger-tokens/src/index.ts';
@@ -80,7 +83,7 @@ async function seatAtDesk(): Promise<void> {
         <div class="page-lines" aria-hidden="true"></div>
         <textarea id="page" class="ink-item" spellcheck="false" aria-label="The first page" placeholder="Write."></textarea>
       </div>
-      <div class="desk-foot ink-item"><span id="inked"></span><button id="walk-again" type="button">the walk</button></div>
+      <div class="desk-foot ink-item"><span id="inked"></span><span class="desk-foot-acts"><button id="the-studio" type="button">the studio</button><button id="walk-again" type="button">the walk</button></span></div>
     </div>`;
   pageHost.replaceChildren(sheet);
   const ta = sheet.querySelector<HTMLTextAreaElement>('#page')!;
@@ -103,8 +106,65 @@ async function seatAtDesk(): Promise<void> {
     }, 500);
   });
   sheet.querySelector('#walk-again')!.addEventListener('click', () => { location.reload(); });
+  sheet.querySelector('#the-studio')!.addEventListener('click', () => { void enterStudy('forge'); });
   announce('The Codex. Seated. The page is yours.');
   ta.focus();
+}
+
+// ---------- THE STUDY: the seated rooms over the live Foundation ----------
+// React mounts only for seated instruments; the journey and the desk remain the
+// vanilla build (sealed working state). The backdrop still swap is the vanilla
+// shell's duty — world law never enters the React tree.
+let studyRoot: import('react-dom/client').Root | null = null;
+
+function setBackdrop(pose: string): void {
+  const url = mf?.stillUrl(pose);
+  backdrop.replaceChildren();
+  if (url) {
+    const img = new Image();
+    img.src = url;
+    img.alt = '';
+    backdrop.appendChild(img);
+  }
+  setChip(!!mf?.isUncurated(pose));
+}
+
+async function enterStudy(room: 'table' | 'forge' | 'charter' | 'chronicle'): Promise<void> {
+  const [{ createRoot }, React, { Study, ROOM_POSES }, { bootStudio }] = await Promise.all([
+    import('react-dom/client'),
+    import('react'),
+    import('./study/Study.tsx'),
+    import('./vault/boot.ts'),
+  ]);
+  let opened;
+  try {
+    opened = await bootStudio();
+  } catch (e) {
+    announce(`The vault would not open: ${e instanceof Error ? e.message : String(e)}`);
+    return;
+  }
+  setBackdrop(ROOM_POSES[room]);
+  pageHost.replaceChildren();
+  const host = document.createElement('div');
+  host.className = 'study-host';
+  pageHost.appendChild(host);
+  studyRoot?.unmount();
+  studyRoot = createRoot(host);
+  studyRoot.render(
+    React.createElement(Study, {
+      opened,
+      initialRoom: room,
+      announce,
+      reducedMotion,
+      onRoomChanged: (r: 'table' | 'forge' | 'charter' | 'chronicle') => setBackdrop(ROOM_POSES[r]),
+      onLeave: () => {
+        studyRoot?.unmount();
+        studyRoot = null;
+        void seatAtDesk();
+      },
+    }),
+  );
+  announce('The Studio. Seated.');
 }
 
 // ---------- THE JOURNEY: the engine, full-bleed, no other navigation ----------
@@ -181,6 +241,15 @@ function enterTour(): void {
     });
   })();
 }
+
+// The palette is sovereign from the desk too (SH1 §2.6): ⌘K opens the Studio's
+// rooms even before the first door is used. The Study owns the chord once mounted.
+addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && studyRoot === null && !tourActive) {
+    e.preventDefault();
+    void enterStudy('forge');
+  }
+});
 
 // ---------- boot ----------
 if (reducedMotion) void seatAtDesk();

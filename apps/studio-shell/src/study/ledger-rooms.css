@@ -1,0 +1,166 @@
+/* THE LEDGER ROOMS — the Charter Room and the Chronicle, seated sheets.
+ * Token-only (GENESIS 03 §XI): every color, face, size, duration, and easing is
+ * a custom property from @ash-archive/ledger-tokens or a mix over one. Gold is
+ * actionable-now only; rules are 1px --ink-ghost; radii are 2px; the seal's hold
+ * fill is the one ceremony-register motion in the building. */
+
+.lr-room { display: flex; flex-direction: column; gap: var(--space-element); }
+
+.lr-sheet { background: var(--canvas); border-radius: 2px;
+  padding: var(--space-section) var(--margin-editorial) var(--space-element);
+  color: var(--ink-body); font-family: var(--font-mechanics);
+  font-size: var(--type-body); line-height: var(--leading-body);
+  box-shadow: 0 2px 18px color-mix(in srgb, var(--obsidian-0) 60%, transparent); }
+
+.lr-title { font-family: var(--font-display); font-size: var(--type-chapter);
+  font-variant-caps: small-caps; letter-spacing: var(--tracking-smallcaps);
+  color: var(--ink-primary); margin: 0 0 var(--space-element); }
+.lr-title i { font-variant-caps: normal; }
+
+.lr-sub { font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); text-transform: lowercase;
+  color: var(--ink-muted); margin: var(--space-element) 0 var(--space-compact);
+  border-top: 1px solid var(--ink-ghost); padding-top: var(--space-element); }
+
+/* empty states are editorial voids — a line of ink, nothing else */
+.lr-void { color: var(--ink-muted); font-style: italic; margin: var(--space-compact) 0; }
+
+.lr-note { font-family: var(--font-data); font-size: var(--type-footnote);
+  color: var(--ink-muted); margin: 2px 0; }
+.lr-hint { color: var(--ink-secondary); font-size: var(--type-caption); margin: 2px 0; }
+.lr-num { font-family: var(--font-data); }
+
+/* ————— shared instruments ————— */
+.lr-act, .lr-quiet, .lr-patch, .lr-dispo-btn {
+  background: none; border: 1px solid var(--ink-ghost); border-radius: 2px; cursor: pointer;
+  color: var(--ink-secondary); font-family: var(--font-mechanics); font-size: var(--type-caption);
+  padding: var(--space-compact) var(--space-element); min-height: var(--touch-target);
+  transition: color var(--dur-micro) var(--ease-considered), border-color var(--dur-micro) var(--ease-considered); }
+.lr-act { color: var(--gold); border-color: var(--gold-dim); } /* actionable-now */
+.lr-act:hover { color: var(--gold-bright); border-color: var(--gold); }
+.lr-quiet:hover, .lr-patch:hover, .lr-dispo-btn:hover { color: var(--ink-primary); }
+.lr-quiet:disabled, .lr-dispo-btn:disabled { color: var(--ink-ghost); cursor: default; }
+.lr-act:focus-visible, .lr-quiet:focus-visible, .lr-patch:focus-visible,
+.lr-dispo-btn:focus-visible, .lr-seal:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+.lr-patch.lr-on, .lr-dispo-btn.lr-on { color: var(--ink-primary); border-color: var(--gold-dim); }
+
+.lr-field { background: transparent; border: none; border-bottom: 1px solid var(--ink-ghost);
+  outline: none; color: var(--ink-primary); font-family: var(--font-mechanics);
+  font-size: var(--type-body); padding: var(--space-compact) 0; caret-color: var(--gold);
+  min-height: var(--touch-target); box-sizing: border-box; }
+.lr-field::placeholder { color: var(--ink-muted); opacity: 0.6; }
+.lr-field:focus { border-bottom-color: var(--gold-dim); }
+
+.lr-body-edit { width: 100%; box-sizing: border-box; background: var(--surface);
+  border: 1px solid var(--ink-ghost); border-radius: 2px; outline: none;
+  color: var(--ink-primary); font-family: var(--font-data); font-size: var(--type-caption);
+  line-height: var(--leading-body); padding: var(--space-compact); caret-color: var(--gold);
+  resize: vertical; }
+.lr-body-edit:focus { border-color: var(--gold-dim); }
+
+.lr-fields { display: flex; flex-direction: column; gap: var(--space-compact);
+  margin: var(--space-compact) 0; }
+.lr-acts { display: flex; gap: var(--space-compact); align-items: center; }
+
+/* ————— the Readiness report ————— */
+.lr-verdict { font-family: var(--font-display); font-size: var(--type-section);
+  font-variant-caps: small-caps; letter-spacing: var(--tracking-smallcaps);
+  color: var(--ink-primary); margin: 0 0 var(--space-compact); }
+
+.lr-domains { border-collapse: collapse; width: 100%; margin: 0 0 var(--space-element); }
+.lr-domains th { font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); text-transform: lowercase;
+  color: var(--ink-muted); font-weight: normal; text-align: left;
+  border-bottom: 1px solid var(--ink-ghost); padding: var(--space-compact) var(--space-element) var(--space-compact) 0; }
+.lr-domains td { font-size: var(--type-caption); color: var(--ink-body);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink-ghost) 40%, transparent);
+  padding: var(--space-compact) var(--space-element) var(--space-compact) 0; }
+.lr-domains .lr-met { color: var(--ink-muted); }
+.lr-domains .lr-short { color: var(--ink-secondary); }
+
+.lr-guidance { margin: var(--space-compact) 0; }
+
+/* ————— the docket ————— */
+.lr-case { border-top: 1px solid var(--ink-ghost); padding: var(--space-element) 0; }
+.lr-case-head { display: flex; gap: var(--space-element); align-items: baseline; }
+.lr-case-kind { font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); color: var(--ink-muted); }
+.lr-case-entries { color: var(--ink-primary); }
+.lr-case-expl { color: var(--ink-body); font-size: var(--type-caption); margin: var(--space-compact) 0; }
+.lr-resolve { margin-top: var(--space-compact); }
+.lr-patches, .lr-entry-pick { display: flex; flex-wrap: wrap; gap: var(--space-compact); }
+
+/* ————— lock / demote rows ————— */
+.lr-row { display: flex; align-items: center; gap: var(--space-element);
+  padding: var(--space-compact) 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink-ghost) 40%, transparent); }
+.lr-row-kind { font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); color: var(--ink-muted); min-width: 64px; }
+.lr-row-name { color: var(--ink-primary); flex: 1; }
+.lr-confirm { display: flex; align-items: center; gap: var(--space-compact); }
+.lr-confirm-ask { color: var(--ink-secondary); font-style: italic; font-size: var(--type-caption); }
+.lr-demote-note { min-width: 18rem; font-size: var(--type-caption); }
+
+/* ————— the rulings shelf ————— */
+.lr-layer { margin-bottom: var(--space-compact); }
+.lr-ruling { color: var(--ink-body); margin: 2px 0; font-size: var(--type-caption); }
+
+/* ————— the Binding ceremony ————— */
+.lr-scenes { display: flex; flex-wrap: wrap; gap: var(--space-element);
+  margin-bottom: var(--space-element); }
+.lr-scene { font-family: var(--font-data); font-size: var(--type-footnote);
+  color: var(--ink-muted); }
+
+.lr-item { border-top: 1px solid color-mix(in srgb, var(--ink-ghost) 40%, transparent);
+  padding: var(--space-element) 0; }
+.lr-item-head { display: flex; justify-content: space-between; align-items: baseline;
+  gap: var(--space-element); flex-wrap: wrap; }
+.lr-item-desc { color: var(--ink-primary); }
+.lr-item-meta { font-family: var(--font-data); font-size: var(--type-footnote); color: var(--ink-muted); }
+.lr-conflict { color: var(--ink-body); font-size: var(--type-caption);
+  font-style: italic; margin: var(--space-compact) 0 0; }
+.lr-flag { color: var(--wound); font-style: normal; }
+.lr-teach { color: var(--ink-secondary); font-size: var(--type-caption);
+  font-style: italic; margin: var(--space-compact) 0 0; }
+.lr-dispo { display: flex; gap: var(--space-compact); margin-top: var(--space-compact); }
+
+/* the seal — the one full-ceremony instrument; the hold fill runs the ceremony
+ * register (GENESIS 06 §I Movement 5; pattern of .lf-rest-btn). Stillness only. */
+.lr-seal-row { display: flex; align-items: center; gap: var(--space-element);
+  flex-wrap: wrap; margin-top: var(--space-element);
+  border-top: 1px solid var(--ink-ghost); padding-top: var(--space-element); }
+.lr-seal { position: relative; overflow: hidden;
+  background: none; border: 1px solid var(--gold-dim); border-radius: 2px; cursor: pointer;
+  color: var(--gold); font-family: var(--font-display); font-size: var(--type-section);
+  font-variant-caps: small-caps; letter-spacing: var(--tracking-smallcaps);
+  padding: var(--space-compact) var(--space-section); min-height: var(--touch-target);
+  transition: color var(--dur-micro) var(--ease-considered), border-color var(--dur-micro) var(--ease-considered); }
+.lr-seal:hover:enabled { color: var(--gold-bright); border-color: var(--gold); }
+.lr-seal:disabled { color: var(--gold-ghost); border-color: var(--ink-ghost); cursor: default; }
+.lr-seal-fill { position: absolute; inset: auto 0 0 0; height: 2px; width: 0; background: var(--gold); }
+.lr-holding .lr-seal-fill { width: 100%; transition: width var(--dur-ceremony) var(--ease-considered); }
+.lr-reduced .lr-seal-fill { transition: none; }
+.lr-seal-hint { color: var(--ink-ghost); font-size: var(--type-footnote); font-style: italic; }
+.lr-bank { margin-left: auto; }
+
+.lr-receipt { padding: var(--space-element) 0; }
+.lr-receipt-line { font-family: var(--font-display); font-size: var(--type-section);
+  font-variant-caps: small-caps; letter-spacing: var(--tracking-smallcaps);
+  color: var(--ink-primary); margin: 0 0 var(--space-compact); }
+
+/* ————— the Chronicle shelf ————— */
+.lr-spines { display: flex; flex-direction: column; }
+.lr-spine { display: flex; justify-content: space-between; align-items: baseline;
+  gap: var(--space-element); padding: var(--space-compact) 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink-ghost) 40%, transparent); }
+.lr-spine-name { font-family: var(--font-display); font-size: var(--type-body);
+  color: var(--ink-primary); }
+.lr-spine-date { font-family: var(--font-data); font-size: var(--type-footnote); color: var(--ink-muted); }
+
+.lr-ash-log { display: flex; flex-direction: column; gap: 2px; }
+.lr-ash-row { display: flex; gap: var(--space-element); align-items: baseline; margin: 0; }
+.lr-ash-row.lr-struck { text-decoration: line-through; color: var(--ink-ghost); }
+.lr-ash-row.lr-struck .lr-ash-type, .lr-ash-row.lr-struck .lr-ash-read { color: var(--ink-ghost); }
+.lr-ash-type { font-family: var(--font-data); font-size: var(--type-footnote);
+  letter-spacing: var(--tracking-smallcaps); color: var(--gold-dim); min-width: 128px; }
+.lr-ash-read { color: var(--ink-body); font-size: var(--type-caption); }

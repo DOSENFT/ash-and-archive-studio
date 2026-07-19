@@ -75,11 +75,15 @@ html, body { margin: 0; height: 100%; background: var(--obsidian-0); color: var(
 .desk-foot { display: flex; justify-content: space-between; align-items: baseline; margin-top: var(--space-element);
   border-top: 1px solid var(--ink-ghost); padding-top: var(--space-compact); }
 #inked { font-family: var(--font-data); font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps); color: var(--ink-muted); }
-#walk-again { background: none; border: none; color: var(--ink-muted); font-family: var(--font-data);
+.desk-foot-acts { display: flex; gap: var(--space-element); }
+#walk-again, #the-studio { background: none; border: none; color: var(--ink-muted); font-family: var(--font-data);
   font-size: var(--type-footnote); letter-spacing: var(--tracking-smallcaps); cursor: pointer; padding: 0;
   transition: color var(--dur-micro) var(--ease-considered); }
-#walk-again:hover { color: var(--gold); }
-#walk-again:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+#walk-again:hover, #the-studio:hover { color: var(--gold); }
+#walk-again:focus-visible, #the-studio:focus-visible { outline: 1px solid var(--gold); outline-offset: 2px; }
+
+/* the study sits where the desk sat — same room, same light */
+.study-host { width: 100%; display: flex; justify-content: center; }
 
 /* the law at the footnote register — present, never loud */
 #uncurated-chip { position: fixed; left: var(--space-compact); bottom: var(--space-compact); z-index: 200; display: none;

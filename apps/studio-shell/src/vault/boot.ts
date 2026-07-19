@@ -2,7 +2,7 @@
 // Studio.open → ensure a world on the shelf → open its Vault. Cold resume ≤2s is
 // the law (SPEC-001 §11); the wasm init + open path is measured in dev console.
 import { Studio, type Vault } from "@ash-archive/core";
-import { initSql, probeFts5, wasmBinding } from "./sqljs-binding.js";
+import { initSql, probeFts5, wasmBinding } from "./wasm-binding.js";
 import { installFlushMoments, loadVaultFiles, markDirty } from "./persist.js";
 
 export interface OpenedStudio {

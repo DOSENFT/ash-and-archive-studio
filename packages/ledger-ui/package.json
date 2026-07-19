@@ -1,0 +1,32 @@
+{
+  "name": "@ash-archive/ledger-ui",
+  "version": "0.1.0",
+  "description": "The Ledger component library — GENESIS 08-VII. Renders the composer's Folio value tree under GENESIS 03 law; token-only, ledger-lint clean.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ledger-ui.css": "./src/ledger-ui.css"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "lint:ledger": "node ../ledger-tokens/scripts/ledger-lint.mjs src",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@ash-archive/composer": "file:../composer",
+    "@types/node": "^24.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}
