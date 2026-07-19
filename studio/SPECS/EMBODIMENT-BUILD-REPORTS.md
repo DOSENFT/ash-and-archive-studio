@@ -188,3 +188,62 @@ founder's walk-through (Wonder/Purist) remains the experiential gate, as charter
 4. **The arrival is loading choreography (§XI-a), not page motion under the
    airlock** — it runs strictly after journey teardown, inside the seated page's
    own jurisdiction, entirely within the State register.
+
+---
+
+## BR-005 · `@ash-archive/composer` — the sealed engine, built (2026-07-19)
+
+**What shipped.** `packages/composer` — SPEC-002 v1.1 implemented mechanically from
+the sealed document: the closed Element union + typed MarginSlot/Ribbon (§2), the
+pure eight-stage `compose()` pipeline (§3.4), the deterministic fitter (§5.2, clock
+partition included), both sealed Table profiles (§6.1/§6.2, M3 world-folio clock
+uncap), the full ranking model (§7.2 hand priority + §7.5 zone orders, every
+tie-break terminating in ULID), the §8.2 disposition table verbatim (ambiguous
+events never auto, C-6), sync reaction ribbons (§9.2), pencil-only `enrich()` with
+the C-5 structural guard (§10), the precise `inputHash` (§11.2 H4), and the thin
+`ComposerRuntime` (§4 — wiring only; prevHandOrder in-memory per ADR-002-B).
+
+**Verified.** Strict tsc clean (`exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`) ·
+**37/37 tests green** against a REAL core vault (the shipping substrate, not mocks):
+the mandatory 375×667 eight-condition Vitals fixture (one badge, pinned zone
+unmoved, severity-5 rubric) · C-1 byte-identical determinism + JSON round-trip ·
+C-3 12-card overflow → one MoreAffordance, nothing dropped · C-4 pinned immovable ·
+C-5 enrich caps pencil at 2, body untouched, offline → folio unchanged · the §8.2
+truth table + ambiguity corpus · §12 degradation rows (rules-blind, throwing
+homebrew, empty folds, defect throw) · the §11.6 stress fixture (4 PCs + cohort 8 +
+6 clocks + 8 conditions): compose() p95 ≤ 15ms asserted in CI · fold-shape
+conformance vs CORE_FOLDS · runtime precompose/delta/consent flows on a live log.
+Core substrate re-verified first: 141/141 green.
+
+**Non-dictated decisions, recorded (none silent):**
+1. **Fold-state types mirrored, not exported from core** — core's sealed export
+   surface untouched; a conformance test pins the mirrors to `CORE_FOLDS` law.
+2. **RubricColor is a token reference** (`--severity-N`), never a raw color — the
+   Ledger System's token law applied to the value tree itself.
+3. **RiteSet answers narrowed defensively** (core carries them opaquely; SPEC-R1
+   owns shapes): malformed → 'unruled', throw → 'blocked/unruled homebrew' (§12).
+4. **Statline reads rite-namespace first** (`body.ext['aa.rites.5e'].statblock`),
+   plain facet honored for rules-blind worlds; absence renders null (em-dash at the
+   component layer), never invented numbers.
+5. **The hand derives from the being's authored `hand` ref list** (rite-namespace
+   first) — hand *derivation* is rite-content jurisdiction; the mechanism is the
+   graph either way.
+6. **Rail HP shown for the perspective's own beings only** — the rail never leaks
+   another's numbers; upstream redaction remains the law for hidden creatures.
+7. **DERIVE (stage 4b) lands with `@ash-archive/rites-5e`** — placed-only by law;
+   the pipeline seam is in place, folded cards carry no derived numbers.
+
+**⚑ Seams for the canon holder (recorded, defensively handled, zero drift):**
+- **S-1 · Action economy is not folded** — core's v1 combat fold carries no
+  per-being economy; the pinned ActionEconomy reads structurally and defaults to
+  'available'. Candidate SPEC-001 v1.3 fold amendment (`action.spent` exists in
+  the vocabulary; the reducer doesn't count it).
+- **S-2 · Concentration is not folded** — `concentration.started/broken` exist in
+  the vocabulary; no fold tracks the concentrating rite. ConcentrationMark reads
+  structurally; renders only when a future fold carries it.
+- **S-3 · Cohort alive-count is graph-authored** (`body.cohort.alive`), not folded
+  from damage events — M5's decrement-on-member-defeat needs fold support.
+- **S-4 · PacingThread is count-based** (scenes/rulings/rolls) — wallTime is
+  display-only by SPEC-001 §3.1, so "wall-clock since last decision" cannot be
+  computed purely; the observation uses sessionMeta counts until the fold carries a
+  display-time seam.
