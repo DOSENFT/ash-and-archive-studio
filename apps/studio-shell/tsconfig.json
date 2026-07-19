@@ -8,9 +8,26 @@
     "exactOptionalPropertyTypes": true,
     "allowJs": true,
     "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "paths": {
+      "node:sqlite": ["./src/vault/shims/sqlite.ts"],
+      "node:zlib": ["./src/vault/shims/zlib.ts"],
+      "node:crypto": ["./src/vault/shims/crypto.ts"],
+      "node:fs": ["./src/vault/shims/fs.ts"],
+      "node:path": ["./src/vault/shims/path.ts"],
+      "@ash-archive/core": ["../../packages/core/src/index.ts"],
+      "@ash-archive/composer": ["../../packages/composer/src/index.ts"],
+      "@ash-archive/atelier": ["../../packages/atelier/src/index.ts"],
+      "@ash-archive/ledger-tokens": ["../../packages/ledger-tokens/src/index.ts"],
+      "@ash-archive/ledger-ui": ["../../packages/ledger-ui/src/index.ts"]
+    }
   },
-  "include": ["src", "vite.config.ts", "../../packages/atelier/src", "../../packages/ledger-tokens/src"]
+  "include": [
+    "src", "vite.config.ts",
+    "../../packages/atelier/src", "../../packages/ledger-tokens/src",
+    "../../packages/core/src", "../../packages/composer/src", "../../packages/ledger-ui/src"
+  ]
 }

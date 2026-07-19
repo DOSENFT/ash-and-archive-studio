@@ -8,6 +8,7 @@
 mod codex_page;
 mod route_log;
 mod sampler;
+mod world_vault;
 
 use std::{fs, path::PathBuf};
 use tauri::Manager;
@@ -90,6 +91,9 @@ fn main() {
             route_log::travel_table,
             route_log::clear_travel_log,
             sampler::sample_counters,
+            world_vault::vault_save,
+            world_vault::vault_load,
+            world_vault::vault_list,
         ])
         .setup(|app| {
             route_log::init(&app.handle())?;
